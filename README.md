@@ -38,13 +38,25 @@ Olive_ERP is a comprehensive, modular Enterprise Resource Planning (ERP) system 
    cd olive_erp
    ```
 
-2. **Set up environment variables**:
+2. **Create and activate a virtual environment**:
+   ```bash
+   # Create a virtual environment
+   python -m venv venv
+
+   # Activate on macOS/Linux
+   source venv/bin/activate
+
+   # Activate on Windows
+   venv\Scripts\activate
+   ```
+
+3. **Set up environment variables**:
    ```bash
    cp .env.example .env
    # Edit .env with your database and secret key details
    ```
 
-3. **Install dependencies**:
+4. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
