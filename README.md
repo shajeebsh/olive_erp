@@ -48,6 +48,10 @@ Olive_ERP is a comprehensive, modular Enterprise Resource Planning (ERP) system 
 
    # Activate on Windows
    venv\Scripts\activate
+
+   # Deactivate
+   deactivate
+   
    ```
 
 3. **Set up environment variables**:
