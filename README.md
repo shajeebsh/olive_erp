@@ -102,7 +102,96 @@ olive_erp/
 ├── dashboard/        # Wagtail Dashboard pages
 ├── home/             # Public CMS pages
 └── wagtailerp/       # Main project configuration
+├── reporting/        # Reporting & BI Layer (NEW)
+└── compliance/       # Tax & Compliance (NEW)
 
+## New Modules
+
+### 📊 Reporting & BI Layer
+
+A comprehensive business intelligence module that provides dynamic reporting, dashboards, and analytics across all ERP modules.
+
+**Key Features:**
+- Dynamic drag-drop report builder with saved definitions
+- Prebuilt dashboards for Finance, Inventory, HR, CRM, and Projects
+- Pivot tables, drill-down analytics, and Chart.js visualizations
+- Export to CSV, Excel, and PDF formats
+- Celery scheduled reports with email distribution
+- Role-based access control using existing Django Groups
+- REST API for report management and generation
+- Plugin system for custom report types and data sources
+- Redis caching for performance optimization
+
+**Performance:** Reports <3s, Dashboards <2s, supports 100+ users and 1M+ records
+
+### 📝 Tax & Compliance (Ireland First)
+
+Comprehensive tax and compliance module starting with Irish regulatory requirements, with extensible framework for other countries.
+
+**Irish Compliance Features:**
+- Companies Act 2014 compliance
+- CRO Annual Return (Form B1) generation
+- Corporation Tax Return (CT1) preparation
+- RBO Beneficial Ownership reporting
+- VAT Returns (VAT3) automation
+- PAYE Modernization payroll reporting
+- Financial statements preparation
+
+**Core Capabilities:**
+- Automated compliance calendar with Celery reminders
+- PDF document generator for filing-ready forms
+- Approval workflow integration (CFO → Board → File)
+- Complete audit trail for all compliance actions
+- Multi-country framework for future expansion (UK, EU)
+
+## System Architecture
+
+Olive ERP follows a **Modular Monolith Architecture** - a single codebase organized into loosely-coupled Django apps, giving you the simplicity of a monolith with the maintainability of modules.
+- Follow modular monolith pattern (existing olive_erp structure)
+- Service layer in services.py, signals for events
+- REST API using DRF
+- Use existing Django Groups for permissions
+
+Integration Points:
+- Finance → P&L, Balance Sheet, tax computations
+- Inventory → stock valuation reports
+- HR → payroll summaries, leave analytics
+- CRM → sales pipeline, customer reports
+- Projects → budget vs actual, R&D tracking
+- Company → company profile for compliance forms
+
+Performance SLAs:
+- Report generation: <3 sec (standard), <10 sec (complex)
+- Dashboard load: <2 sec
+- PDF generation: <5 sec
+- Support 100+ concurrent users
+- Handle 1M+ transaction records
+
+Security:
+- Authentication via Custom User Model
+- Authorization via Django Groups (Sales, Finance, HR, etc.)
+- Object-level permissions
+- Audit logging for compliance actions
+
+Testing:
+- Unit tests for services
+- Integration tests with existing modules
+- Performance/load tests
+- Regulatory validation (test against sample filings)
+
+===========================================================
+OUTPUT REQUIREMENTS
+===========================================================
+
+For each deliverable, provide:
+1. File path (e.g., reporting/models.py)
+2. Complete production-ready code
+3. Key design decisions explained
+4. Follow PEP 8, include docstrings
+5. Git commands for each commit
+6. Documentation content for each file
+
+Generate complete implementation for both modules with all git commands and documentation updates.
 ## System Architecture
 
 Olive ERP follows a **Modular Monolith Architecture** - a single codebase organized into loosely-coupled Django apps, giving you the simplicity of a monolith with the maintainability of modules.
