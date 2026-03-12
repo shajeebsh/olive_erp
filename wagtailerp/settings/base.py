@@ -80,12 +80,16 @@ WSGI_APPLICATION = 'wagtailerp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': 'wagtailerp',
         'USER': 'user',
         'PASSWORD': 'password',
         'HOST': 'localhost',
         'PORT': '3306',
+        'OPTIONS': {
+            'autocommit': True,
+            'use_pure': True,
+        }
     }
 }
 
