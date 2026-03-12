@@ -98,7 +98,151 @@ olive_erp/
 ├── dashboard/        # Wagtail Dashboard pages
 ├── home/             # Public CMS pages
 └── wagtailerp/       # Main project configuration
+You are designing two modules for olive_erp ERP (Django 4.2, Wagtail 5.2, MySQL 8.0, Celery, Redis). Existing modules: Finance, Inventory, HR, CRM, Projects, Purchasing. Architecture: modular monolith with service layer, signals, Wagtail dashboards.
 
+===========================================================
+MODULE 1: REPORTING & BI LAYER
+===========================================================
+
+Core Requirements:
+1. Dynamic report builder (drag-drop interface, save definitions)
+2. Prebuilt dashboards (Finance, Inventory, HR, CRM, Projects) using Chart.js
+3. Pivot tables, drill-down analytics, chart widgets
+4. Export: CSV, Excel, PDF
+5. Celery scheduled reports with email distribution
+6. Role-based access (existing Django Groups)
+7. REST API for report CRUD and generation
+8. Plugin system for custom report types
+9. Performance SLAs: reports <3s, dashboards <2s, 100+ users, 1M+ records
+10. Redis caching strategy
+
+Deliverables:
+- Architecture diagram (ASCII)
+- Django app structure: reporting/
+- Models: ReportDefinition, Dashboard, Schedule, ReportExecution
+- Database schema (star schema for analytics)
+- Service layer design with key functions
+- API endpoints with example payloads
+- Celery task design (scheduled reports, retry logic)
+- UI wireframes (ASCII) for report builder and dashboards
+- Integration points with Finance, Inventory, HR, CRM, Projects
+- Testing strategy (unit, integration, performance)
+
+===========================================================
+MODULE 2: TAX & COMPLIANCE (IRELAND FIRST)
+===========================================================
+
+Irish Requirements:
+- Companies Act 2014
+- CRO Annual Return (Form B1)
+- Corporation Tax Return (CT1)
+- RBO Beneficial Ownership
+- VAT Returns (VAT3)
+- PAYE Modernization payroll reporting
+
+Core Requirements:
+1. Generate all required forms (CRO B1, CT1, financial statements, RBO, VAT3, P60/P35)
+2. Compliance calendar with automated reminders (Celery)
+3. PDF document generator for filing-ready forms
+4. Approval workflow integration (CFO → Board → File)
+5. Complete audit trail for all changes
+6. Multi-country framework for future (UK, EU)
+
+Deliverables:
+- Architecture diagram with country framework
+- Django app structure: compliance/countries/ie/, services/, models/
+- Models: TaxPeriod, Filing, FinancialStatement, BeneficialOwner
+- Base classes: BaseTaxEngine, IrelandTaxEngine
+- Service layer: tax computation, document generation, calendar
+- API endpoints for generating filings, checking deadlines
+- PDF template design for CRO/Revenue forms
+- UI wireframes for compliance dashboard and calendar
+- Integration with Finance (trial balance), HR (payroll), Company (profile)
+- Testing strategy including regulatory validation
+
+===========================================================
+GIT & DOCUMENTATION REQUIREMENTS
+===========================================================
+
+Branch Strategy:
+1. Create feature branch: `git checkout -b feature/reporting-compliance-modules`
+2. Commit structure:
+   - feat: add reporting base models and services
+   - feat: add reporting API endpoints
+   - feat: add reporting Celery tasks
+   - feat: add compliance Ireland base framework
+   - feat: add compliance models and services
+   - feat: add compliance PDF generators
+   - docs: update documentation for both modules
+
+Documentation Updates:
+1. Update README.md with:
+   - New module descriptions under Features section
+   - Architecture diagram updates showing new modules
+   - Setup instructions for both modules
+   - Environment variables required (if any)
+
+2. Create new documentation files:
+   - docs/reporting.md: Complete user guide for reporting module
+   - docs/compliance.md: Complete user guide for compliance module
+   - docs/compliance-ireland.md: Ireland-specific compliance guide
+   - docs/developer/reporting-plugin.md: Guide for adding custom reports
+   - docs/developer/country-framework.md: Guide for adding new countries
+
+3. Update API documentation:
+   - Add new endpoints to API reference
+   - Include example requests/responses
+
+===========================================================
+CROSS-CUTTING REQUIREMENTS
+===========================================================
+
+Architecture:
+- Follow modular monolith pattern (existing olive_erp structure)
+- Service layer in services.py, signals for events
+- REST API using DRF
+- Use existing Django Groups for permissions
+
+Integration Points:
+- Finance → P&L, Balance Sheet, tax computations
+- Inventory → stock valuation reports
+- HR → payroll summaries, leave analytics
+- CRM → sales pipeline, customer reports
+- Projects → budget vs actual, R&D tracking
+- Company → company profile for compliance forms
+
+Performance SLAs:
+- Report generation: <3 sec (standard), <10 sec (complex)
+- Dashboard load: <2 sec
+- PDF generation: <5 sec
+- Support 100+ concurrent users
+- Handle 1M+ transaction records
+
+Security:
+- Authentication via Custom User Model
+- Authorization via Django Groups (Sales, Finance, HR, etc.)
+- Object-level permissions
+- Audit logging for compliance actions
+
+Testing:
+- Unit tests for services
+- Integration tests with existing modules
+- Performance/load tests
+- Regulatory validation (test against sample filings)
+
+===========================================================
+OUTPUT REQUIREMENTS
+===========================================================
+
+For each deliverable, provide:
+1. File path (e.g., reporting/models.py)
+2. Complete production-ready code
+3. Key design decisions explained
+4. Follow PEP 8, include docstrings
+5. Git commands for each commit
+6. Documentation content for each file
+
+Generate complete implementation for both modules with all git commands and documentation updates.
 ## System Architecture
 
 Olive ERP follows a **Modular Monolith Architecture** - a single codebase organized into loosely-coupled Django apps, giving you the simplicity of a monolith with the maintainability of modules.
