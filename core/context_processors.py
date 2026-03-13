@@ -47,6 +47,14 @@ def navigation_menu(request):
                 ]
             },
             {
+                'name': 'Purchasing',
+                'icon': 'bi-cart',
+                'submenu': [
+                    {'name': 'Suppliers', 'url': 'purchasing:suppliers'},
+                    {'name': 'Purchase Orders', 'url': 'purchasing:purchase_orders'},
+                ]
+            },
+            {
                 'name': 'Projects',
                 'icon': 'bi-clipboard-check',
                 'submenu': [
@@ -91,9 +99,9 @@ def navigation_menu(request):
                 'icon': 'bi-gear',
                 'submenu': [
                     {'name': 'Company Profile', 'url': 'company:profile'},
-                    {'name': 'Users & Roles', 'url': 'company:profile'},
-                    {'name': 'Settings', 'url': 'company:profile'},
-                    {'name': 'Audit Log', 'url': 'company:profile'},
+                    {'name': 'User Management', 'url': 'company:profile'},
+                    {'name': 'System Settings', 'url': 'company:profile'},
+                    {'name': 'Security Logs', 'url': 'company:profile'},
                 ]
             },
         ]

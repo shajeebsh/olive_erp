@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}New Journal Entry | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-0">New Journal Entry</h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Entry Number</label>
+                            {{ form.entry_number }}
+                            {% if form.entry_number.errors %}<div class="text-danger small">{{ form.entry_number.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Date</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_posted }}
+                            <label class="form-check-label fw-bold" for="{{ form.is_posted.id_for_label }}">Post immediately</label>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small mb-4">
+                        <i class="bi bi-info-circle me-2"></i>Note: For simplicity in this demo, you can create the entry header here. Line items should be managed via the ledger or a detailed entry interface.
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-3 border-top">
+                        <a href="{% url 'finance:journal' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Create Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

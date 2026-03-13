@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     "purchasing",
     "hr",
     "projects",
+    "compliance",
+    "reporting",
     "dashboard",
     "home",
     "wagtail.contrib.forms",
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "core.middleware.CompanySetupMiddleware",
 ]
 
 ROOT_URLCONF = "wagtailerp.urls"

@@ -3,14 +3,73 @@
 {% block title %}Employees | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Employees</h2>
+    <a href="#" class="btn btn-primary">
+        <i class="bi bi-person-plus me-2"></i>Add Employee
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Search employees by name or ID..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for employee in employees %}
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h4 class="card-title">Employees</h4>
-                <p>This is a placeholder page for Employees. Content will be added later.</p>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar-circle bg-success text-white me-3">
+                        {{ employee.user.first_name|slice:":1"|default:employee.user.username|slice:":1" }}
+                    </div>
+                    <div>
+                        <h5 class="mb-0">{{ employee.user.get_full_name|default:employee.user.username }}</h5>
+                        <p class="text-muted small mb-0">{{ employee.job_title }} | {{ employee.department.name }}</p>
+                    </div>
+                </div>
+                <div class="small">
+                    <p class="mb-2 text-muted"><i class="bi bi-badge-ad me-2 text-primary"></i>ID: <strong>{{ employee.employee_id }}</strong></p>
+                    <p class="mb-2 text-muted"><i class="bi bi-calendar-event me-2 text-primary"></i>Joined: {{ employee.hire_date }}</p>
+                    <p class="mb-0 text-muted"><i class="bi bi-wallet2 me-2 text-primary"></i>Salary: ${{ employee.salary }}</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <span class="badge bg-success-subtle text-success">Active</span>
+                    <a href="{% url 'hr:employee_edit' employee.pk %}" class="btn btn-sm btn-outline-primary">Manage</a>
+                </div>
             </div>
         </div>
     </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-people h1 text-muted d-block mb-3"></i>
+        <p class="text-muted">No employees found.</p>
+    </div>
+    {% endfor %}
 </div>
+
+<style>
+    .avatar-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+</style>
 {% endblock %}

@@ -1,16 +1,77 @@
 {% extends 'base.html' %}
 
-{% block title %}Stock | Olive ERP{% endblock %}
+{% block title %}Stock Levels | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Stock</h4>
-                <p>This is a placeholder page for Stock. Content will be added later.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Stock Levels</h2>
+    <div>
+        <a href="{% url 'inventory:movements' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-clock-history me-2"></i>Movement History
+        </a>
+        <a href="{% url 'inventory:movement_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Record Adjustment
+        </a>
+    </div>
+</div>
+
+{% if low_stock_count > 0 %}
+<div class="alert alert-warning border-0 shadow-sm d-flex align-items-center" role="alert">
+    <i class="bi bi-exclamation-triangle-fill h4 mb-0 me-3"></i>
+    <div>
+        <strong>Attention:</strong> There are {{ low_stock_count }} items below reorder level.
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control" placeholder="Search by product name or SKU..." value="{{ query }}">
             </div>
-        </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-3">Product</th>
+                    <th>Warehouse</th>
+                    <th class="text-center">On Hand</th>
+                    <th class="text-center">Reserved</th>
+                    <th class="text-center">Available</th>
+                    <th class="text-center">Reorder Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stock_levels %}
+                <tr {% if stock.quantity_on_hand <= stock.reorder_level %}class="table-warning"{% endif %}>
+                    <td class="ps-3">
+                        <div class="fw-bold">{{ stock.product.name }}</div>
+                        <div class="text-muted small">{{ stock.product.sku }}</div>
+                    </td>
+                    <td>{{ stock.warehouse.name }}</td>
+                    <td class="text-center fw-bold">{{ stock.quantity_on_hand }}</td>
+                    <td class="text-center text-muted">{{ stock.quantity_reserved }}</td>
+                    <td class="text-center {% if stock.quantity_on_hand <= stock.reorder_level %}text-danger fw-bold{% else %}text-success{% endif %}">
+                        {{ stock.quantity_on_hand|add:"-0" }}
+                    </td>
+                    <td class="text-center">{{ stock.reorder_level }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">No stock data found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

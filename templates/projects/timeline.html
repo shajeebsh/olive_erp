@@ -1,16 +1,56 @@
 {% extends 'base.html' %}
 
-{% block title %}Timeline | Olive ERP{% endblock %}
-
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Timeline</h4>
-                <p>This is a placeholder page for Timeline. Content will be added later.</p>
+<div class="container-fluid py-4">
+    <h1 class="h3 mb-4 text-gray-800">Project Timeline</h1>
+    
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="timeline">
+                {% for project in projects %}
+                <div class="timeline-item mb-4">
+                    <div class="row">
+                        <div class="col-md-2 font-weight-bold">
+                            {{ project.start_date }} - {{ project.end_date }}
+                        </div>
+                        <div class="col-md-10">
+                            <div class="card border-left-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary">{{ project.name }}</h5>
+                                    <p class="card-text text-muted small">{{ project.description|truncatewords:20 }}</p>
+                                    <span class="badge {% if project.status == 'COMPLETED' %}bg-success{% elif project.status == 'IN_PROGRESS' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ project.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center">No projects to display on timeline.</p>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.timeline-item {
+    position: relative;
+}
+.timeline-item:before {
+    content: "";
+    position: absolute;
+    left: 16.666%;
+    top: 0;
+    bottom: -1.5rem;
+    width: 2px;
+    background: #e3e6f0;
+    margin-left: -1px;
+}
+.timeline-item:last-child:before {
+    display: none;
+}
+</style>
 {% endblock %}
+ drug

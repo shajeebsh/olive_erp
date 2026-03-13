@@ -1,9 +1,81 @@
 {% extends 'base.html' %}
 
-{% block title %}Journal | Olive ERP{% endblock %}
+{% block title %}Journal Entries | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Journal</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Journal Entries</h2>
+    <a href="{% url 'finance:journal_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>New Entry
+    </a>
 </div>
+
+<!-- Search & Filter -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Search by entry number or description..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Entries -->
+{% for entry in entries %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div>
+            <span class="fw-bold me-2">{{ entry.entry_number }}</span>
+            <span class="text-muted small">{{ entry.date }}</span>
+            {% if entry.is_posted %}
+                <span class="badge bg-success-subtle text-success ms-2">Posted</span>
+            {% else %}
+                <span class="badge bg-warning-subtle text-warning ms-2">Draft</span>
+            {% endif %}
+        </div>
+        <div>
+            <span class="text-muted small">Created by {{ entry.created_by.get_full_name|default:entry.created_by.username }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="bg-light small">
+                    <tr>
+                        <th class="ps-3">Account</th>
+                        <th>Description</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end pe-3">Credit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in entry.lines.all %}
+                    <tr>
+                        <td class="ps-3">{{ line.account.code }} - {{ line.account.name }}</td>
+                        <td class="text-muted small">{{ line.description }}</td>
+                        <td class="text-end">{% if line.debit > 0 %}${{ line.debit }}{% else %}-{% endif %}</td>
+                        <td class="text-end pe-3">{% if line.credit > 0 %}${{ line.credit }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white py-3">
+        <p class="mb-0 small text-muted"><strong>Description:</strong> {{ entry.description }}</p>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-5 bg-white rounded shadow-sm">
+    <i class="bi bi-journal-text h1 text-muted d-block mb-3"></i>
+    <p class="text-muted">No journal entries found.</p>
+</div>
+{% endfor %}
 {% endblock %}
