@@ -48,6 +48,18 @@ def leave_create(request):
     return render(request, 'hr/leave_form.html', {'form': form})
 
 @login_required
+def employee_create(request):
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('hr:employees')
+    else:
+        form = EmployeeForm()
+    return render(request, 'hr/employee_form.html', {'form': form, 'action': 'Create'})
+
+
+@login_required
 def attendance(request):
     qs = Attendance.objects.select_related('employee__user').all().order_by('-date')
     context = {'attendance_list': qs}

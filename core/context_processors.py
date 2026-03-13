@@ -10,7 +10,6 @@ def navigation_menu(request):
                     {'name': 'Invoices', 'url': 'finance:invoices'},
                     {'name': 'Expenses', 'url': 'finance:expenses'},
                     {'name': 'Journal', 'url': 'finance:journal'},
-                    {'name': 'Reports', 'url': 'reporting:index'},
                 ]
             },
             {

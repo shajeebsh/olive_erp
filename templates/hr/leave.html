@@ -27,7 +27,7 @@
                 {% for request in leave_requests %}
                 <tr>
                     <td class="ps-3">
-                        <div class="fw-bold">{{ request.employee.user.get_full_name }}</div>
+                        <div class="fw-bold">{{ request.employee.user.get_full_name|default:request.employee.user.username|default:"Unknown" }}</div>
                         <div class="text-muted small">ID: {{ request.employee.employee_id }}</div>
                     </td>
                     <td>{{ request.get_leave_type_display }}</td>

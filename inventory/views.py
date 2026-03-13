@@ -78,6 +78,18 @@ def warehouses(request):
 
 
 @login_required
+def warehouse_create(request):
+    if request.method == 'POST':
+        form = WarehouseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory:warehouses')
+    else:
+        form = WarehouseForm()
+    return render(request, 'inventory/warehouse_form.html', {'form': form, 'action': 'Create'})
+
+
+@login_required
 def movements(request):
     qs = StockMovement.objects.select_related('product', 'warehouse', 'created_by').order_by('-date')
     context = {'movements': qs}

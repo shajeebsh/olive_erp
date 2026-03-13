@@ -42,7 +42,7 @@
                         {{ movement.quantity }}
                     </td>
                     <td class="small">{{ movement.reference }}</td>
-                    <td class="small text-muted">{{ movement.created_by.username }}</td>
+                    <td class="small text-muted">{{ movement.created_by.username|default:"System" }}</td>
                 </tr>
                 {% empty %}
                 <tr>

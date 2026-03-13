@@ -38,7 +38,7 @@
                         <tr>
                             <td>{{ task.name }}</td>
                             <td>{{ task.project.name }}</td>
-                            <td>{{ task.assigned_to.user.get_full_name|default:task.assigned_to.user.username }}</td>
+                            <td>{{ task.assigned_to.user.get_full_name|default:task.assigned_to.user.username|default:"Unassigned" }}</td>
                             <td>{{ task.due_date }}</td>
                             <td>
                                 <span class="badge {% if task.status == 'DONE' %}bg-success{% elif task.status == 'IN_PROGRESS' %}bg-primary{% else %}bg-secondary{% endif %}">

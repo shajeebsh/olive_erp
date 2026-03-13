@@ -116,5 +116,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "core.User"
 
+AUTHENTICATION_BACKENDS = [
+    'core.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGIN_URL = 'wagtailadmin_login'
+LOGIN_REDIRECT_URL = 'dashboard:index'
+LOGOUT_REDIRECT_URL = 'dashboard:index'
+
 WAGTAIL_SITE_NAME = "Olive_ERP"
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"

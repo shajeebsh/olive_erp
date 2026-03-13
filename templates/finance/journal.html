@@ -41,7 +41,7 @@
             {% endif %}
         </div>
         <div>
-            <span class="text-muted small">Created by {{ entry.created_by.get_full_name|default:entry.created_by.username }}</span>
+            <span class="text-muted small">Created by {% if entry.created_by %}{{ entry.created_by.get_full_name|default:entry.created_by.username }}{% else %}System{% endif %}</span>
         </div>
     </div>
     <div class="card-body p-0">

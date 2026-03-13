@@ -28,7 +28,7 @@
                 {% for log in attendance_list %}
                 <tr>
                     <td class="ps-3 fw-bold">{{ log.date }}</td>
-                    <td>{{ log.employee.user.get_full_name }}</td>
+                    <td>{{ log.employee.user.get_full_name|default:log.employee.user.username|default:"Unknown" }}</td>
                     <td>{{ log.check_in_time|time:"H:i" }}</td>
                     <td>{{ log.check_out_time|time:"H:i"|default:"-" }}</td>
                     <td class="fw-bold">{{ log.hours_worked|default:"-" }}</td>
