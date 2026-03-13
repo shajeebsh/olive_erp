@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Finance Dashboard | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Finance Dashboard</h1>
+
+    <!-- Top KPI Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">€284.5K</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-currency-euro fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- More cards here -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">P&L Trend</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="pnlTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Accounts Receivable Aging</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="arAgingChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Invoices</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>INV-001</td>
+                                    <td>Customer A</td>
+                                    <td>€1,200</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                </tr>
+                                <tr>
+                                    <td>INV-002</td>
+                                    <td>Customer B</td>
+                                    <td>€2,500</td>
+                                    <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td>INV-003</td>
+                                    <td>Customer C</td>
+                                    <td>€800</td>
+                                    <td><span class="badge bg-danger">Overdue</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const pnlTrendCtx = document.getElementById('pnlTrendChart').getContext('2d');
+    new Chart(pnlTrendCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                { label: 'Revenue', data: [12, 19, 3, 5, 2, 3], backgroundColor: '#28a745' },
+                { label: 'Expenses', data: [8, 12, 2, 3, 1, 2], backgroundColor: '#dc3545' }
+            ]
+        }
+    });
+
+    const arAgingCtx = document.getElementById('arAgingChart').getContext('2d');
+    new Chart(arAgingCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'],
+            datasets: [{
+                data: [60, 25, 10, 5],
+                backgroundColor: ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
+            }]
+        }
+    });
+</script>
+{% endblock %}

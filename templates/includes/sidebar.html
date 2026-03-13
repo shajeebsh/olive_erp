@@ -1,0 +1,23 @@
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        <a href="{% url 'dashboard:index' %}" class="sidebar-brand">🌿 Olive ERP</a>
+    </div>
+    <ul class="sidebar-nav">
+        {% for module in modules %}
+            <li class="nav-item">
+                <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu %}{{ module.submenu.0.url }}{% else %}{% url module.url %}{% endif %}">
+                    <i class="bi {{ module.icon }}"></i>
+                    <span>{{ module.name }}</span>
+                    {% if module.submenu %}<i class="bi bi-chevron-down ms-auto"></i>{% endif %}
+                </a>
+                {% if module.submenu %}
+                    <ul class="collapse submenu">
+                        {% for item in module.submenu %}
+                            <li><a class="nav-link" href="{% url item.url %}">{{ item.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>

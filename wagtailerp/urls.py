@@ -10,6 +10,8 @@ urlpatterns = [
     path('django-admin/', admin.site.urls),
     path('admin/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
+    path('dashboard/', include('dashboard.urls')),
+
     # For now, let Wagtail handle everything from the root
     path('', include(wagtail_urls)),
 ]
