@@ -3,14 +3,41 @@
 {% block title %}Warehouses | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Warehouses</h2>
+    <a href="{% url 'inventory:warehouse_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>New Warehouse
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for warehouse in warehouses %}
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h4 class="card-title">Warehouses</h4>
-                <p>This is a placeholder page for Warehouses. Content will be added later.</p>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded">
+                        <i class="bi bi-building h4 mb-0 text-primary"></i>
+                    </div>
+                    {% if warehouse.is_active %}
+                        <span class="badge bg-success-subtle text-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+                <h5 class="card-title">{{ warehouse.name }}</h5>
+                <p class="card-text text-muted small"><i class="bi bi-geo-alt me-2"></i>{{ warehouse.location }}</p>
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="{% url 'inventory:stock' %}?warehouse={{ warehouse.pk }}" class="btn btn-sm btn-outline-primary">View Stock</a>
+                    <button class="btn btn-sm btn-icon"><i class="bi bi-pencil"></i></button>
+                </div>
             </div>
         </div>
     </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No warehouses configured.</p>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

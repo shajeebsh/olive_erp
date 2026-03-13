@@ -1,16 +1,56 @@
 {% extends 'base.html' %}
 
-{% block title %}Movements | Olive ERP{% endblock %}
+{% block title %}Stock Movements | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Movements</h4>
-                <p>This is a placeholder page for Movements. Content will be added later.</p>
-            </div>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Stock Movements</h2>
+    <a href="{% url 'inventory:movement_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Record Movement
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-3">Date</th>
+                    <th>Product</th>
+                    <th>Warehouse</th>
+                    <th>Type</th>
+                    <th class="text-center">Quantity</th>
+                    <th>Reference</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movement in movements %}
+                <tr>
+                    <td class="ps-3 small text-muted">{{ movement.date }}</td>
+                    <td>
+                        <div class="fw-bold">{{ movement.product.name }}</div>
+                        <div class="small text-muted">{{ movement.product.sku }}</div>
+                    </td>
+                    <td>{{ movement.warehouse.name }}</td>
+                    <td>
+                        <span class="badge {% if movement.movement_type == 'PURCHASE' %}bg-success{% elif movement.movement_type == 'SALE' %}bg-primary{% else %}bg-info{% endif %} bg-opacity-10 text-dark border">
+                            {{ movement.get_movement_type_display }}
+                        </span>
+                    </td>
+                    <td class="text-center fw-bold {% if movement.quantity > 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ movement.quantity }}
+                    </td>
+                    <td class="small">{{ movement.reference }}</td>
+                    <td class="small text-muted">{{ movement.created_by.username|default:"System" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No movements recorded.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

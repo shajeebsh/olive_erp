@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Purchase Orders</h1>
+        <a href="{% url 'purchasing:purchase_order_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Order
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <form method="get" class="row g-3">
+                <div class="col-auto">
+                    <input type="text" name="q" class="form-control" placeholder="Search orders..." value="{{ query }}">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Supplier</th>
+                            <th>Order Date</th>
+                            <th>Expected Delivery</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in purchase_orders %}
+                        <tr>
+                            <td>{{ order.po_number }}</td>
+                            <td>{{ order.supplier.company_name }}</td>
+                            <td>{{ order.order_date }}</td>
+                            <td>{{ order.expected_delivery_date }}</td>
+                            <td>
+                                <span class="badge {% if order.status == 'RECEIVED' %}bg-success{% elif order.status == 'DRAFT' %}bg-secondary{% else %}bg-primary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>${{ order.total_amount }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">View</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No purchase orders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

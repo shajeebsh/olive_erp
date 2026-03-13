@@ -11,3 +11,4 @@ weasyprint>=60.0
 django-htmx>=1.17.0
 Pillow>=10.0.0
 gunicorn>=21.2.0
+faker==33.1.0

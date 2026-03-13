@@ -10,7 +10,6 @@ def navigation_menu(request):
                     {'name': 'Invoices', 'url': 'finance:invoices'},
                     {'name': 'Expenses', 'url': 'finance:expenses'},
                     {'name': 'Journal', 'url': 'finance:journal'},
-                    {'name': 'Reports', 'url': 'reporting:index'},
                 ]
             },
             {
@@ -44,6 +43,14 @@ def navigation_menu(request):
                     {'name': 'Leads', 'url': 'crm:leads'},
                     {'name': 'Opportunities', 'url': 'crm:opportunities'},
                     {'name': 'Activities', 'url': 'crm:activities'},
+                ]
+            },
+            {
+                'name': 'Purchasing',
+                'icon': 'bi-cart',
+                'submenu': [
+                    {'name': 'Suppliers', 'url': 'purchasing:suppliers'},
+                    {'name': 'Purchase Orders', 'url': 'purchasing:purchase_orders'},
                 ]
             },
             {
@@ -91,9 +98,9 @@ def navigation_menu(request):
                 'icon': 'bi-gear',
                 'submenu': [
                     {'name': 'Company Profile', 'url': 'company:profile'},
-                    {'name': 'Users & Roles', 'url': 'company:profile'},
-                    {'name': 'Settings', 'url': 'company:profile'},
-                    {'name': 'Audit Log', 'url': 'company:profile'},
+                    {'name': 'User Management', 'url': 'company:profile'},
+                    {'name': 'System Settings', 'url': 'company:profile'},
+                    {'name': 'Security Logs', 'url': 'company:profile'},
                 ]
             },
         ]
