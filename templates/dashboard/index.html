@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-end">
+                <a href="#" class="btn btn-primary me-2">New Invoice</a>
+                <a href="#" class="btn btn-primary me-2">+ Add Product</a>
+                <a href="#" class="btn btn-primary me-2">+ Create Project</a>
+                <a href="#" class="btn btn-primary">+ Schedule Meeting</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Stats -->
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue</h5>
+                    <p class="card-text fs-4 fw-bold">€284.5K</p>
+                    <p class="card-text text-success"><i class="bi bi-arrow-up"></i> 12.3%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Inventory</h5>
+                    <p class="card-text fs-4 fw-bold">1,234 Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">HR</h5>
+                    <p class="card-text fs-4 fw-bold">42 Employees</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">CRM</h5>
+                    <p class="card-text fs-4 fw-bold">28 Active Deals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Middle Section -->
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue Trend</h5>
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Top Products</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Product A</td><td>€12.5K</td></tr>
+                            <tr><td>Product B</td><td>€9.8K</td></tr>
+                            <tr><td>Product C</td><td>€7.2K</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Tasks</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Task 1 <span class="badge bg-warning text-dark">Pending</span></li>
+                        <li class="list-group-item">Task 2 <span class="badge bg-success">Completed</span></li>
+                        <li class="list-group-item">Task 3 <span class="badge bg-danger">Overdue</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Upcoming Deadlines</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">CRO B1 <span class="text-danger">25 Mar 2026</span></li>
+                        <li class="list-group-item">VAT Return <span class="text-warning">15 Mar 2026</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const revenueTrendCtx = document.getElementById('revenueTrendChart').getContext('2d');
+    new Chart(revenueTrendCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Revenue',
+                data: [12000, 19000, 3000, 5000, 20000, 30000],
+                borderColor: '#6B8E4D',
+                tension: 0.1
+            }]
+        }
+    });
+</script>
+{% endblock %}

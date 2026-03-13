@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Dashboard | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Inventory Dashboard</h1>
+
+    <!-- Top Stats -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total SKUs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">1,234</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-box fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- More cards here -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Stock by Category</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="stockByCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="topSellingProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Low Stock Alerts</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>In Stock</th>
+                                    <th>Reorder Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Product D</td>
+                                    <td>SKU-004</td>
+                                    <td><span class="badge bg-warning text-dark">5</span></td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>Product E</td>
+                                    <td>SKU-005</td>
+                                    <td><span class="badge bg-danger">2</span></td>
+                                    <td>5</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const stockByCategoryCtx = document.getElementById('stockByCategoryChart').getContext('2d');
+    new Chart(stockByCategoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Category A', 'Category B', 'Category C'],
+            datasets: [{
+                data: [300, 50, 100],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
+            }]
+        }
+    });
+
+    const topSellingProductsCtx = document.getElementById('topSellingProductsChart').getContext('2d');
+    new Chart(topSellingProductsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Product A', 'Product B', 'Product C'],
+            datasets: [{
+                label: 'Units Sold',
+                data: [120, 90, 75],
+                backgroundColor: '#4e73df'
+            }]
+        },
+        options: {
+            indexAxis: 'y'
+        }
+    });
+</script>
+{% endblock %}

@@ -4,6 +4,7 @@ Olive_ERP is a comprehensive, modular Enterprise Resource Planning (ERP) system 
 
 ## Key Features
 
+- **Modern UI/UX**: A stunning, intuitive navigation system for all 10+ modules with beautiful dashboards for each module with Chart.js visualizations.
 - **Finance & Accounting**: Full double-entry ledger, hierarchical chart of accounts, and multi-currency support.
 - **Inventory Management**: Product master, warehouse tracking, stock levels, and automated movements.
 - **Sales & CRM**: Customer profiles, Sales Orders, Quotations, and automated invoicing.

@@ -1,17 +1,25 @@
 from django.conf import settings
-from django.urls import include, path
 from django.contrib import admin
-
-from wagtail.admin import urls as wagtailadmin_urls
+from django.urls import include, path
 from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [
-    path('django-admin/', admin.site.urls),
-    path('admin/', include(wagtailadmin_urls)),
-    path('documents/', include(wagtaildocs_urls)),
+    path("django-admin/", admin.site.urls),
+    path("admin/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
+    path("", include("dashboard.urls")),
+    path("finance/", include("finance.urls")),
+    path("inventory/", include("inventory.urls")),
+    path("hr/", include("hr.urls")),
+    path("crm/", include("crm.urls")),
+    path("projects/", include("projects.urls")),
+    path("reporting/", include("reporting.urls")),
+    path("compliance/", include("compliance.urls")),
+    path("company/", include("company.urls")),
     # For now, let Wagtail handle everything from the root
-    path('', include(wagtail_urls)),
+    path("cms/", include(wagtail_urls)),
 ]
 
 if settings.DEBUG:

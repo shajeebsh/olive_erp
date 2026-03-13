@@ -1,0 +1,36 @@
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        <a href="{% url 'dashboard:index' %}" class="sidebar-brand">🌿 Olive ERP</a>
+    </div>
+    <ul class="sidebar-nav">
+        {% for module in modules %}
+            <li class="nav-item">
+                {% if not module.submenu %}
+                    <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% url module.url %}">
+                        <i class="bi {{ module.icon }}"></i>
+                        <span>{{ module.name }}</span>
+                    </a>
+                {% else %}
+                    <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu.0.url %}{% url module.submenu.0.url %}{% elif module.submenu.0.submenu.0.url %}{% url module.submenu.0.submenu.0.url %}{% else %}#{% endif %}">
+                        <i class="bi {{ module.icon }}"></i>
+                        <span>{{ module.name }}</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    
+                    <ul class="collapse submenu">
+                        {% for item in module.submenu %}
+                            {% if item.submenu %}
+                                <li class="submenu-header">{{ item.name }}</li>
+                                {% for subitem in item.submenu %}
+                                    <li><a class="nav-link ps-4" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
+                                {% endfor %}
+                            {% else %}
+                                <li><a class="nav-link" href="{% if item.url %}{% url item.url %}{% else %}#{% endif %}">{{ item.name }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
