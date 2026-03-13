@@ -5,7 +5,7 @@
     <ul class="sidebar-nav">
         {% for module in modules %}
             <li class="nav-item">
-                <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu %}{{ module.submenu.0.url }}{% else %}{% url module.url %}{% endif %}">
+                <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu %}{% url module.submenu.0.url %}{% else %}{% url module.url %}{% endif %}">
                     <i class="bi {{ module.icon }}"></i>
                     <span>{{ module.name }}</span>
                     {% if module.submenu %}<i class="bi bi-chevron-down ms-auto"></i>{% endif %}
