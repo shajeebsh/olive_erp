@@ -5,5 +5,112 @@
 {% block content %}
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">CRM Dashboard</h1>
+
+    <!-- Top Stats -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Active Leads</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">28</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check-fill fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- More cards here -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sales Pipeline</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesPipelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Deals</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyDealsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Opportunities</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Opportunity</th>
+                                    <th>Customer</th>
+                                    <th>Value</th>
+                                    <th>Probability</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Opp-001</td>
+                                    <td>Customer D</td>
+                                    <td>€15,000</td>
+                                    <td>75%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    const salesPipelineCtx = document.getElementById('salesPipelineChart').getContext('2d');
+    new Chart(salesPipelineCtx, {
+        type: 'funnel',
+        data: {
+            labels: ['Leads', 'Qualified', 'Proposal', 'Won'],
+            datasets: [{
+                label: 'Sales Pipeline',
+                data: [100, 75, 50, 25],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+            }]
+        }
+    });
+
+    const monthlyDealsCtx = document.getElementById('monthlyDealsChart').getContext('2d');
+    new Chart(monthlyDealsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Deals',
+                data: [5, 8, 12, 10, 15, 18],
+                borderColor: '#4e73df',
+                tension: 0.1
+            }]
+        }
+    });
+</script>

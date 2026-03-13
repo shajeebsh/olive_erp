@@ -5,5 +5,111 @@
 {% block content %}
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Projects Dashboard</h1>
+
+    <!-- Top Stats -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Overdue Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">2</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-exclamation-triangle-fill fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- More cards here -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Project Status</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="projectStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resource Allocation</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="resourceAllocationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Active Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Project</th>
+                                    <th>Assignee</th>
+                                    <th>Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Task 1</td>
+                                    <td>Project A</td>
+                                    <td>John Doe</td>
+                                    <td>2026-03-20</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const projectStatusCtx = document.getElementById('projectStatusChart').getContext('2d');
+    new Chart(projectStatusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Project A', 'Project B', 'Project C'],
+            datasets: [{
+                label: 'Completion',
+                data: [75, 50, 25],
+                backgroundColor: '#4e73df'
+            }]
+        }
+    });
+
+    const resourceAllocationCtx = document.getElementById('resourceAllocationChart').getContext('2d');
+    new Chart(resourceAllocationCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Team A', 'Team B', 'Team C'],
+            datasets: [{
+                data: [40, 30, 30],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
+            }]
+        }
+    });
+</script>
 {% endblock %}

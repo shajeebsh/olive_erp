@@ -5,5 +5,117 @@
 {% block content %}
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">HR Dashboard</h1>
+
+    <!-- Top Stats -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">42</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people-fill fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- More cards here -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Department Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Leave Balances by Dept</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="leaveBalancesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pending Leave Requests</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Dates</th>
+                                    <th>Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>John Doe</td>
+                                    <td>2026-03-20 to 2026-03-25</td>
+                                    <td>Vacation</td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm">Approve</button>
+                                        <button class="btn btn-danger btn-sm">Reject</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const departmentDistributionCtx = document.getElementById('departmentDistributionChart').getContext('2d');
+    new Chart(departmentDistributionCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Sales', 'Engineering', 'Marketing', 'HR'],
+            datasets: [{
+                label: 'Employees',
+                data: [15, 12, 8, 7],
+                backgroundColor: '#4e73df'
+            }]
+        },
+        options: {
+            indexAxis: 'y'
+        }
+    });
+
+    const leaveBalancesCtx = document.getElementById('leaveBalancesChart').getContext('2d');
+    new Chart(leaveBalancesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sales', 'Engineering', 'Marketing', 'HR'],
+            datasets: [{
+                data: [120, 90, 60, 40],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+            }]
+        }
+    });
+</script>
 {% endblock %}
