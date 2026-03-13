@@ -4,4 +4,6 @@ from . import views
 
 app_name = "company"
 
-urlpatterns = []
+urlpatterns = [
+    path('profile/', views.profile, name='profile'),
+]

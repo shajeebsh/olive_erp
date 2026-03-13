@@ -91,9 +91,9 @@ def navigation_menu(request):
                 'icon': 'bi-gear',
                 'submenu': [
                     {'name': 'Company Profile', 'url': 'company:profile'},
-                    {'name': 'Users & Roles', 'url': 'admin:users'},
-                    {'name': 'Settings', 'url': 'admin:settings'},
-                    {'name': 'Audit Log', 'url': 'admin:audit'},
+                    {'name': 'Users & Roles', 'url': 'company:profile'},
+                    {'name': 'Settings', 'url': 'company:profile'},
+                    {'name': 'Audit Log', 'url': 'company:profile'},
                 ]
             },
         ]

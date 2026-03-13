@@ -5,15 +5,28 @@
     <ul class="sidebar-nav">
         {% for module in modules %}
             <li class="nav-item">
-                <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu %}{% url module.submenu.0.url %}{% else %}{% url module.url %}{% endif %}">
-                    <i class="bi {{ module.icon }}"></i>
-                    <span>{{ module.name }}</span>
-                    {% if module.submenu %}<i class="bi bi-chevron-down ms-auto"></i>{% endif %}
-                </a>
-                {% if module.submenu %}
+                {% if not module.submenu %}
+                    <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% url module.url %}">
+                        <i class="bi {{ module.icon }}"></i>
+                        <span>{{ module.name }}</span>
+                    </a>
+                {% else %}
+                    <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu.0.url %}{% url module.submenu.0.url %}{% elif module.submenu.0.submenu.0.url %}{% url module.submenu.0.submenu.0.url %}{% else %}#{% endif %}">
+                        <i class="bi {{ module.icon }}"></i>
+                        <span>{{ module.name }}</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    
                     <ul class="collapse submenu">
                         {% for item in module.submenu %}
-                            <li><a class="nav-link" href="{% url item.url %}">{{ item.name }}</a></li>
+                            {% if item.submenu %}
+                                <li class="submenu-header">{{ item.name }}</li>
+                                {% for subitem in item.submenu %}
+                                    <li><a class="nav-link ps-4" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
+                                {% endfor %}
+                            {% else %}
+                                <li><a class="nav-link" href="{% if item.url %}{% url item.url %}{% else %}#{% endif %}">{{ item.name }}</a></li>
+                            {% endif %}
                         {% endfor %}
                     </ul>
                 {% endif %}
