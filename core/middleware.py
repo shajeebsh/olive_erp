@@ -12,24 +12,15 @@ class CompanySetupMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Exclude specific paths from redirection to avoid infinite loops
         path = request.path_info
-        
-        # Don't redirect static files, admin, or the setup URLs themselves
         excluded_prefixes = [
-            '/static/',
-            '/media/',
-            '/admin/',
-            '/setup/',
-            '/company/setup/',
-            '/accounts/login/',
-            '/accounts/logout/',
+            '/static/', '/media/', '/admin/', '/setup/', '/company/setup/',
+            '/accounts/login/', '/accounts/logout/',
         ]
-        
         if not any(path.startswith(prefix) for prefix in excluded_prefixes):
             if request.user.is_authenticated:
                 if not CompanyProfile.objects.exists():
                     return redirect(reverse('company:setup'))
-
+        
         response = self.get_response(request)
         return response

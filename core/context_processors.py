@@ -1,5 +1,8 @@
+from company.models import CompanyProfile
+
 def navigation_menu(request):
     return {
+        'company': CompanyProfile.objects.first(),
         'modules': [
             {'name': 'Dashboard', 'url': 'dashboard:index', 'icon': 'bi-house-door'},
             {
