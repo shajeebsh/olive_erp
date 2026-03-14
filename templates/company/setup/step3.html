@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Step 3: {{ country.name }} Tax Configuration</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="alert alert-info mb-4">
+                            <ul class="mb-0 list-unstyled">
+                                <li><strong>Country:</strong> {{ country.name }}</li>
+                                <li><strong>Tax System:</strong> {{ country.tax_name }}</li>
+                                <li><strong>Currency:</strong> {{ country.currency }}</li>
+                            </ul>
+                        </div>
+
+                        {% if messages %}
+                        <div class="messages mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Tax Registration Number</label>
+                            <input type="text" name="tax_number" class="form-control"
+                                   placeholder="e.g., IE1234567A" required>
+                            <small class="text-muted d-block mt-1">
+                                Enter your {{ country.tax_name }} registration number
+                            </small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Default Tax Rate</label>
+                            <select name="selected_rates" class="form-select">
+                                {% for rate in country.tax_rates %}
+                                    <option value="{{ rate.rate }}">
+                                        {{ rate.rate }}% - {{ rate.description }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold">Tax Period</label>
+                            <select name="tax_period" class="form-select">
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="annual">Annual</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'company:setup_features' %}" class="btn btn-outline-secondary">Back</a>
+                            <button type="submit" class="btn btn-success">Complete Setup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

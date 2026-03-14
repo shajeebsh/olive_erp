@@ -62,6 +62,19 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),  # midnight daily
     },
 }
+# Country framework settings
+COUNTRY_CONFIG = {
+    'DEFAULT_COUNTRY': 'IE',
+    'AUTO_DISCOVER_COUNTRIES': True,
+    'COUNTRY_MODULES_PATH': 'compliance.countries',
+}
+
+# Tax calculation settings
+TAX_SETTINGS = {
+    'DECIMAL_PLACES': 2,
+    'ROUNDING_METHOD': 'round_half_up',  # or 'round_up', 'round_down'
+    'INCLUDE_TAX_IN_PRICE': False,  # True for countries where tax is included
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

@@ -3,8 +3,8 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, FormView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import CompanyProfile, Currency
-from .forms import CompanyProfileForm
-
+from .forms import CompanyProfileForm, FeatureSelectionForm
+from django.contrib import messages
 
 class CompanySetupView(LoginRequiredMixin, FormView):
     template_name = 'company/setup/step1_company.html'
@@ -24,22 +24,70 @@ class CompanySetupView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class FeatureSetupView(LoginRequiredMixin, TemplateView):
-    template_name = 'company/setup/step2_features.html'
+class SetupStep2View(LoginRequiredMixin, FormView):
+    """Step 2: Select country and configure features"""
+    template_name = 'company/setup/step2.html'
+    form_class = FeatureSelectionForm
+    success_url = reverse_lazy('company:setup_step3')
 
-    def dispatch(self, request, *args, **kwargs):
-        if not CompanyProfile.objects.exists():
-            return redirect('company:setup')
-        return super().dispatch(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from compliance.registry import registry
+        
+        # Get all available countries
+        context['countries'] = registry.get_all_countries()
+        
+        # Get selected country from session
+        context['selected_country'] = self.request.session.get('setup_country', 'IE')
+        
+        return context
+
+    def form_valid(self, form):
+        # Store country selection in session
+        self.request.session['setup_country'] = form.cleaned_data['country']
+        self.request.session['setup_features'] = form.cleaned_data['features']
+        return super().form_valid(form)
+
+
+class SetupStep3View(LoginRequiredMixin, TemplateView):
+    """Step 3: Country-specific configuration"""
+    template_name = 'company/setup/step3.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        country_code = self.request.session.get('setup_country', 'IE')
+        
+        from compliance.registry import registry
+        engine = registry.get_tax_engine(country_code)
+        
+        if engine:
+            context['country'] = {
+                'code': country_code,
+                'name': engine.country_name,
+                'tax_name': engine.tax_name,
+                'currency': engine.currency_code,
+                'tax_rates': engine.get_tax_rates(),
+            }
+            
+        return context
 
     def post(self, request, *args, **kwargs):
-        load_sample = request.POST.get('load_sample_data') == 'on'
-        if load_sample:
-            # In a real scenario, we might trigger a background task
-            # For this MVP, we redirect to a completion page that handles it or provides instructions
-            pass
+        country_code = request.session.get('setup_country', 'IE')
+        tax_number = request.POST.get('tax_number')
+        
+        from compliance.registry import registry
+        is_valid, message = registry.validate_tax_number(country_code, tax_number)
+        
+        if not is_valid:
+            messages.error(request, message)
+            return self.get(request, *args, **kwargs)
             
+        # Store in company profile (will be saved in final step)
+        request.session['setup_tax_number'] = tax_number
+        request.session['setup_tax_rates'] = request.POST.get('selected_rates')
+        
         return redirect('company:setup_complete')
+
 
 
 class SetupCompleteView(LoginRequiredMixin, TemplateView):
