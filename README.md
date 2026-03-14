@@ -108,6 +108,26 @@ olive_erp/
 
 ## New Modules
 
+### 💰 Universal Core Accounting (Phase 1)
+
+A robust, country-agnostic financial core designed to handle complex double-entry accounting, advanced invoicing, and organizational structure tracking.
+
+**Core Financial Features:**
+- **Enhanced Chart of Accounts**: Hierarchical account structures tailored for global accounting principles.
+- **Cost Centres & Budgeting**: Departmental expense allocation and variance tracking against planned budgets.
+- **Advanced Invoicing**: Price lists, discount rules, recurring invoice schedules via Celery, and multi-line item tracking with auto-computed taxes and discounts.
+- **Bill-wise Outstanding Tracking**: Strict tracking of invoices against payments (FIFO or manual allocation).
+- **Credit / Debit Notes**: Formal adjustment workflows for customer balance corrections.
+- **Invoice Templates**: Customizable layouts for PDF rendering.
+
+**Security & Audit:**
+- **Role-Based Access Control**: Granular `PermissionMiddleware` restricting actions based on company-specific `UserRole` assignments.
+- **Audit Trail**: Silent `AuditMiddleware` tracking all CUD (Create, Update, Delete) operations across the system with user, IP, and payload tracking.
+
+**Global System Features:**
+- **Keyboard Shortcuts**: System-wide navigation via JavaScript global event listeners (e.g., `Alt+G` for Quick Search).
+- **System Configurator**: Accounting behavior toggles (equivalent to F11/F12 settings) for enabling modules like Cost Centres, Bill-wise Details, or Budgets per company.
+
 ### 📊 Reporting & BI Layer
 
 A comprehensive business intelligence module that provides dynamic reporting, dashboards, and analytics across all ERP modules.
