@@ -6,21 +6,22 @@ from .models import CompanyProfile, Currency
 from .forms import CompanyProfileForm
 
 
-class CompanySetupView(LoginRequiredMixin, CreateView):
-    model = CompanyProfile
-    form_class = CompanyProfileForm
+class CompanySetupView(LoginRequiredMixin, FormView):
     template_name = 'company/setup/step1_company.html'
+    form_class = CompanyProfileForm
     success_url = reverse_lazy('company:setup_features')
 
-    def dispatch(self, request, *args, **kwargs):
-        if CompanyProfile.objects.exists():
-            return redirect('dashboard:index')
-        return super().dispatch(request, *args, **kwargs)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        instance = CompanyProfile.objects.first()
+        if instance:
+            kwargs.update({'instance': instance})
+        return kwargs
 
     def form_valid(self, form):
-        response = super().form_valid(form)
+        self.object = form.save()
         self.request.session['company_id'] = self.object.id
-        return response
+        return super().form_valid(form)
 
 
 class FeatureSetupView(LoginRequiredMixin, TemplateView):
@@ -34,11 +35,20 @@ class FeatureSetupView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         load_sample = request.POST.get('load_sample_data') == 'on'
         if load_sample:
-            # We will handle calling the command in a clean way or advise manual run
-            # For this MVP, we capture the preference or just redirect
+            # In a real scenario, we might trigger a background task
+            # For this MVP, we redirect to a completion page that handles it or provides instructions
             pass
             
-        return redirect('dashboard:index')
+        return redirect('company:setup_complete')
+
+
+class SetupCompleteView(LoginRequiredMixin, TemplateView):
+    template_name = 'company/setup/complete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['company'] = CompanyProfile.objects.first()
+        return context
 
 
 def profile(request):

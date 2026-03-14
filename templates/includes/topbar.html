@@ -13,15 +13,23 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="{% url 'company:setup' %}">Setup Wizard</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{% url 'admin:logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item">Logout</button>
-                        </form>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
+                    {% if user.is_authenticated %}
+                        <li class="px-3 py-2 small fw-bold text-muted border-bottom mb-2">
+                            Signed in as:<br>
+                            <span class="text-dark">{{ user.username|default:user.email }}</span>
+                        </li>
+                        <li><a class="dropdown-item" href="{% url 'company:setup' %}"><i class="bi bi-gear me-2"></i>Setup Wizard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" id="logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li><a class="dropdown-item" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+                    {% endif %}
                 </ul>
             </li>
         </ul>

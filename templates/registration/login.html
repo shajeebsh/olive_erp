@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login | Olive ERP{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="col-md-5 col-lg-4">
+        <div class="text-center mb-4">
+            <h1 class="h3 fw-bold text-success">🌿 Olive ERP</h1>
+            <p class="text-muted">Enter your credentials to access your account</p>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                {% if form.errors %}
+                    <div class="alert alert-danger small">
+                        Your username and password didn't match. Please try again.
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label small fw-bold">Username or Email</label>
+                        <input type="text" name="username" autofocus maxlength="254" class="form-control bg-light border-0 py-2" required id="id_username" placeholder="admin@example.com">
+                    </div>
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label small fw-bold">Password</label>
+                        <input type="password" name="password" class="form-control bg-light border-0 py-2" required id="id_password" placeholder="••••••••">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success py-2 fw-bold">Sign In</button>
+                    </div>
+                    
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+                
+                <div class="mt-4 text-center">
+                    <a href="{% url 'password_reset' %}" class="text-decoration-none small text-muted">Forgot password?</a>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-center mt-4 small text-muted">
+            &copy; 2026 Olive Tech Solutions Ltd.
+        </p>
+    </div>
+</div>
+
+<style>
+    body { background-color: #f8f9fa !important; }
+    .card { border-radius: 1rem; }
+    .form-control:focus { background-color: #fff !important; box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.1); }
+</style>
+{% endblock %}
+
+{% block footer %}{% endblock %}

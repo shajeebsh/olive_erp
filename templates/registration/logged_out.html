@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Logged Out | Olive ERP{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="col-md-5 col-lg-4 text-center">
+        <div class="mb-4">
+            <div class="display-1 text-success mb-3"><i class="bi bi-check2-circle"></i></div>
+            <h1 class="h3 fw-bold">Logged Out</h1>
+            <p class="text-muted">You have been successfully logged out of Olive ERP.</p>
+        </div>
+        
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <p>Thank you for using Olive ERP today.</p>
+                <div class="d-grid">
+                    <a href="{% url 'login' %}" class="btn btn-success fw-bold">Sign In Again</a>
+                </div>
+            </div>
+        </div>
+        
+        <p class="small text-muted">
+            &copy; 2026 Olive Tech Solutions Ltd.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
