@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Account Detail: {{ object.name }}</h1>
+        <div>
+            <a href="{% url 'finance:account_update' object.pk %}" class="btn btn-sm btn-warning shadow-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Edit
+            </a>
+            <a href="{% url 'finance:account_list' %}" class="btn btn-sm btn-secondary shadow-sm ml-2">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Account Info Card -->
+        <div class="col-xl-4 col-md-5 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="h2 font-weight-bold text-gray-800">{{ current_balance|floatformat:2 }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1 text-secondary">Current Balance</div>
+                    </div>
+                    <hr>
+                    <div class="mb-2">
+                        <span class="font-weight-bold text-dark">Code:</span>
+                        <span class="float-right">{{ object.code }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-weight-bold text-dark">Type:</span>
+                        <span class="float-right badge bg-primary">{{ object.account_type }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-weight-bold text-dark">Group Type:</span>
+                        <span class="float-right">{{ object.group_type }}</span>
+                    </div>
+                    {% if object.parent %}
+                    <div class="mb-2">
+                        <span class="font-weight-bold text-dark">Parent:</span>
+                        <span class="float-right"><a href="{% url 'finance:account_detail' object.parent.pk %}">{{ object.parent.name }}</a></span>
+                    </div>
+                    {% endif %}
+                    <div class="mb-2">
+                        <span class="font-weight-bold text-dark">Status:</span>
+                        <span class="float-right">
+                            {% if object.is_active %}
+                            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                            {% else %}
+                            <span class="text-danger"><i class="fas fa-times-circle mr-1"></i> Inactive</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if object.notes %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Notes</h6>
+                </div>
+                <div class="card-body small">
+                    {{ object.notes|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Transactions Card -->
+        <div class="col-xl-8 col-md-7 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Transactions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Ref No.</th>
+                                    <th>Description</th>
+                                    <th class="text-right">Debit</th>
+                                    <th class="text-right">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in recent_transactions %}
+                                <tr>
+                                    <td>{{ line.journal_entry.date|date:"d M Y" }}</td>
+                                    <td><a href="#">{{ line.journal_entry.entry_number }}</a></td>
+                                    <td>{{ line.description|truncatechars:30 }}</td>
+                                    <td class="text-right">{% if line.debit > 0 %}{{ line.debit|floatformat:2 }}{% else %}-{% endif %}</td>
+                                    <td class="text-right">{% if line.credit > 0 %}{{ line.credit|floatformat:2 }}{% else %}-{% endif %}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No transactions found for this account.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

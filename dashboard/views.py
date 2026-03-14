@@ -2,10 +2,22 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from company.models import CompanyProfile
 
+from reporting.models import DashboardWidget
+
 @login_required
 def index(request):
-    company = CompanyProfile.objects.first()
-    return render(request, 'dashboard/index.html', {'company': company})
+    company = getattr(request.user, 'company', None)
+    if not company:
+        company = CompanyProfile.objects.first()
+        
+    # Feature 12: Dynamic Dashboard Widgets
+    widgets = DashboardWidget.objects.filter(is_active=True).order_by('order')
+    
+    context = {
+        'company': company,
+        'widgets': widgets,
+    }
+    return render(request, 'dashboard/index.html', context)
 
 @login_required
 def finance_dashboard(request):

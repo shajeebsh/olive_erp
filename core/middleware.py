@@ -24,3 +24,49 @@ class CompanySetupMiddleware:
         
         response = self.get_response(request)
         return response
+
+
+class AuditMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        
+        if request.user.is_authenticated and request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            from .models import AuditLog
+            # Simple audit log for write operations
+            AuditLog.objects.create(
+                user=request.user,
+                action=request.method,
+                model_name="Request",
+                object_id="N/A",
+                object_repr=request.path_info,
+                ip_address=self.get_client_ip(request)
+            )
+        return response
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+
+class PermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            # Attach permissions to request for easy access in templates/views
+            company = getattr(request.user, 'company', None)
+            if company:
+                request.company_permissions = request.user.get_company_permissions(company)
+            else:
+                request.company_permissions = set()
+        
+        response = self.get_response(request)
+        return response

@@ -1,0 +1,21 @@
+{% if results %}
+<div class="list-group list-group-flush">
+    {% for res in results %}
+    <a href="{{ res.url }}" class="list-group-item list-group-item-action py-3">
+        <div class="d-flex align-items-center">
+            <div class="me-3 text-primary">
+                <i class="{{ res.icon|default:'bi bi-search' }}"></i>
+            </div>
+            <div>
+                <div class="small text-muted fw-bold">{{ res.category }}</div>
+                <div>{{ res.title }}</div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="p-3 text-center text-muted small">
+    No results found. Try typing more characters.
+</div>
+{% endif %}

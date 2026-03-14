@@ -58,6 +58,8 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "core.middleware.CompanySetupMiddleware",
+    "core.middleware.AuditMiddleware",
+    "core.middleware.PermissionMiddleware",
 ]
 
 ROOT_URLCONF = "wagtailerp.urls"
