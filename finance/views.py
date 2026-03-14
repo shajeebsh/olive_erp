@@ -13,6 +13,13 @@ from .models import (
     InvoiceTemplate, SystemConfig
 )
 
+def get_user_company(request):
+    if not hasattr(request.user, "company") or not request.user.company:
+        from company.models import CompanyProfile
+        return CompanyProfile.objects.first()
+    return request.user.company
+
+
 class InvoiceListView(LoginRequiredMixin, ListView):
     model = Invoice
     template_name = 'finance/invoices.html'
@@ -103,20 +110,20 @@ class AccountListView(LoginRequiredMixin, ListView):
     paginate_by = 50
     
     def get_queryset(self):
-        if hasattr(self.request.user, 'company') and self.request.user.company:
+        if hasattr(self.request.user, 'company') and get_user_company(self.request):
             return Account.objects.filter(
-                company=self.request.user.company
+                company=get_user_company(self.request)
             ).select_related('parent').order_by('code')
         return Account.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if hasattr(self.request.user, 'company') and self.request.user.company:
+        if hasattr(self.request.user, 'company') and get_user_company(self.request):
             # Group accounts by type for tree view
             accounts_by_type = {}
             for account_type, _ in Account.ACCOUNT_TYPES:
                 accounts_by_type[account_type] = Account.objects.filter(
-                    company=self.request.user.company,
+                    company=get_user_company(self.request),
                     account_type=account_type
                 ).select_related('parent')
             context['accounts_by_type'] = accounts_by_type
@@ -130,11 +137,11 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['company'] = self.request.user.company
+        kwargs['company'] = get_user_company(self.request)
         return kwargs
     
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Account created successfully')
         return super().form_valid(form)
 
@@ -146,7 +153,7 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['company'] = self.request.user.company
+        kwargs['company'] = get_user_company(self.request)
         return kwargs
     
     def form_valid(self, form):
@@ -175,7 +182,7 @@ class CostCentreListView(LoginRequiredMixin, ListView):
     context_object_name = 'cost_centres'
     
     def get_queryset(self):
-        return CostCentre.objects.filter(company=self.request.user.company)
+        return CostCentre.objects.filter(company=get_user_company(self.request))
 
 
 class CostCentreCreateView(LoginRequiredMixin, CreateView):
@@ -185,7 +192,7 @@ class CostCentreCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:costcentre_list')
     
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Cost Centre created successfully')
         return super().form_valid(form)
 
@@ -196,7 +203,7 @@ class BudgetListView(LoginRequiredMixin, ListView):
     context_object_name = 'budgets'
     
     def get_queryset(self):
-        return Budget.objects.filter(company=self.request.user.company)
+        return Budget.objects.filter(company=get_user_company(self.request))
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -216,16 +223,16 @@ class BudgetCreateView(LoginRequiredMixin, CreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['account'].queryset = Account.objects.filter(
-            company=self.request.user.company,
+            company=get_user_company(self.request),
             account_type__in=['Income', 'Expense']
         )
         form.fields['cost_centre'].queryset = CostCentre.objects.filter(
-            company=self.request.user.company
+            company=get_user_company(self.request)
         )
         return form
     
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Budget created successfully')
         return super().form_valid(form)
 
@@ -236,7 +243,7 @@ class PriceListView(LoginRequiredMixin, ListView):
     context_object_name = 'price_lists'
 
     def get_queryset(self):
-        return PriceList.objects.filter(company=self.request.user.company)
+        return PriceList.objects.filter(company=get_user_company(self.request))
 
 
 class PriceListCreateView(LoginRequiredMixin, CreateView):
@@ -246,7 +253,7 @@ class PriceListCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:pricelist_list')
 
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         return super().form_valid(form)
 
 
@@ -256,7 +263,7 @@ class DiscountRuleListView(LoginRequiredMixin, ListView):
     context_object_name = 'rules'
 
     def get_queryset(self):
-        return DiscountRule.objects.filter(company=self.request.user.company)
+        return DiscountRule.objects.filter(company=get_user_company(self.request))
 
 
 class DiscountRuleCreateView(LoginRequiredMixin, CreateView):
@@ -266,7 +273,7 @@ class DiscountRuleCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:discountrule_list')
 
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         return super().form_valid(form)
 
 
@@ -276,7 +283,7 @@ class RecurringInvoiceListView(LoginRequiredMixin, ListView):
     context_object_name = 'recurring_invoices'
 
     def get_queryset(self):
-        return RecurringInvoice.objects.filter(company=self.request.user.company)
+        return RecurringInvoice.objects.filter(company=get_user_company(self.request))
 
 
 class RecurringInvoiceCreateView(LoginRequiredMixin, CreateView):
@@ -286,7 +293,7 @@ class RecurringInvoiceCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:recurring_invoice_list')
 
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         # Dummy values for mandatory fields not in form
         form.instance.subtotal = 0
         form.instance.tax_amount = 0
@@ -301,7 +308,7 @@ class CreditDebitNoteListView(LoginRequiredMixin, ListView):
     context_object_name = 'notes'
 
     def get_queryset(self):
-        return CreditDebitNote.objects.filter(company=self.request.user.company)
+        return CreditDebitNote.objects.filter(company=get_user_company(self.request))
 
 
 class CreditDebitNoteCreateView(LoginRequiredMixin, CreateView):
@@ -311,7 +318,7 @@ class CreditDebitNoteCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:note_list')
 
     def form_valid(self, form):
-        form.instance.company = self.request.user.company
+        form.instance.company = get_user_company(self.request)
         return super().form_valid(form)
 
 
@@ -321,21 +328,29 @@ class InvoiceTemplateListView(LoginRequiredMixin, ListView):
     context_object_name = 'templates'
 
     def get_queryset(self):
-        return InvoiceTemplate.objects.filter(company=self.request.user.company)
+        return InvoiceTemplate.objects.filter(company=get_user_company(self.request))
 
 
 class SystemConfigUpdateView(LoginRequiredMixin, UpdateView):
     model = SystemConfig
-    fields = ['base_currency', 'fiscal_year_start', 'enable_cost_centres', 
-              'enable_budgets', 'enable_billwise_details', 'invoice_prefix', 
+    fields = ['base_currency', 'fiscal_year_start', 'enable_cost_centres',
+              'enable_budgets', 'enable_billwise_details', 'invoice_prefix',
               'stock_valuation_method', 'enable_audit_trail']
     template_name = 'finance/system_config.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('dashboard:index')
 
     def get_object(self, queryset=None):
-        obj, created = SystemConfig.objects.get_or_create(company=self.request.user.company)
+        # Resolve the company — fall back to the first one if the user has no company FK
+        company = getattr(self.request.user, 'company', None)
+        if not company:
+            from company.models import CompanyProfile
+            company = CompanyProfile.objects.first()
+        if not company:
+            from django.http import Http404
+            raise Http404("No company profile found. Please complete setup first.")
+        obj, _ = SystemConfig.objects.get_or_create(company=company)
         return obj
 
     def form_valid(self, form):
-        messages.success(self.request, 'System configuration updated')
+        messages.success(self.request, 'System configuration updated successfully.')
         return super().form_valid(form)

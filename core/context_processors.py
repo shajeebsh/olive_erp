@@ -10,9 +10,23 @@ def navigation_menu(request):
                 'icon': 'bi-cash-coin',
                 'submenu': [
                     {'name': 'Dashboard', 'url': 'dashboard:finance_dashboard'},
+                    # Invoicing
                     {'name': 'Invoices', 'url': 'finance:invoices'},
-                    {'name': 'Expenses', 'url': 'finance:expenses'},
+                    {'name': 'Recurring Invoices', 'url': 'finance:recurring_invoice_list'},
+                    {'name': 'Credit / Debit Notes', 'url': 'finance:note_list'},
+                    {'name': 'Invoice Templates', 'url': 'finance:template_list'},
+                    # Ledger
+                    {'name': 'Chart of Accounts', 'url': 'finance:account_list'},
                     {'name': 'Journal', 'url': 'finance:journal'},
+                    {'name': 'Expenses', 'url': 'finance:expenses'},
+                    # Planning & Config
+                    {'name': 'Cost Centres', 'url': 'finance:costcentre_list'},
+                    {'name': 'Budgets', 'url': 'finance:budget_list'},
+                    # Pricing
+                    {'name': 'Price Lists', 'url': 'finance:pricelist_list'},
+                    {'name': 'Discount Rules', 'url': 'finance:discountrule_list'},
+                    # Settings
+                    {'name': 'System Config', 'url': 'finance:system_config'},
                 ]
             },
             {
@@ -101,9 +115,7 @@ def navigation_menu(request):
                 'icon': 'bi-gear',
                 'submenu': [
                     {'name': 'Company Profile', 'url': 'company:profile'},
-                    {'name': 'User Management', 'url': 'company:profile'},
-                    {'name': 'System Settings', 'url': 'company:profile'},
-                    {'name': 'Security Logs', 'url': 'company:profile'},
+                    {'name': 'System Settings', 'url': 'finance:system_config'},
                 ]
             },
         ]

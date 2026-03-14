@@ -1,5 +1,8 @@
 from django import forms
-from .models import Invoice, JournalEntry, JournalEntryLine, Account
+from .models import (
+    Invoice, JournalEntry, JournalEntryLine, Account,
+    PriceList, DiscountRule, RecurringInvoice, CreditDebitNote
+)
 
 
 class InvoiceForm(forms.ModelForm):

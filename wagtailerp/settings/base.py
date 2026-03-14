@@ -45,7 +45,23 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_htmx",
+    "django_celery_beat",
 ]
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Beat schedule – runs daily at midnight
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'generate-recurring-invoices-daily': {
+        'task': 'finance.generate_recurring_invoices',
+        'schedule': crontab(hour=0, minute=0),  # midnight daily
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

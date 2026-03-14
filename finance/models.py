@@ -101,6 +101,7 @@ class Invoice(models.Model):
     )
     invoice_number = models.CharField(max_length=50, unique=True)
     customer = models.ForeignKey('crm.Customer', on_delete=models.PROTECT)
+    invoice_template = models.ForeignKey('InvoiceTemplate', on_delete=models.SET_NULL, null=True, blank=True)
     issue_date = models.DateField()
     due_date = models.DateField()
     total_amount = models.DecimalField(max_digits=18, decimal_places=2)
@@ -109,6 +110,42 @@ class Invoice(models.Model):
 
     def __str__(self):
         return self.invoice_number
+
+    def recalculate_totals(self):
+        """Recompute total_amount and tax_amount from line items."""
+        from django.db.models import Sum
+        agg = self.items.aggregate(
+            subtotal=Sum('line_total'),
+            tax=Sum('tax_amount'),
+        )
+        self.total_amount = (agg['subtotal'] or 0) + (agg['tax'] or 0)
+        self.tax_amount = agg['tax'] or 0
+        self.save(update_fields=['total_amount', 'tax_amount'])
+
+
+class InvoiceItem(models.Model):
+    """Line items for an Invoice — supports price lists & discounts."""
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    description = models.CharField(max_length=255)
+    product = models.ForeignKey('inventory.Product', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=14, decimal_places=4, default=1)
+    unit_price = models.DecimalField(max_digits=18, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0,
+                                   help_text="Tax percentage, e.g. 15 for 15%")
+    # Computed
+    line_total = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    notes = models.CharField(max_length=255, blank=True)
+
+    def save(self, *args, **kwargs):
+        taxable = (self.quantity * self.unit_price) - self.discount_amount
+        self.tax_amount = taxable * (self.tax_rate / 100)
+        self.line_total = taxable
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.invoice.invoice_number} — {self.description}"
 
 
 class CostCentre(models.Model):

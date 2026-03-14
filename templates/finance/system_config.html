@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}System Configuration | Olive ERP{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-1"><i class="bi bi-gear me-2 text-secondary"></i>System Configuration</h2>
+        <p class="text-muted mb-0">Global accounting settings for your company (equivalent to F11/F12 in Tally).</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="bi bi-cash-coin me-2 text-primary"></i>Financial Settings
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">{{ form.base_currency.label }}</label>
+                            {{ form.base_currency }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">{{ form.fiscal_year_start.label }}</label>
+                            {{ form.fiscal_year_start }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">{{ form.invoice_prefix.label }}</label>
+                            {{ form.invoice_prefix }}
+                            <div class="form-text">Prefix applied to auto-generated invoice numbers.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">{{ form.stock_valuation_method.label }}</label>
+                            {{ form.stock_valuation_method }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="bi bi-toggles me-2 text-info"></i>Feature Toggles
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        {{ form.enable_cost_centres }}
+                        <label class="form-check-label" for="{{ form.enable_cost_centres.id_for_label }}">Enable Cost Centres</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        {{ form.enable_budgets }}
+                        <label class="form-check-label" for="{{ form.enable_budgets.id_for_label }}">Enable Budgets</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        {{ form.enable_billwise_details }}
+                        <label class="form-check-label" for="{{ form.enable_billwise_details.id_for_label }}">Enable Bill-wise Outstanding Tracking</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        {{ form.enable_audit_trail }}
+                        <label class="form-check-label" for="{{ form.enable_audit_trail.id_for_label }}">Enable Audit Trail</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i>Save Configuration
+                </button>
+                <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm bg-primary-subtle">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>About System Config</h6>
+                <p class="small text-muted">These settings control the global behaviour of the accounting module. Changes take effect immediately after saving.</p>
+                <ul class="small text-muted">
+                    <li><strong>Fiscal Year Start</strong>: Used in budget and report periods</li>
+                    <li><strong>Invoice Prefix</strong>: e.g. <code>INV-</code> → INV-0001</li>
+                    <li><strong>Stock Valuation</strong>: FIFO, LIFO or Average Cost</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
