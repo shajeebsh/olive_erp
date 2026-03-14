@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Recurring Invoices | Olive ERP{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0"><i class="bi bi-arrow-repeat me-2 text-info"></i>Recurring Invoices</h2>
+    <a href="{% url 'finance:recurring_invoice_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>New Schedule
+    </a>
+</div>
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Customer</th>
+                    <th>Frequency</th>
+                    <th>Start Date</th>
+                    <th>Next Invoice</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ri in recurring_invoices %}
+                <tr>
+                    <td class="fw-bold">{{ ri.name }}</td>
+                    <td>{{ ri.customer.company_name }}</td>
+                    <td>{{ ri.interval }} × {{ ri.get_frequency_display }}</td>
+                    <td>{{ ri.start_date }}</td>
+                    <td class="text-primary fw-medium">{{ ri.next_invoice_date }}</td>
+                    <td>{{ ri.end_date|default:"No end" }}</td>
+                    <td>
+                        {% if ri.is_active %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border">Paused</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <i class="bi bi-arrow-repeat h1 text-muted d-block mb-3"></i>
+                        <p class="text-muted">No recurring invoice schedules yet.</p>
+                        <a href="{% url 'finance:recurring_invoice_create' %}" class="btn btn-primary btn-sm">Set Up First Schedule</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

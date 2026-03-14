@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% if object %}Edit Account{% else %}New Account{% endif %}</h1>
+        <a href="{% url 'finance:account_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Chart of Accounts
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Account Details</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="user">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.code.id_for_label }}" class="form-label font-weight-bold">Account Code</label>
+                                {{ form.code }}
+                                {% if form.code.errors %}<div class="text-danger small">{{ form.code.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ form.name.id_for_label }}" class="form-label font-weight-bold">Account Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.account_type.id_for_label }}" class="form-label font-weight-bold">Account Type</label>
+                                {{ form.account_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.group_type.id_for_label }}" class="form-label font-weight-bold">Group Type</label>
+                                {{ form.group_type }}
+                                <small class="text-muted d-block mt-1">Ledgers store transactions; Groups store sub-accounts.</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.parent.id_for_label }}" class="form-label font-weight-bold">Parent Account</label>
+                            {{ form.parent }}
+                            {% if form.parent.errors %}<div class="text-danger small">{{ form.parent.errors }}</div>{% endif %}
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="font-weight-bold text-secondary mb-3">Opening Balance</h6>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.opening_balance.id_for_label }}" class="form-label font-weight-bold">Balance Amount</label>
+                                {{ form.opening_balance }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.opening_balance_date.id_for_label }}" class="form-label font-weight-bold">Balance Date</label>
+                                {{ form.opening_balance_date }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label font-weight-bold">Additional Notes</label>
+                            {{ form.notes }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-save mr-2"></i> Save Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

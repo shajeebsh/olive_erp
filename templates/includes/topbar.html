@@ -4,8 +4,15 @@
             <i class="bi bi-list"></i>
         </button>
 
-        <form class="d-flex ms-auto">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <form class="d-flex ms-auto position-relative" autocomplete="off">
+            <input class="form-control me-2" type="search" id="global-search" 
+                   name="q" placeholder="Go To (Alt+G)..." aria-label="Search"
+                   hx-get="{% url 'core:goto_search' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#search-results"
+                   hx-indicator=".search-loader">
+            <div id="search-results" class="position-absolute bg-white shadow rounded w-100" style="top: 45px; z-index: 1000;"></div>
+            <div class="search-loader htmx-indicator spinner-border spinner-border-sm text-primary position-absolute top-50 end-0 translate-middle-y me-3" style="display:none;"></div>
         </form>
 
         <ul class="navbar-nav ms-2">

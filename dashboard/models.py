@@ -1,3 +1,4 @@
+from django.db import models
 from django.shortcuts import render
 from wagtail.models import Page
 from django.contrib.auth.decorators import login_required

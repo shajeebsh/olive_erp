@@ -20,6 +20,7 @@ urlpatterns = [
     path("reporting/", include("reporting.urls")),
     path("compliance/", include("compliance.urls")),
     path("company/", include("company.urls")),
+    path("core/", include("core.urls")),
     # For now, let Wagtail handle everything from the root
     path("cms/", include(wagtail_urls)),
 ]
