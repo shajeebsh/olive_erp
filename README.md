@@ -145,25 +145,25 @@ A comprehensive business intelligence module that provides dynamic reporting, da
 
 **Performance:** Reports <3s, Dashboards <2s, supports 100+ users and 1M+ records
 
-### 📝 Tax & Compliance (Ireland First)
+### 📝 Tax & Compliance: Pluggable Country Framework (Phase 2A)
 
-Comprehensive tax and compliance module starting with Irish regulatory requirements, with extensible framework for other countries.
+A robust, dynamically loaded compliance engine designed to handle multi-country tax regulations without polluting the core accounting logic. Easily extensible to any new region.
 
-**Irish Compliance Features:**
-- Companies Act 2014 compliance
-- CRO Annual Return (Form B1) generation
-- Corporation Tax Return (CT1) preparation
-- RBO Beneficial Ownership reporting
-- VAT Returns (VAT3) automation
-- PAYE Modernization payroll reporting
-- Financial statements preparation
+**Country Registry & Architecture:**
+- **Pluggable Architecture**: Country-specific tax and compliance logic is decoupled from the core and loaded dynamically via a centralized `registry`.
+- **Abstract Interfaces (`BaseTaxEngine`)**: Enforces strict contracts for tax calculation, tax number validation, and localized serialization.
+- **Auto-Discovery**: Simply add `@register_country('CODE')` over a new engine class in `compliance.countries` and it is instantly available across the ERP.
 
-**Core Capabilities:**
-- Automated compliance calendar with Celery reminders
-- PDF document generator for filing-ready forms
-- Approval workflow integration (CFO → Board → File)
-- Complete audit trail for all compliance actions
-- Multi-country framework for future expansion (UK, EU)
+**Company Setup & Configuration:**
+- **Dynamic Setup Wizard**: Replaced static company creation with a multi-step flow allowing users to select their operating country and preferred modules.
+- **Localized Contexts**: Tax configuration steps (Step 3 of Setup) auto-populate with the correct currency, tax name (e.g., VAT vs GST), and regional tax rates pulled from the registry engine.
+- **Strict UUID Migrations**: Guaranteed safe relational integrity across compliance elements (Tax Periods, Filings) utilizing UUID primary keys.
+
+**Supported Regions (Scaffolded):**
+- 🇮🇪 Ireland (IE)
+- 🇬🇧 United Kingdom (GB)
+- 🇮🇳 India (IN)
+- 🇦🇪 United Arab Emirates (AE)
 
 ## System Architecture
 

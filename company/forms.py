@@ -15,3 +15,15 @@ class CompanyProfileForm(forms.ModelForm):
             'fiscal_year_start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'default_currency': forms.Select(attrs={'class': 'form-select'}),
         }
+
+class FeatureSelectionForm(forms.Form):
+    country = forms.CharField(max_length=2)
+    features = forms.MultipleChoiceField(
+        choices=[
+            ('finance', 'Finance & Accounting'), 
+            ('inventory', 'Inventory Management'), 
+            ('payroll', 'Payroll')
+        ],
+        required=False,
+        widget=forms.CheckboxSelectMultiple
+    )
