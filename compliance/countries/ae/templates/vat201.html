@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VAT 201 Return - {{ period.from }} to {{ period.to }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #006647, #FF0000); color: white; padding: 20px; }
+        .company-details { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        th { background-color: #f0f0f0; }
+        .box-number { font-weight: bold; width: 100px; }
+        .amount { text-align: right; font-weight: bold; }
+        .total-row { background-color: #e8e8e8; font-weight: bold; }
+        .footer { margin-top: 40px; font-size: 12px; color: #666; }
+        .flag-header { background: linear-gradient(135deg, #006647, #FF0000); color: white; padding: 15px; }
+        .note { background-color: #fff3cd; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="flag-header">
+        <h1>الإمارات العربية المتحدة - United Arab Emirates</h1>
+        <h2>Federal Tax Authority - VAT Return (Form 201)</h2>
+        <p>Period: {{ period.from }} to {{ period.to }}</p>
+        <p>Due Date: {{ period.due_date }}</p>
+    </div>
+
+    <div class="company-details">
+        <h3>Taxpayer Details</h3>
+        <p><strong>Legal Name:</strong> {{ company.name }}</p>
+        <p><strong>Trade Name:</strong> {{ company.trade_name|default:company.name }}</p>
+        <p><strong>Tax Registration Number (TRN):</strong> {{ company.tax_number }}</p>
+        <p><strong>Establishment ID:</strong> {{ company.establishment_id|default:"-" }}</p>
+        <p><strong>Email:</strong> {{ company.email }}</p>
+        <p><strong>Phone:</strong> {{ company.phone }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Box</th>
+                <th>Description</th>
+                <th>Amount (AED)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="box-number">1</td>
+                <td>Standard rate supplies (value exclusive of VAT)</td>
+                <td class="amount">{{ boxes.1|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">2</td>
+                <td>Standard rate imports (value exclusive of VAT)</td>
+                <td class="amount">{{ boxes.2|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="box-number">3</td>
+                <td>Total standard rate supplies and imports (Box 1 + Box 2)</td>
+                <td class="amount">{{ boxes.3|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">4</td>
+                <td>VAT due on standard rate supplies and imports</td>
+                <td class="amount">{{ boxes.4|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">5</td>
+                <td>Zero-rated supplies</td>
+                <td class="amount">{{ boxes.5|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">6</td>
+                <td>Exempt supplies</td>
+                <td class="amount">{{ boxes.6|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="box-number">7</td>
+                <td>Total VAT due (Box 4)</td>
+                <td class="amount">{{ boxes.7|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">8</td>
+                <td>Standard rate purchases (value exclusive of VAT)</td>
+                <td class="amount">{{ boxes.8|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">9</td>
+                <td>Standard rate imports (purchases - value exclusive of VAT)</td>
+                <td class="amount">{{ boxes.9|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="box-number">10</td>
+                <td>Total standard rate purchases (Box 8 + Box 9)</td>
+                <td class="amount">{{ boxes.10|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="box-number">11</td>
+                <td>VAT recoverable on standard rate purchases</td>
+                <td class="amount">{{ boxes.11|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="box-number">12</td>
+                <td>Total VAT recoverable (Box 11)</td>
+                <td class="amount">{{ boxes.12|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="box-number">13</td>
+                <td>Net VAT payable / (refundable) (Box 7 - Box 12)</td>
+                <td class="amount {% if summary.net_vat_payable < 0 %}negative{% endif %}">
+                    {{ boxes.13|floatformat:2 }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Important:</strong> VAT returns must be filed and payment made by the 28th of the month following the tax period.
+        Late filing penalties: AED 1,000 for first time, AED 2,000 for subsequent late filings.
+        Late payment penalties: 2% immediately, 4% after 7 days, 1% daily after 30 days (max 300%).
+    </div>
+
+    <div class="summary">
+        <h3>Summary</h3>
+        <p><strong>Total Sales:</strong> AED {{ summary.total_sales|floatformat:2 }}</p>
+        <p><strong>Total Purchases:</strong> AED {{ summary.total_purchases|floatformat:2 }}</p>
+        <p><strong>Net VAT Payable:</strong> AED {{ summary.net_vat_payable|floatformat:2 }}</p>
+        {% if summary.is_refund %}
+            <p style="color: green;"><strong>Refund due - will be processed within 20 business days</strong></p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>Generated by Olive ERP on {% now "d-m-Y H:i" %}</p>
+        <p>This return must be filed with the FTA by {{ period.due_date }}</p>
+    </div>
+</body>
+</html>

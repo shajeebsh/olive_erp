@@ -178,6 +178,38 @@ Full implementation of the Ireland (IE) country module built on the Phase 2A fra
 - **PAYE/PRSI**: Calculations for employee/employer taxes and Universal Social Charge (USC), with real-time Revenue reporting stubs.
 - **Compliance Calendar**: Automated deadline generation for VAT, CRO, CT1, RBO, and PAYE.
 
+### 📝 UK Tax & Compliance Implementation (Phase 2C)
+
+Full implementation of the United Kingdom (GB) module.
+
+**Features Implemented:**
+- **Tax Engine**: Complete VAT calculation logic (Standard 20%, Reduced 5%, Zero 0%) and UK VAT validation.
+- **MTD API**: Making Tax Digital integration stubs for automated VAT return filing.
+- **Corporation Tax**: CT600 forms and calculations.
+- **Companies House**: APIs and models for Confirmation Statements and Persons with Significant Control (PSC).
+- **PAYE RTI**: Real-Time Information integrations for payroll (FPS/EPS summaries).
+
+### 📝 India Tax & Compliance Implementation (Phase 2D)
+
+Full implementation of the India (IN) module handling complex, dual-tax structures.
+
+**Features Implemented:**
+- **GST Engine**: Integrated CGST, SGST, IGST calculations based on inter-state vs intra-state supply. HSN and SAC code validations.
+- **Withholding (TDS/TCS)**: Source-level tax deduction tracking and 26Q return generation.
+- **E-Way Bills**: Formats and models for tracking logistics tax compliance.
+- **E-Invoicing**: Generation of Invoice Reference Numbers (IRN) to comply with GST network APIs.
+
+### 📝 UAE Tax & Compliance Implementation (Phase 2E)
+
+Full implementation of the United Arab Emirates (AE) module, conforming to Federal Tax Authority (FTA) regulations.
+
+**Features Implemented:**
+- **VAT**: Standard 5%, Zero, and Exempt calculation engine, complete with VAT 201 return generation.
+- **Excise Tax**: Product categorization, specific excise rates (e.g., 100% tobacco, 50% carbonated drinks), and digital tax stamps.
+- **Corporate Tax**: CT Engine handling standard thresholds (0% up to 375k, 9% above), Small Business Relief, and Free Zone Person rules (qualifying vs. non-qualifying income, de minimis limits).
+- **FTA API**: Mocked integrations for submitting returns via JWT.
+- **Deadlines**: Automated compliance calendar encompassing VAT, Excise, CT, ESR, and UBO reporting requirements.
+
 ## System Architecture
 
 Olive ERP follows a **Modular Monolith Architecture** - a single codebase organized into loosely-coupled Django apps, giving you the simplicity of a monolith with the maintainability of modules.
