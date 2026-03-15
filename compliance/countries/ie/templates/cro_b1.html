@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRO B1 Annual Return {{ year }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; }
+        .company-details { margin-bottom: 30px; }
+        .section { margin: 30px 0; }
+        .section-title { background-color: #f0f0f0; padding: 10px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+        th { background-color: #e0e0e0; }
+        .signature { margin-top: 50px; }
+        .signature-line { border-top: 1px solid #000; width: 300px; margin-top: 5px; }
+        .footer { margin-top: 50px; font-size: 10px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>COMPANIES REGISTRATION OFFICE</h1>
+        <h2>ANNUAL RETURN (Form B1)</h2>
+        <h3>For the year ended {{ year }}</h3>
+    </div>
+
+    <div class="company-details">
+        <h3>Company Details</h3>
+        <p><strong>Company Name:</strong> {{ company.name }}</p>
+        <p><strong>CRO Number:</strong> {{ company.registration_number }}</p>
+        <p><strong>Registered Address:</strong> {{ company.address }}</p>
+        <p><strong>Annual Return Date (ARD):</strong> {{ ard|date:"d F Y" }}</p>
+        <p><strong>Return Date:</strong> {{ return_date|date:"d F Y" }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">DIRECTORS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Date of Birth</th>
+                    <th>Appointment Date</th>
+                    <th>Nationality</th>
+                    <th>Residential Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for director in directors %}
+                <tr>
+                    <td>{{ director.full_name }}</td>
+                    <td>{{ director.date_of_birth|date:"d/m/Y" }}</td>
+                    <td>{{ director.appointment_date|date:"d/m/Y" }}</td>
+                    <td>{{ director.nationality }}</td>
+                    <td>{{ director.address_line1 }}, {{ director.city }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">SECRETARY</div>
+        {% if secretary %}
+        <table>
+            <tr>
+                <th style="width: 200px;">Name</th>
+                <td>{% if secretary.is_corporate %}{{ secretary.corporate_name }}{% else %}{{ secretary.full_name }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Address</th>
+                <td>{{ secretary.address_line1 }}, {{ secretary.city }}, {{ secretary.county }}</td>
+            </tr>
+            <tr>
+                <th>Appointment Date</th>
+                <td>{{ secretary.appointment_date|date:"d/m/Y" }}</td>
+            </tr>
+        </table>
+        {% else %}
+        <p><em>No secretary appointed</em></p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">SHARE CAPITAL</div>
+        {% if share_capital.ordinary %}
+        <h4>Ordinary Shares</h4>
+        <table>
+            <tr>
+                <th>Total Authorised</th>
+                <td>{{ share_capital.ordinary.total_authorised }}</td>
+            </tr>
+            <tr>
+                <th>Total Issued</th>
+                <td>{{ share_capital.ordinary.total_issued }}</td>
+            </tr>
+            <tr>
+                <th>Nominal Value per Share</th>
+                <td>€{{ share_capital.ordinary.nominal_value|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <th>Paid-up per Share</th>
+                <td>€{{ share_capital.ordinary.paid_up_per_share|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <th>Total Nominal Value</th>
+                <td>€{{ share_capital.ordinary.total_nominal_value|floatformat:2 }}</td>
+            </tr>
+        </table>
+        {% endif %}
+
+        <h4>Shareholders</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Ordinary Shares</th>
+                    <th>Preference Shares</th>
+                    <th>% Held</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shareholder in shareholders %}
+                <tr>
+                    <td>{{ shareholder }}</td>
+                    <td>{{ shareholder.ordinary_shares_held }}</td>
+                    <td>{{ shareholder.preference_shares_held }}</td>
+                    <td>{{ shareholder.percentage_held }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="signature">
+        <p>I/We certify that the information contained in this return is true and correct.</p>
+        
+        <div style="float: left; width: 45%;">
+            <p><strong>Signed by Director:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ________________________</p>
+            <p>Date: ________________________</p>
+        </div>
+        
+        <div style="float: right; width: 45%;">
+            <p><strong>Signed by Secretary:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ________________________</p>
+            <p>Date: ________________________</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Form B1 generated by Olive ERP on {% now "d-m-Y H:i" %}</p>
+        <p>This form must be filed with the CRO within 56 days of the Annual Return Date.</p>
+    </div>
+</body>
+</html>
