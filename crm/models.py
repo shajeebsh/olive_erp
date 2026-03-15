@@ -19,6 +19,7 @@ class Customer(models.Model):
     address = models.TextField()
     tax_number = models.CharField(max_length=50, blank=True)
     payment_terms = models.CharField(max_length=100, help_text="e.g. Net 30")
+    state_code = models.CharField(max_length=5, blank=True, help_text="State/Province code for tax purposes")
 
     def __str__(self):
         return self.company_name or self.contact_person

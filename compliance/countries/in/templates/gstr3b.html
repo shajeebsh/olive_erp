@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load humanize %}
+
+{% block title %}GSTR-3B Return - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>GSTR-3B Monthly Return</h2>
+        <div>
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Return
+            </button>
+            <button class="btn btn-success" id="exportJsonBtn">
+                <i class="fas fa-file-export"></i> Export JSON for GSTN Portal
+            </button>
+        </div>
+    </div>
+
+    <!-- Company Details -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>1. Details of Taxpayer</strong>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-4">
+                <p><strong>GSTIN:</strong> {{ company.tax_number }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Legal Name:</strong> {{ company.name }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Return Period:</strong> {{ data.period.from }} to {{ data.period.to }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.1 Details of Outward Supplies -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>3.1 Details of Outward Supplies and inward supplies liable to reverse charge</strong>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Nature of Supplies</th>
+                        <th class="text-right">Total Taxable Value (₹)</th>
+                        <th class="text-right">Integrated Tax (₹)</th>
+                        <th class="text-right">Central Tax (₹)</th>
+                        <th class="text-right">State/UT Tax (₹)</th>
+                        <th class="text-right">Cess (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table 3.1(a) -->
+                    <tr>
+                        <td>(a) Outward taxable supplies (other than zero rated, nil rated and exempted)</td>
+                        <td class="text-right">
+                            {{ data.summary.total_taxable_sales|floatformat:2|intcomma }}
+                        </td>
+                        <td class="text-right">{{ data.summary.igst|default:0.00|floatformat:2|intcomma }}</td>
+                        <td class="text-right">{{ data.summary.cgst|default:0.00|floatformat:2|intcomma }}</td>
+                        <td class="text-right">{{ data.summary.sgst|default:0.00|floatformat:2|intcomma }}</td>
+                        <td class="text-right">0.00</td>
+                    </tr>
+                    <!-- Other rows simplified for demo -->
+                    <tr>
+                        <td>(b) Outward taxable supplies (zero rated)</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                    </tr>
+                    <tr>
+                        <td>(c) Other outward supplies (Nil rated, exempted)</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                        <td class="text-right">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. Eligible ITC -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>4. Details of Eligible Input Tax Credit (ITC)</strong>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Details</th>
+                        <th class="text-right">Integrated Tax (₹)</th>
+                        <th class="text-right">Central Tax (₹)</th>
+                        <th class="text-right">State/UT Tax (₹)</th>
+                        <th class="text-right">Cess (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>(A) ITC Available (whether in full or part)</strong></td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td class="pl-4">(5) All other ITC</td>
+                        <td class="text-right">{{ data.itc.igst|floatformat:2|intcomma }}</td>
+                        <td class="text-right">{{ data.itc.cgst|floatformat:2|intcomma }}</td>
+                        <td class="text-right">{{ data.itc.sgst|floatformat:2|intcomma }}</td>
+                        <td class="text-right">0.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>(C) Net ITC Available (A - B)</strong></td>
+                        <td class="text-right font-weight-bold">{{ data.itc.igst|floatformat:2|intcomma }}</td>
+                        <td class="text-right font-weight-bold">{{ data.itc.cgst|floatformat:2|intcomma }}</td>
+                        <td class="text-right font-weight-bold">{{ data.itc.sgst|floatformat:2|intcomma }}</td>
+                        <td class="text-right font-weight-bold">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    @media print {
+        .btn, #exportJsonBtn { display: none; }
+        .card { border: none !important; }
+        .card-header { border-bottom: 2px solid #000 !important; background-color: transparent !important; }
+        table { page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
