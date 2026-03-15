@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>P60 End of Year Certificate</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .details { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>P60 End of Year Certificate</h1>
+        <h2>Tax Year: {{ tax_year }}</h2>
+    </div>
+    
+    <div class="details">
+        <p><strong>Employee:</strong> {{ employee.first_name }} {{ employee.last_name }}</p>
+        <p><strong>National Insurance Number:</strong> {{ ni_number }}</p>
+        <p><strong>Tax Code:</strong> {{ tax_code }}</p>
+        <p><strong>Employer:</strong> {{ company.name }}</p>
+        <p><strong>PAYE Reference:</strong> {{ company.paye_reference }}</p>
+    </div>
+
+    <table>
+        <tr>
+            <th>Pay and Income Tax details</th>
+            <th>Amount (£)</th>
+        </tr>
+        <tr>
+            <td>Total pay in this employment</td>
+            <td>{{ total_pay|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>Total tax deducted in this employment</td>
+            <td>{{ total_tax|floatformat:2 }}</td>
+        </tr>
+    </table>
+    
+    <p style="margin-top: 40px; font-size: 0.9em; color: #555;">
+        This is a generated P60 certificate indicating your gross taxable pay and the tax paid for the stated tax year.
+        Please keep this certificate in a safe place as you will need it if you fill in a tax return, claim tax credits, or renew a claim.
+    </p>
+</body>
+</html>
