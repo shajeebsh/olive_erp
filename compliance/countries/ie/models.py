@@ -1,230 +1,163 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
-from company.models import CompanyProfile
-from compliance.models import Filing, TaxPeriod
-import uuid
-from decimal import Decimal
+from django.core.validators import RegexValidator
 
-
-class IrelandVATReturn(models.Model):
-    """
-    Ireland-specific VAT Return (VAT3) data and calculations.
-    """
+class Director(models.Model):
+    """Company director for CRO purposes"""
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filing = models.OneToOneField(Filing, on_delete=models.CASCADE, related_name='ireland_vat_return')
+    # Personal details
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    former_names = models.CharField(max_length=200, blank=True, help_text="Any former names")
     
-    # VAT Calculation Fields
-    vat_on_sales = models.DecimalField(_("VAT on Sales"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    vat_on_purchases = models.DecimalField(_("VAT on Purchases"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    vat_on_imports = models.DecimalField(_("VAT on Imports"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    # Identification
+    pps_number = models.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d{7}[A-Z]{1,2}$', 'Invalid PPS format')],
+        blank=True
+    )
+    date_of_birth = models.DateField()
+    nationality = models.CharField(max_length=50)
     
-    # VAT Rates (Ireland specific)
-    standard_rate = models.DecimalField(_("Standard Rate"), max_digits=4, decimal_places=2, default=Decimal('23.00'))
-    reduced_rate = models.DecimalField(_("Reduced Rate"), max_digits=4, decimal_places=2, default=Decimal('13.50'))
-    second_reduced_rate = models.DecimalField(_("Second Reduced Rate"), max_digits=4, decimal_places=2, default=Decimal('9.00'))
+    # Address (must be physical, not PO box)
+    address_line1 = models.CharField(max_length=100)
+    address_line2 = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=50)
+    county = models.CharField(max_length=50)
+    country = models.CharField(max_length=50, default='Ireland')
     
-    # VAT Calculation Results
-    total_vat_due = models.DecimalField(_("Total VAT Due"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    total_vat_reclaimable = models.DecimalField(_("Total VAT Reclaimable"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    net_vat_payable = models.DecimalField(_("Net VAT Payable"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    # Appointment details
+    appointment_date = models.DateField()
+    resignation_date = models.DateField(null=True, blank=True)
     
-    # VAT Period Information
-    vat_period = models.CharField(_("VAT Period"), max_length=10)  # e.g., "2023-Q4"
-    vat_number = models.CharField(_("VAT Number"), max_length=20)
+    # Director type
+    is_executive = models.BooleanField(default=True)
+    is_chairperson = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    # Other directorships (for disclosure)
+    other_directorships = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = _("Ireland VAT Return")
-        verbose_name_plural = _("Ireland VAT Returns")
+        ordering = ['appointment_date']
+        app_label = 'compliance'
     
     def __str__(self):
-        return f"VAT Return - {self.vat_period} - {self.filing.company.name}"
+        return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
-
-class IrelandCTReturn(models.Model):
-    """
-    Ireland-specific Corporation Tax Return (CT1) data and calculations.
-    """
+class Secretary(models.Model):
+    """Company secretary"""
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
     
-    class AccountingPeriod(models.TextChoices):
-        STANDARD = 'STANDARD', _('Standard 12 Months')
-        SHORT = 'SHORT', _('Short Accounting Period')
-        LONG = 'LONG', _('Long Accounting Period')
+    # Can be individual or corporate
+    is_corporate = models.BooleanField(default=False)
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filing = models.OneToOneField(Filing, on_delete=models.CASCADE, related_name='ireland_ct_return')
+    # If individual
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
     
-    # CT Calculation Fields
-    accounting_period = models.CharField(_("Accounting Period"), max_length=20, choices=AccountingPeriod.choices)
+    # If corporate
+    corporate_name = models.CharField(max_length=200, blank=True)
+    registration_number = models.CharField(max_length=50, blank=True)
     
-    # Income Calculations
-    trading_income = models.DecimalField(_("Trading Income"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    rental_income = models.DecimalField(_("Rental Income"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    investment_income = models.DecimalField(_("Investment Income"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    other_income = models.DecimalField(_("Other Income"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    # Address
+    address_line1 = models.CharField(max_length=100)
+    address_line2 = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=50)
+    county = models.CharField(max_length=50)
+    country = models.CharField(max_length=50, default='Ireland')
     
-    # Deductions and Allowances
-    capital_allowances = models.DecimalField(_("Capital Allowances"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    losses_forward = models.DecimalField(_("Losses Forward"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    rnd_credits = models.DecimalField(_("R&D Credits"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    
-    # Tax Calculation
-    taxable_profit = models.DecimalField(_("Taxable Profit"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    ct_rate = models.DecimalField(_("CT Rate"), max_digits=4, decimal_places=2, default=Decimal('12.50'))
-    ct_liability = models.DecimalField(_("CT Liability"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    
-    # Payment Information
-    preliminary_tax_paid = models.DecimalField(_("Preliminary Tax Paid"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    balance_due = models.DecimalField(_("Balance Due"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    
-    # Company Information
-    ct_number = models.CharField(_("CT Number"), max_length=20)
-    accounting_period_end = models.DateField(_("Accounting Period End"))
-    
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    appointment_date = models.DateField()
+    resignation_date = models.DateField(null=True, blank=True)
     
     class Meta:
-        verbose_name = _("Ireland CT Return")
-        verbose_name_plural = _("Ireland CT Returns")
-    
+        app_label = 'compliance'
+        
     def __str__(self):
-        return f"CT Return - {self.accounting_period_end} - {self.filing.company.name}"
+        if self.is_corporate:
+            return f"{self.corporate_name} (Corporate Secretary)"
+        return f"{self.first_name} {self.last_name} (Secretary)"
 
-
-class IrelandCROReturn(models.Model):
-    """
-    Ireland-specific CRO Annual Return (Form B1) data.
-    """
-    
-    class CompanyType(models.TextChoices):
-        LTD = 'LTD', _('Private Company Limited by Shares')
-        DAC = 'DAC', _('Designated Activity Company')
-        PLC = 'PLC', _('Public Limited Company')
-        ULC = 'ULC', _('Unlimited Company')
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filing = models.OneToOneField(Filing, on_delete=models.CASCADE, related_name='ireland_cro_return')
-    
-    # Company Information
-    company_type = models.CharField(_("Company Type"), max_length=10, choices=CompanyType.choices)
-    cro_number = models.CharField(_("CRO Number"), max_length=20)
-    registered_office = models.TextField(_("Registered Office"))
-    
-    # Share Capital Information
-    authorized_share_capital = models.DecimalField(_("Authorized Share Capital"), max_digits=15, decimal_places=2, default=Decimal('0.00'))
-    issued_share_capital = models.DecimalField(_("Issued Share Capital"), max_digits=15, decimal_places=2, default=Decimal('0.00'))
-    number_of_shares = models.IntegerField(_("Number of Shares"), default=0)
-    
-    # Director Information
-    number_of_directors = models.IntegerField(_("Number of Directors"), default=0)
-    director_details = models.JSONField(_("Director Details"), default=list)
-    
-    # Secretary Information
-    has_company_secretary = models.BooleanField(_("Has Company Secretary"), default=False)
-    secretary_details = models.JSONField(_("Secretary Details"), default=dict)
-    
-    # Financial Information
-    annual_return_date = models.DateField(_("Annual Return Date"))
-    financial_statements_attached = models.BooleanField(_("Financial Statements Attached"), default=False)
-    
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+class ShareCapital(models.Model):
+    """Company share capital structure"""
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
     
     class Meta:
-        verbose_name = _("Ireland CRO Return")
-        verbose_name_plural = _("Ireland CRO Returns")
-    
-    def __str__(self):
-        return f"CRO Return - {self.annual_return_date} - {self.filing.company.name}"
+        abstract = True
+        app_label = 'compliance'
 
-
-class IrelandRBOFiling(models.Model):
-    """
-    Ireland-specific RBO (Register of Beneficial Ownership) filing data.
-    """
-    
-    class FilingType(models.TextChoices):
-        INITIAL = 'INITIAL', _('Initial Filing')
-        UPDATE = 'UPDATE', _('Update Filing')
-        CORRECTION = 'CORRECTION', _('Correction Filing')
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filing = models.OneToOneField(Filing, on_delete=models.CASCADE, related_name='ireland_rbo_filing')
-    
-    # RBO Filing Information
-    filing_type = models.CharField(_("Filing Type"), max_length=20, choices=FilingType.choices)
-    rbo_number = models.CharField(_("RBO Number"), max_length=30)
-    
-    # Beneficial Ownership Details
-    beneficial_owners = models.JSONField(_("Beneficial Owners"), default=list)
-    total_percentage_owned = models.DecimalField(_("Total Percentage Owned"), max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    
-    # Contact Information
-    presenter_name = models.CharField(_("Presenter Name"), max_length=255)
-    presenter_email = models.EmailField(_("Presenter Email"))
-    presenter_phone = models.CharField(_("Presenter Phone"), max_length=20)
-    
-    # Filing Status
-    rbo_confirmation_number = models.CharField(_("RBO Confirmation Number"), max_length=50, blank=True)
-    filing_date = models.DateField(_("Filing Date"), null=True, blank=True)
-    
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+class OrdinaryShare(ShareCapital):
+    """Ordinary shares"""
+    currency = models.CharField(max_length=3, default='EUR')
+    total_authorised = models.PositiveIntegerField(help_text="Total shares authorised")
+    total_issued = models.PositiveIntegerField(help_text="Total shares issued")
+    nominal_value = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_up_per_share = models.DecimalField(max_digits=10, decimal_places=2)
     
     class Meta:
-        verbose_name = _("Ireland RBO Filing")
-        verbose_name_plural = _("Ireland RBO Filings")
-    
-    def __str__(self):
-        return f"RBO Filing - {self.get_filing_type_display()} - {self.filing.company.name}"
+        app_label = 'compliance'
 
+    def total_nominal_value(self):
+        return self.total_issued * self.nominal_value
+    
+    def total_paid_up(self):
+        return self.total_issued * self.paid_up_per_share
 
-class IrelandPAYEReturn(models.Model):
-    """
-    Ireland-specific PAYE Modernization return data.
-    """
-    
-    class ReturnPeriod(models.TextChoices):
-        MONTHLY = 'MONTHLY', _('Monthly')
-        QUARTERLY = 'QUARTERLY', _('Quarterly')
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filing = models.OneToOneField(Filing, on_delete=models.CASCADE, related_name='ireland_paye_return')
-    
-    # PAYE Return Information
-    return_period = models.CharField(_("Return Period"), max_length=20, choices=ReturnPeriod.choices)
-    period_start = models.DateField(_("Period Start"))
-    period_end = models.DateField(_("Period End"))
-    
-    # Employee Information
-    number_of_employees = models.IntegerField(_("Number of Employees"), default=0)
-    total_gross_pay = models.DecimalField(_("Total Gross Pay"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    
-    # Tax Calculations
-    total_paye_deducted = models.DecimalField(_("Total PAYE Deducted"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    total_prsi_deducted = models.DecimalField(_("Total PRSI Deducted"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    total_usc_deducted = models.DecimalField(_("Total USC Deducted"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    
-    # Payment Information
-    total_payment_due = models.DecimalField(_("Total Payment Due"), max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    payment_made = models.BooleanField(_("Payment Made"), default=False)
-    payment_date = models.DateField(_("Payment Date"), null=True, blank=True)
-    
-    # Revenue Information
-    ros_number = models.CharField(_("ROS Number"), max_length=20)
-    employer_reg_number = models.CharField(_("Employer Reg Number"), max_length=20)
-    
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+class PreferenceShare(ShareCapital):
+    """Preference shares"""
+    currency = models.CharField(max_length=3, default='EUR')
+    total_authorised = models.PositiveIntegerField()
+    total_issued = models.PositiveIntegerField()
+    nominal_value = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_up_per_share = models.DecimalField(max_digits=10, decimal_places=2)
+    dividend_rate = models.DecimalField(max_digits=5, decimal_places=2, help_text="Dividend percentage")
     
     class Meta:
-        verbose_name = _("Ireland PAYE Return")
-        verbose_name_plural = _("Ireland PAYE Returns")
+        app_label = 'compliance'
+
+    def total_nominal_value(self):
+        return self.total_issued * self.nominal_value
+
+class Shareholder(models.Model):
+    """Individual or corporate shareholder"""
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
     
+    # Can be individual or corporate
+    is_corporate = models.BooleanField(default=False)
+    
+    # If individual
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    
+    # If corporate
+    corporate_name = models.CharField(max_length=200, blank=True)
+    registration_number = models.CharField(max_length=50, blank=True)
+    country_incorporation = models.CharField(max_length=50, blank=True)
+    
+    # Address
+    address_line1 = models.CharField(max_length=100)
+    address_line2 = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=50)
+    county = models.CharField(max_length=50)
+    country = models.CharField(max_length=50)
+    
+    # Shareholding
+    ordinary_shares_held = models.PositiveIntegerField(default=0)
+    preference_shares_held = models.PositiveIntegerField(default=0)
+    percentage_held = models.DecimalField(max_digits=7, decimal_places=4, help_text="Percentage of total")
+    
+    date_joined = models.DateField()
+    
+    class Meta:
+        app_label = 'compliance'
+
     def __str__(self):
-        return f"PAYE Return - {self.period_end} - {self.filing.company.name}"
+        if self.is_corporate:
+            return self.corporate_name
+        return f"{self.first_name} {self.last_name}"

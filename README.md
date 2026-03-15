@@ -165,6 +165,19 @@ A robust, dynamically loaded compliance engine designed to handle multi-country 
 - 🇮🇳 India (IN)
 - 🇦🇪 United Arab Emirates (AE)
 
+### 📝 Ireland Tax & Compliance Implementation (Phase 2B)
+
+Full implementation of the Ireland (IE) country module built on the Phase 2A framework.
+
+**Features Implemented:**
+- **Tax Engine**: Complete VAT calculation logic (standard, reduced, livestock, zero, exempt) and IE VAT number validation.
+- **Tax Returns**: VAT3 form generation mapping sales/purchases to T1-T9 boxes with PDF export.
+- **Company Secretarial**: CRO B1 Annual Return generation with Share Capital and Shareholder tracking models.
+- **Corporation Tax**: CT1 calculator for trading/passive income, capital allowances, and loss relief.
+- **RBO Tracking**: Central Register of Beneficial Ownership tracking and XML generation.
+- **PAYE/PRSI**: Calculations for employee/employer taxes and Universal Social Charge (USC), with real-time Revenue reporting stubs.
+- **Compliance Calendar**: Automated deadline generation for VAT, CRO, CT1, RBO, and PAYE.
+
 ## System Architecture
 
 Olive ERP follows a **Modular Monolith Architecture** - a single codebase organized into loosely-coupled Django apps, giving you the simplicity of a monolith with the maintainability of modules.
