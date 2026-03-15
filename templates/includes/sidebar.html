@@ -11,44 +11,58 @@
                         <span>Complete Setup</span>
                         <span class="badge bg-danger ms-auto">Required</span>
                     </a>
-                    <div class="px-3 py-2">
-                        <div class="progress" style="height: 5px;">
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
                 </li>
                 <li class="nav-divider my-2 border-top"></li>
             {% endif %}
             
-            {% for module in modules %}
-                <li class="nav-item">
-                    {% if not module.submenu %}
-                        <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% url module.url %}">
-                            <i class="bi {{ module.icon }}"></i>
-                            <span>{{ module.name }}</span>
-                        </a>
-                    {% else %}
-                        <a class="nav-link {% if module.url == request.path %}active{% endif %}" href="{% if module.submenu.0.url %}{% url module.submenu.0.url %}{% elif module.submenu.0.submenu.0.url %}{% url module.submenu.0.submenu.0.url %}{% else %}#{% endif %}">
-                            <i class="bi {{ module.icon }}"></i>
-                            <span>{{ module.name }}</span>
+            {% for item in menu_items %}
+                {% if item.name == 'Compliance' %}
+                    {% if perms.compliance.access or True %} {# Adding True for dev/demo purposes if perms aren't setup #}
+                    <li class="nav-item">
+                        <a href="#complianceMenu" class="nav-link" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="complianceMenu">
+                            <i class="bi bi-shield-check"></i> {{ item.icon }} {{ item.name }}
                             <i class="bi bi-chevron-down ms-auto"></i>
                         </a>
-                        
-                        <ul class="collapse submenu">
-                            {% for item in module.submenu %}
-                                {% if item.submenu %}
-                                    <li class="submenu-header">{{ item.name }}</li>
-                                    {% for subitem in item.submenu %}
-                                        <li><a class="nav-link ps-4" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
-                                    {% endfor %}
-                                {% else %}
-                                    <li><a class="nav-link" href="{% if item.url %}{% url item.url %}{% else %}#{% endif %}">{{ item.name }}</a></li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
+                        <div class="collapse {% if 'compliance' in request.path %}show{% endif %}" id="complianceMenu">
+                            <ul class="nav flex-column ms-3">
+                                {% for subitem in item.submenu %}
+                                    <li class="nav-item">
+                                        <a href="{% url subitem.url %}" class="nav-link {% if subitem.url == request.resolver_match.view_name %}active{% endif %}">
+                                            {{ subitem.icon }} {{ subitem.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
                     {% endif %}
-                </li>
+                {% else %}
+                    <li class="nav-item">
+                        {% if not item.submenu %}
+                            <a class="nav-link {% if item.url == request.resolver_match.view_name %}active{% endif %}" href="{% url item.url %}">
+                                <span>{{ item.icon }} {{ item.name }}</span>
+                            </a>
+                        {% else %}
+                            <a class="nav-link" href="#{{ item.name|lower }}Menu" data-bs-toggle="collapse" role="button" aria-expanded="false">
+                                <span>{{ item.icon }} {{ item.name }}</span>
+                                <i class="bi bi-chevron-down ms-auto"></i>
+                            </a>
+                            <ul class="collapse submenu list-unstyled ms-3" id="{{ item.name|lower }}Menu">
+                                {% for subitem in item.submenu %}
+                                    <li><a class="nav-link" href="{% url subitem.url %}">{{ subitem.icon }} {{ subitem.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endif %}
             {% endfor %}
+
+            <li class="nav-divider my-2 border-top"></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'company:profile' %}">
+                    <i class="bi bi-gear"></i> <span>Settings</span>
+                </a>
+            </li>
         {% else %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'login' %}">

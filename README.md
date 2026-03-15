@@ -14,6 +14,7 @@ Olive_ERP is a comprehensive, modular Enterprise Resource Planning (ERP) system 
 - **CMS Integration**: Wagtail-powered public landing pages and secure internal dashboards with Chart.js visualization.
 - **Automation**: Signal-driven workflows for inventory updates and invoice generation.
 - **Background Tasks**: Celery/Redis integration for nightly valuations and email reminders.
+- **Single-Country Configuration**: Tailored for the company's specific region, with dynamic compliance logic and filtered API endpoints.
 
 ## Tech Stack
 

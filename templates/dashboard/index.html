@@ -121,8 +121,19 @@
                 <div class="card-body">
                     <h5 class="card-title">Upcoming Deadlines</h5>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">CRO B1 <span class="text-danger">25 Mar 2026</span></li>
-                        <li class="list-group-item">VAT Return <span class="text-warning">15 Mar 2026</span></li>
+                        {% if company.country_code == 'IE' %}
+                            <li class="list-group-item">CRO B1 <span class="text-danger">25 Mar 2026</span></li>
+                            <li class="list-group-item">VAT Return <span class="text-warning">15 Mar 2026</span></li>
+                        {% elif company.country_code == 'IN' %}
+                            <li class="list-group-item">GSTR-3B <span class="text-danger">20 Mar 2026</span></li>
+                            <li class="list-group-item">GSTR-1 <span class="text-warning">11 Mar 2026</span></li>
+                        {% elif company.country_code == 'GB' %}
+                            <li class="list-group-item">VAT Return <span class="text-danger">07 Apr 2026</span></li>
+                        {% elif company.country_code == 'AE' %}
+                            <li class="list-group-item">VAT 201 <span class="text-danger">28 Mar 2026</span></li>
+                        {% else %}
+                            <li class="list-group-item text-muted">No upcoming deadlines</li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
