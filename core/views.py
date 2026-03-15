@@ -47,3 +47,40 @@ class GoToSearchView(View):
             return render(request, 'includes/search_results.html', {'results': results})
 
         return JsonResponse({'results': results})
+
+def system_config(request):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+    User = get_user_model()
+    context = {
+        'config': {
+            'f11_accounting': {'maintain_bill_wise': True, 'interest_calculation': False, 'maintain_cost_centre': True, 'maintain_budget': True},
+            'f11_inventory': {'integrate_accounts': True, 'maintain_batch': True, 'multiple_uom': True, 'allow_negative_stock': False},
+            'f11_statutory': {'country': 'AE', 'tax_system': 'vat', 'financial_year_start': '01-01'},
+            'f12_general': {'date_format': 'dd-mm-yyyy', 'number_format': '1,234.00', 'currency_symbol': 'AED'},
+            'f12_voucher': {'skip_date_field': False, 'single_entry_mode': False, 'warn_negative_cash': True}
+        },
+        'users': User.objects.all(),
+        'roles': Group.objects.all()
+    }
+    return render(request, 'core/system_config.html', context)
+
+def audit_log(request):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    context = {
+        'users': User.objects.all(),
+        'audit_logs': [
+            {
+                'id': 1, 'timestamp': '2025-01-20 10:00:00', 'user': request.user,
+                'action': 'UPDATE', 'content_type': 'Invoice', 'object_repr': 'INV-2025-001',
+                'ip_address': '192.168.1.5'
+            },
+            {
+                'id': 2, 'timestamp': '2025-01-20 09:30:00', 'user': request.user,
+                'action': 'CREATE', 'content_type': 'Customer', 'object_repr': 'Acme Corp',
+                'ip_address': '192.168.1.5'
+            }
+        ]
+    }
+    return render(request, 'core/audit_log.html', context)
