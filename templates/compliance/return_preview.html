@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {{ country_flag }} {{ country_name }} {{ form_name }} Return
+                        <small class="float-end">Period: {{ period.start }} to {{ period.end }}</small>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Return Preview Tabs -->
+                    <ul class="nav nav-tabs" id="returnTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="form-tab" data-toggle="tab" href="#form" role="tab">
+                                📝 Form Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="preview-tab" data-toggle="tab" href="#preview" role="tab">
+                                👁️ PDF Preview
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="validation-tab" data-toggle="tab" href="#validation" role="tab">
+                                ✅ Validation
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3">
+                        <!-- Form Entry Tab -->
+                        <div class="tab-pane active" id="form" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <form id="returnForm">
+                                        {% include form_template with boxes=boxes %}
+                                    </form>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-header">
+                                            <h6>Quick Tips</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="fieldTips">
+                                                <!-- Populated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card mt-3">
+                                        <div class="card-header">
+                                            <h6>Calculation Summary</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="liveSummary">
+                                                <p>Total Due: <span class="float-end" id="totalDue">0.00</span></p>
+                                                <p>Net Payable: <span class="float-end" id="netPayable">0.00</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PDF Preview Tab -->
+                        <div class="tab-pane" id="preview" role="tabpanel">
+                            <iframe id="pdfPreviewFrame" style="width:100%; height:600px;" src=""></iframe>
+                        </div>
+                        
+                        <!-- Validation Tab -->
+                        <div class="tab-pane" id="validation" role="tabpanel">
+                            <div id="validationResults">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <hr>
+                            <div class="float-end">
+                                <button class="btn btn-secondary" onclick="saveDraft()">
+                                    💾 Save Draft
+                                </button>
+                                <button class="btn btn-info" onclick="generatePDF()">
+                                    📄 Generate PDF
+                                </button>
+                                <button class="btn btn-success" onclick="fileReturn()">
+                                    🚀 File Return
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filing Confirmation Modal -->
+<div class="modal fade" id="filingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Filing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to file this return?</p>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> Once filed, this return cannot be modified.
+                    Corrections must be made through amended returns.
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmCheck">
+                    <label class="form-check-label">
+                        I confirm that all information is correct
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitFiling()" disabled id="submitBtn">
+                    Confirm & File
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live calculation updates
+    document.querySelectorAll('.tax-box-input').forEach(input => {
+        input.addEventListener('input', updateCalculations);
+    });
+    
+    // Enable confirm checkbox
+    document.getElementById('confirmCheck').addEventListener('change', function(e) {
+        document.getElementById('submitBtn').disabled = !e.target.checked;
+    });
+});
+
+function updateCalculations() {
+    // Fetch updated totals from server
+    const formData = new FormData(document.getElementById('returnForm'));
+    
+    fetch('/api/compliance/calculate/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('totalDue').textContent = data.total_due.toFixed(2);
+        document.getElementById('netPayable').textContent = data.net_payable.toFixed(2);
+    });
+}
+
+function generatePDF() {
+    const formData = new FormData(document.getElementById('returnForm'));
+    
+    fetch('/api/compliance/generate-pdf/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        document.getElementById('pdfPreviewFrame').src = url;
+        
+        // Switch to preview tab
+        document.getElementById('preview-tab').click();
+    });
+}
+
+function saveDraft() {
+    const formData = new FormData(document.getElementById('returnForm'));
+    
+    fetch('/api/compliance/save-draft/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Draft saved successfully');
+        }
+    });
+}
+
+function fileReturn() {
+    // Validate form first
+    fetch('/api/compliance/validate/', {
+        method: 'POST',
+        body: new FormData(document.getElementById('returnForm'))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            $('#filingModal').modal('show');
+        } else {
+            alert('Please fix validation errors: ' + data.errors.join(', '));
+        }
+    });
+}
+
+function submitFiling() {
+    const formData = new FormData(document.getElementById('returnForm'));
+    
+    fetch('/api/compliance/file/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        $('#filingModal').modal('hide');
+        if (data.success) {
+            alert(`Return filed successfully!\nAcknowledgment: ${data.ack_no}`);
+            window.location.href = '/compliance/history/';
+        } else {
+            alert('Filing failed: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}

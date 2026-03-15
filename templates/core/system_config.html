@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">⚙️ System Configuration (F11/F12 Style)</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Feature Tabs -->
+                    <ul class="nav nav-pills mb-3" id="configTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="f11-tab" data-toggle="tab" href="#f11" role="tab">
+                                F11: Features
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="f12-tab" data-toggle="tab" href="#f12" role="tab">
+                                F12: Configuration
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="company-tab" data-toggle="tab" href="#company" role="tab">
+                                Company Details
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab">
+                                Users & Roles
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="configTabContent">
+                        <!-- F11: Features Tab -->
+                        <div class="tab-pane fade show active" id="f11" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6>Accounting Features</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="maintainBillWise" 
+                                                       {% if config.f11_accounting.maintain_bill_wise %}checked{% endif %}>
+                                                <label class="form-check-label">Maintain Bill-wise Details</label>
+                                                <small class="d-block text-muted">Track outstanding by bill</small>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="interestCalculation"
+                                                       {% if config.f11_accounting.interest_calculation %}checked{% endif %}>
+                                                <label class="form-check-label">Interest Calculation</label>
+                                                <small class="d-block text-muted">Auto-calculate interest on overdue</small>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="maintainCostCentre"
+                                                       {% if config.f11_accounting.maintain_cost_centre %}checked{% endif %}>
+                                                <label class="form-check-label">Maintain Cost Centres</label>
+                                                <small class="d-block text-muted">Track profitability by department</small>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="maintainBudget"
+                                                       {% if config.f11_accounting.maintain_budget %}checked{% endif %}>
+                                                <label class="form-check-label">Maintain Budgets</label>
+                                                <small class="d-block text-muted">Budget vs actual tracking</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6>Inventory Features</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="integrateAccounts"
+                                                       {% if config.f11_inventory.integrate_accounts %}checked{% endif %}>
+                                                <label class="form-check-label">Integrate Accounts & Inventory</label>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="maintainBatch"
+                                                       {% if config.f11_inventory.maintain_batch %}checked{% endif %}>
+                                                <label class="form-check-label">Maintain Batch/Expiry</label>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="multipleUOM"
+                                                       {% if config.f11_inventory.multiple_uom %}checked{% endif %}>
+                                                <label class="form-check-label">Multiple Units of Measure</label>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="allowNegativeStock"
+                                                       {% if config.f11_inventory.allow_negative_stock %}checked{% endif %}>
+                                                <label class="form-check-label">Allow Negative Stock</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6>Statutory & Taxation</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <label>Default Country</label>
+                                                    <select class="form-select" id="defaultCountry">
+                                                        <option value="IE" {% if config.f11_statutory.country == 'IE' %}selected{% endif %}>🇮🇪 Ireland</option>
+                                                        <option value="GB" {% if config.f11_statutory.country == 'GB' %}selected{% endif %}>🇬🇧 United Kingdom</option>
+                                                        <option value="IN" {% if config.f11_statutory.country == 'IN' %}selected{% endif %}>🇮🇳 India</option>
+                                                        <option value="AE" {% if config.f11_statutory.country == 'AE' %}selected{% endif %}>🇦🇪 UAE</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label>Tax System</label>
+                                                    <select class="form-select" id="taxSystem">
+                                                        <option value="vat" {% if config.f11_statutory.tax_system == 'vat' %}selected{% endif %}>VAT</option>
+                                                        <option value="gst" {% if config.f11_statutory.tax_system == 'gst' %}selected{% endif %}>GST</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label>Financial Year Start</label>
+                                                    <input type="text" class="form-control" id="fyStart" 
+                                                           value="{{ config.f11_statutory.financial_year_start|default:'01-04' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- F12: Configuration Tab -->
+                        <div class="tab-pane fade" id="f12" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6>General Configuration</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label>Date Format</label>
+                                                <select class="form-select" id="dateFormat">
+                                                    <option value="dd-mm-yyyy" {% if config.f12_general.date_format == 'dd-mm-yyyy' %}selected{% endif %}>DD-MM-YYYY</option>
+                                                    <option value="mm-dd-yyyy" {% if config.f12_general.date_format == 'mm-dd-yyyy' %}selected{% endif %}>MM-DD-YYYY</option>
+                                                    <option value="yyyy-mm-dd" {% if config.f12_general.date_format == 'yyyy-mm-dd' %}selected{% endif %}>YYYY-MM-DD</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Number Format</label>
+                                                <select class="form-select" id="numberFormat">
+                                                    <option value="1,234.00" {% if config.f12_general.number_format == '1,234.00' %}selected{% endif %}>1,234.00</option>
+                                                    <option value="1.234,00" {% if config.f12_general.number_format == '1.234,00' %}selected{% endif %}>1.234,00</option>
+                                                    <option value="1234.00" {% if config.f12_general.number_format == '1234.00' %}selected{% endif %}>1234.00</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Currency Symbol</label>
+                                                <input type="text" class="form-control" id="currencySymbol" 
+                                                       value="{{ config.f12_general.currency_symbol|default:'€' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6>Voucher Entry</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="skipDate"
+                                                       {% if config.f12_voucher.skip_date_field %}checked{% endif %}>
+                                                <label>Skip Date Field</label>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="singleEntry"
+                                                       {% if config.f12_voucher.single_entry_mode %}checked{% endif %}>
+                                                <label>Single Entry Mode</label>
+                                            </div>
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="warnNegative"
+                                                       {% if config.f12_voucher.warn_negative_cash %}checked{% endif %}>
+                                                <label>Warn for Negative Cash</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Users & Roles Tab -->
+                        <div class="tab-pane fade" id="users" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in users %}
+                                            <tr>
+                                                <td>{{ user.get_full_name }}</td>
+                                                <td>{{ user.email }}</td>
+                                                <td>
+                                                    <select class="form-select form-select-sm user-role">
+                                                        {% for role in roles %}
+                                                        <option value="{{ role.id }}" 
+                                                                {% if user.role.id == role.id %}selected{% endif %}>
+                                                            {{ role.name }}
+                                                        </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary">Save</button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6>Role Permissions</h6>
+                                        </div>
+                                        <div class="card-body" id="rolePermissions">
+                                            <!-- Dynamic permission checkboxes -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <hr>
+                            <button class="btn btn-primary" onclick="saveConfiguration()">
+                                💾 Save All Configurations
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveConfiguration() {
+    const config = {
+        f11_accounting: {
+            maintain_bill_wise: document.getElementById('maintainBillWise').checked,
+            interest_calculation: document.getElementById('interestCalculation').checked,
+            maintain_cost_centre: document.getElementById('maintainCostCentre').checked,
+            maintain_budget: document.getElementById('maintainBudget').checked,
+        },
+        f11_inventory: {
+            integrate_accounts: document.getElementById('integrateAccounts').checked,
+            maintain_batch: document.getElementById('maintainBatch').checked,
+            multiple_uom: document.getElementById('multipleUOM').checked,
+            allow_negative_stock: document.getElementById('allowNegativeStock').checked,
+        },
+        f11_statutory: {
+            country: document.getElementById('defaultCountry').value,
+            tax_system: document.getElementById('taxSystem').value,
+            financial_year_start: document.getElementById('fyStart').value,
+        },
+        f12_general: {
+            date_format: document.getElementById('dateFormat').value,
+            number_format: document.getElementById('numberFormat').value,
+            currency_symbol: document.getElementById('currencySymbol').value,
+        },
+        f12_voucher: {
+            skip_date_field: document.getElementById('skipDate').checked,
+            single_entry_mode: document.getElementById('singleEntry').checked,
+            warn_negative_cash: document.getElementById('warnNegative').checked,
+        }
+    };
+    
+    fetch('/api/core/save-config/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Configuration saved successfully');
+        } else {
+            alert('Error saving configuration');
+        }
+    });
+}
+</script>
+{% endblock %}

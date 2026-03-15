@@ -1,0 +1,81 @@
+/* Mobile Optimization for Dashboards */
+
+@media (max-width: 768px) {
+    /* Adjust sidebar for mobile */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding-bottom: 20px;
+    }
+    
+    .content-area {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    
+    /* KPI Cards should stack and have margin */
+    .country-kpi {
+        margin-bottom: 1rem;
+    }
+    
+    /* Adjust calendar for mobile */
+    .fc-header-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Config form tabs to dropdown/stack */
+    .nav-pills {
+        flex-direction: column;
+    }
+    
+    .nav-pills .nav-link {
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    /* Tables scrolling */
+    .table-responsive {
+        border: 0;
+    }
+    
+    /* Topbar adjustments */
+    #topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+    
+    #countrySwitcher {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    #countrySwitcher .btn {
+        width: 100%;
+        text-align: left;
+    }
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+    .btn {
+        min-height: 44px; /* Apple recommendation for touch targets */
+        padding: 10px 16px;
+    }
+    
+    .form-control, .form-select {
+        min-height: 44px;
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+    
+    .dropdown-item {
+        padding: 12px 16px;
+    }
+}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">📋 Audit Trail</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label>User</label>
+                            <select class="form-select" id="filterUser">
+                                <option value="">All Users</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Module</label>
+                            <select class="form-select" id="filterModule">
+                                <option value="">All Modules</option>
+                                <option value="finance">Finance</option>
+                                <option value="inventory">Inventory</option>
+                                <option value="crm">CRM</option>
+                                <option value="hr">HR</option>
+                                <option value="compliance">Compliance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Action</label>
+                            <select class="form-select" id="filterAction">
+                                <option value="">All Actions</option>
+                                <option value="CREATE">Create</option>
+                                <option value="UPDATE">Update</option>
+                                <option value="DELETE">Delete</option>
+                                <option value="VIEW">View</option>
+                                <option value="POST">Post</option>
+                                <option value="APPROVE">Approve</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Date Range</label>
+                            <input type="text" class="form-control" id="dateRange" placeholder="Select range">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                Apply Filters
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportAuditLog()">
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Audit Log Table -->
+                    <table class="table table-striped" id="auditTable">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Module</th>
+                                <th>Object</th>
+                                <th>IP Address</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditBody">
+                            {% for log in audit_logs %}
+                            <tr>
+                                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                                <td>{{ log.user.get_full_name|default:"System" }}</td>
+                                <td>
+                                    <span class="badge {% if log.action == 'CREATE' %}bg-success
+                                                      {% elif log.action == 'UPDATE' %}bg-warning
+                                                      {% elif log.action == 'DELETE' %}bg-danger
+                                                      {% else %}bg-info{% endif %}">
+                                        {{ log.action }}
+                                    </span>
+                                </td>
+                                <td>{{ log.content_type }}</td>
+                                <td>{{ log.object_repr }}</td>
+                                <td>{{ log.ip_address|default:"-" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="showDetails({{ log.id }})">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Pagination -->
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            {% if audit_logs.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ audit_logs.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in audit_logs.paginator.page_range %}
+                            <li class="page-item {% if audit_logs.number == i %}active{% endif %}">
+                                <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if audit_logs.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ audit_logs.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const params = new URLSearchParams({
+        user: document.getElementById('filterUser').value,
+        module: document.getElementById('filterModule').value,
+        action: document.getElementById('filterAction').value,
+        date_from: '', // from date range picker
+        date_to: '',
+    });
+    
+    window.location.href = `/core/audit/?${params.toString()}`;
+}
+
+function showDetails(logId) {
+    fetch(`/api/core/audit/${logId}/`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '<table class="table">';
+            if (data.old_values) {
+                html += '<tr><th>Field</th><th>Old Value</th><th>New Value</th></tr>';
+                for (const [key, value] of Object.entries(data.new_values || {})) {
+                    const old = data.old_values?.[key] || '-';
+                    html += `<tr>
+                        <td>${key}</td>
+                        <td>${JSON.stringify(old)}</td>
+                        <td>${JSON.stringify(value)}</td>
+                    </tr>`;
+                }
+            } else {
+                html += '<tr><td colspan="3">' + JSON.stringify(data.new_values, null, 2) + '</td></tr>';
+            }
+            html += '</table>';
+            
+            document.getElementById('detailContent').innerHTML = html;
+            $('#detailModal').modal('show');
+        });
+}
+
+function exportAuditLog() {
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = `/api/core/audit/export/?${params.toString()}`;
+}
+</script>
+{% endblock %}

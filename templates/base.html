@@ -11,12 +11,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
     <div class="d-flex">
         {% include 'includes/sidebar.html' %}
         <div class="content-area">
-            {% include 'includes/topbar.html' %}
+            <div id="topbar" class="d-flex justify-content-between align-items-center w-100 p-3 bg-white shadow-sm mb-4">
+                {% include 'includes/topbar.html' %}
+                {% include 'includes/country_switcher.html' %}
+            </div>
             <main class="container-fluid p-4">
                 {% block content %}{% endblock %}
             </main>

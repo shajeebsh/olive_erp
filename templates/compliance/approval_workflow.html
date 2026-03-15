@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-4">✅ Compliance Approval Workflow</h4>
+            
+            <!-- Overall Progress -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="stepper-wrapper">
+                        <div class="stepper-item completed">
+                            <div class="step-counter">1</div>
+                            <div class="step-name">Preparation</div>
+                        </div>
+                        <div class="stepper-item active">
+                            <div class="step-counter">2</div>
+                            <div class="step-name">CFO Review</div>
+                        </div>
+                        <div class="stepper-item">
+                            <div class="step-counter">3</div>
+                            <div class="step-name">Board Approval</div>
+                        </div>
+                        <div class="stepper-item">
+                            <div class="step-counter">4</div>
+                            <div class="step-name">Ready for Filing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Returns Pending Approval -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Action Required: Pending Approvals</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Form</th>
+                                <th>Period</th>
+                                <th>Prepared By</th>
+                                <th>Net Payable</th>
+                                <th>Current Stage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for return in pending_returns %}
+                            <tr>
+                                <td>
+                                    <strong>{{ return.country_flag }} {{ return.form_name }}</strong>
+                                </td>
+                                <td>{{ return.period_start }} to {{ return.period_end }}</td>
+                                <td>{{ return.preparer.get_full_name }}</td>
+                                <td>{{ return.currency }} {{ return.net_payable }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ return.current_stage }}</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="reviewReturn({{ return.id }})">
+                                        Review
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="approveReturn({{ return.id }})">
+                                        Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="rejectReturn({{ return.id }})">
+                                        Reject
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Approval History -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Recent Approvals</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for history in approval_history %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ history.form_name }}</strong> 
+                                <span class="text-muted">({{ history.period }})</span>
+                                <br>
+                                <small>Approved by {{ history.approver.get_full_name }} on {{ history.date }}</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">Approved</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Review Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-9">
+                        <iframe id="returnPreview" style="width:100%; height:600px;" src=""></iframe>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-header">Approval Actions</div>
+                            <div class="card-body">
+                                <form id="approvalForm">
+                                    <div class="mb-3">
+                                        <label>Comments (Required for Rejection)</label>
+                                        <textarea class="form-control" id="reviewerComments" rows="4"></textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-success w-100 mb-2" onclick="submitApproval('approve')">
+                                        Approve
+                                    </button>
+                                    <button type="button" class="btn btn-danger w-100" onclick="submitApproval('reject')">
+                                        Reject & Request Changes
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stepper CSS */
+.stepper-wrapper {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.stepper-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stepper-item::before {
+  position: absolute;
+  content: "";
+  border-bottom: 2px solid #ccc;
+  width: 100%;
+  top: 20px;
+  left: -50%;
+  z-index: 2;
+}
+
+.stepper-item::after {
+  position: absolute;
+  content: "";
+  border-bottom: 2px solid #ccc;
+  width: 100%;
+  top: 20px;
+  left: 50%;
+  z-index: 2;
+}
+
+.stepper-item .step-counter {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ccc;
+  margin-bottom: 6px;
+  color: white;
+  font-weight: bold;
+}
+
+.stepper-item.completed .step-counter {
+  background-color: #4bb543;
+}
+.stepper-item.completed::after {
+    border-bottom: 2px solid #4bb543;
+}
+.stepper-item.completed + .stepper-item::before {
+    border-bottom: 2px solid #4bb543;
+}
+
+.stepper-item.active .step-counter {
+  background-color: #0d6efd;
+}
+
+.stepper-item:first-child::before {
+  content: none;
+}
+.stepper-item:last-child::after {
+  content: none;
+}
+</style>
+
+<script>
+let currentReturnId = null;
+
+function reviewReturn(id) {
+    currentReturnId = id;
+    document.getElementById('returnPreview').src = `/api/compliance/preview/${id}/`;
+    $('#reviewModal').modal('show');
+}
+
+function submitApproval(action) {
+    const comments = document.getElementById('reviewerComments').value;
+    
+    if (action === 'reject' && !comments) {
+        alert('Comments are required when rejecting a return.');
+        return;
+    }
+    
+    fetch(`/api/compliance/workflow/${currentReturnId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        },
+        body: JSON.stringify({
+            action: action,
+            comments: comments
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error updating workflow: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}
