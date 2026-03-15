@@ -25,6 +25,10 @@ EWayBillItem = in_ewaybill.EWayBillItem
 in_einvoice = importlib.import_module('compliance.countries.in.einvoice')
 EInvoiceIRN = in_einvoice.EInvoiceIRN
 
+# AE Models
+from .countries.ae.excise import ExciseGoodsCategory, ExciseProduct, ExciseDeclaration, ExciseDeclarationLine
+from .countries.ae.corporate_tax import CorporateTaxReturn, TaxLoss, FreeZonePerson
+
 __all__ = [
     'CountryConfig',
     'TaxPeriod',
@@ -49,4 +53,11 @@ __all__ = [
     'EWayBill',
     'EWayBillItem',
     'EInvoiceIRN',
+    'ExciseGoodsCategory',
+    'ExciseProduct',
+    'ExciseDeclaration',
+    'ExciseDeclarationLine',
+    'CorporateTaxReturn',
+    'TaxLoss',
+    'FreeZonePerson',
 ]
