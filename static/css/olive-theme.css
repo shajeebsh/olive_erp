@@ -49,8 +49,39 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-nav .nav-item .nav-link i {
-    margin-right: 1rem;
+.sidebar-nav .nav-item .nav-link i.bi-chevron-down {
+    transition: transform 0.3s;
+}
+
+.sidebar-nav .nav-item .nav-link.active i.bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.submenu .nav-link {
+    padding: 0.75rem 1.5rem 0.75rem 3.5rem !important;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.submenu .nav-link:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.submenu-header {
+    padding: 0.75rem 1.5rem 0.25rem 3.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
 }
 
 .content-area {

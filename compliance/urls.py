@@ -12,4 +12,9 @@ urlpatterns = [
     path('paye/', views.paye, name='paye'),
     path('calendar/', views.calendar, name='calendar'),
     path('history/', views.history, name='history'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('return_preview/', views.return_preview, name='return_preview'),
+    path('return_preview/<int:return_id>/', views.return_preview, name='return_preview_id'),
+    path('approval/', views.approval_workflow, name='approval_workflow'),
+    path('consolidated/', views.consolidated_reports, name='consolidated_reports'),
 ]

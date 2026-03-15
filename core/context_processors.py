@@ -95,19 +95,20 @@ def navigation_menu(request):
                 'name': 'Compliance',
                 'icon': 'bi-shield-check',
                 'submenu': [
-                    {'name': 'Dashboard', 'url': 'dashboard:compliance_dashboard'},
+                    {'name': 'Dashboard', 'url': 'compliance:dashboard'},
+                    {'name': 'Approval Workflow', 'url': 'compliance:approval_workflow'},
+                    {'name': 'Consolidated Reports', 'url': 'compliance:consolidated_reports'},
+                    {'name': 'Compliance Calendar', 'url': 'compliance:calendar'},
+                    {'name': 'Filings History', 'url': 'compliance:history'},
                     {
-                        'name': 'Ireland',
+                        'name': 'Country Specific',
                         'submenu': [
-                            {'name': 'CRO B1', 'url': 'compliance:cro_b1'},
-                            {'name': 'CT1 Return', 'url': 'compliance:ct1'},
-                            {'name': 'VAT Returns', 'url': 'compliance:vat'},
-                            {'name': 'RBO', 'url': 'compliance:rbo'},
-                            {'name': 'PAYE', 'url': 'compliance:paye'},
+                            {'name': 'Ireland', 'url': 'compliance:vat'},
+                            {'name': 'United Kingdom', 'url': 'compliance:dashboard'},
+                            {'name': 'India', 'url': 'compliance:dashboard'},
+                            {'name': 'UAE', 'url': 'compliance:dashboard'},
                         ]
                     },
-                    {'name': 'Calendar', 'url': 'compliance:calendar'},
-                    {'name': 'Filings History', 'url': 'compliance:history'},
                 ]
             },
             {
@@ -115,7 +116,8 @@ def navigation_menu(request):
                 'icon': 'bi-gear',
                 'submenu': [
                     {'name': 'Company Profile', 'url': 'company:profile'},
-                    {'name': 'System Settings', 'url': 'finance:system_config'},
+                    {'name': 'System Settings', 'url': 'core:system_config'},
+                    {'name': 'Audit Trail', 'url': 'core:audit_log'},
                 ]
             },
         ]
