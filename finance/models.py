@@ -107,6 +107,17 @@ class Invoice(models.Model):
     total_amount = models.DecimalField(max_digits=18, decimal_places=2)
     tax_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
+    
+    # Missing fields for tracking
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='invoices', null=True)
+    type = models.CharField(max_length=10, choices=(('sales', 'Sales'), ('purchase', 'Purchase')), default='sales')
+    supplier = models.ForeignKey('purchasing.Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='purchase_invoices')
+    
+    # GST components for India
+    cgst_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
+    sgst_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
+    igst_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
+    utgst_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.invoice_number

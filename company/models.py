@@ -20,6 +20,8 @@ class CompanyProfile(models.Model):
     logo = models.ImageField(upload_to="company_logos/", null=True, blank=True)
     fiscal_year_start_date = models.DateField()
     default_currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True)
+    country = models.CharField(max_length=2, default='IE', help_text="ISO Country Code")
+    state_code = models.CharField(max_length=5, blank=True, help_text="State/Province code for tax purposes")
 
     def __str__(self):
         return self.name
