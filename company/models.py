@@ -19,9 +19,18 @@ class CompanyProfile(models.Model):
     tax_id = models.CharField(max_length=50, blank=True)
     logo = models.ImageField(upload_to="company_logos/", null=True, blank=True)
     fiscal_year_start_date = models.DateField()
+    financial_year_end = models.DateField(null=True, blank=True)
     default_currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True)
-    country = models.CharField(max_length=2, default='IE', help_text="ISO Country Code")
+    country_code = models.CharField(max_length=2, choices=[
+        ('IE', 'Ireland'), ('GB', 'United Kingdom'), ('IN', 'India'), ('AE', 'UAE'),
+    ], default='IE')
     state_code = models.CharField(max_length=5, blank=True, help_text="State/Province code for tax purposes")
+
+    def save(self, *args, **kwargs):
+        if not self.financial_year_end and self.fiscal_year_start_date:
+            from datetime import timedelta
+            self.financial_year_end = self.fiscal_year_start_date + timedelta(days=364)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

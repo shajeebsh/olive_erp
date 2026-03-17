@@ -275,3 +275,32 @@ class IrelandTaxEngine(BaseTaxEngine):
                 })
         
         return periods
+
+@register_compliance_engine('IE')
+class IrelandComplianceEngine(BaseComplianceEngine):
+    country_code = 'IE'
+    
+    def get_filing_deadlines(self, company_id: int, year: int) -> List[Dict]:
+        from company.models import CompanyProfile
+        from .calendar import IrelandComplianceCalendar
+        
+        company = CompanyProfile.objects.get(id=company_id)
+        calendar = IrelandComplianceCalendar(company, year)
+        deadlines = calendar.get_all_deadlines()
+        
+        return [
+            {
+                'name': d.name,
+                'description': d.description,
+                'due_date': d.due_date.isoformat(),
+                'form': d.form,
+                'authority': d.authority
+            }
+            for d in deadlines
+        ]
+    
+    def generate_annual_return(self, company_id: int, year: int, filing_type: str) -> Dict:
+        return {}
+        
+    def validate_company_registration(self, registration_number: str) -> Tuple[bool, str]:
+        return True, "Valid"

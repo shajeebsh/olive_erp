@@ -5,151 +5,63 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header with Country Selector -->
     <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>📋 Compliance Dashboard</h2>
+        <div class="col-12">
+            <h2>
+                {% if company.country_code == 'IE' %}🇮🇪 Ireland Compliance Dashboard
+                {% elif company.country_code == 'GB' %}🇬🇧 United Kingdom Compliance Dashboard
+                {% elif company.country_code == 'IN' %}🇮🇳 India Compliance Dashboard
+                {% elif company.country_code == 'AE' %}🇦🇪 UAE Compliance Dashboard
+                {% endif %}
+            </h2>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body py-2">
-                    <div class="row">
-                        <div class="col-6">
-                            <label>Country</label>
-                            <select class="form-select" id="countrySelector">
-                                <option value="all">🌍 All Countries</option>
-                                <option value="IE">🇮🇪 Ireland</option>
-                                <option value="GB">🇬🇧 United Kingdom</option>
-                                <option value="IN">🇮🇳 India</option>
-                                <option value="AE">🇦🇪 UAE</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label>Financial Year</label>
-                            <select class="form-select" id="yearSelector">
-                                <option>2025-26</option>
-                                <option>2024-25</option>
-                                <option>2023-24</option>
-                            </select>
-                        </div>
-                    </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Filings</h5>
+                    <h2>{{ pending_count|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Filed This Period</h5>
+                    <h2>{{ filed_count|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Due Soon</h5>
+                    <h2>{{ due_soon_count|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Overdue</h5>
+                    <h2>{{ overdue_count|default:"0" }}</h2>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- KPI Cards by Country -->
-    <div class="row mb-4" id="kpiCards">
-        <!-- Ireland -->
-        <div class="col-md-3 country-kpi" data-country="IE">
-            <div class="card border-left-primary shadow h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                🇮🇪 Ireland
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">3 Filings Due</div>
-                            <div class="small">Next: VAT3 - 19 Mar 2026</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 75%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- UK -->
-        <div class="col-md-3 country-kpi" data-country="GB">
-            <div class="card border-left-warning shadow h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                🇬🇧 United Kingdom
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">2 Filings Due</div>
-                            <div class="small">Next: VAT Return - 7 Apr 2026</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-pound-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-warning" style="width: 45%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- India -->
-        <div class="col-md-3 country-kpi" data-country="IN">
-            <div class="card border-left-info shadow h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                🇮🇳 India
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">5 Filings Due</div>
-                            <div class="small">Next: GSTR-3B - 20 Apr 2026</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-info" style="width: 30%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- UAE -->
-        <div class="col-md-3 country-kpi" data-country="AE">
-            <div class="card border-left-danger shadow h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                🇦🇪 UAE
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">1 Filing Due</div>
-                            <div class="small">Next: VAT201 - 28 Apr 2026</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dirham fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-danger" style="width: 90%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Interactive Calendar View -->
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">📅 Compliance Calendar</h5>
-                </div>
+                <div class="card-header"><h5>Compliance Calendar</h5></div>
                 <div class="card-body">
-                    <div id="complianceCalendar"></div>
+                    <div id="complianceCalendar" data-country="{{ company.country_code }}"></div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">⚠️ Upcoming Deadlines (7 Days)</h5>
-                </div>
+                <div class="card-header"><h5>Upcoming Deadlines (7 Days)</h5></div>
                 <div class="card-body">
                     <div class="list-group" id="upcomingDeadlines">
                         <!-- Populated by JavaScript -->
@@ -158,19 +70,14 @@
             </div>
         </div>
     </div>
-
-    <!-- Pending Filings Table -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">📋 Pending Filings</h5>
-                </div>
+                <div class="card-header"><h5>Pending Filings</h5></div>
                 <div class="card-body">
-                    <table class="table table-hover" id="pendingFilingsTable">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>Country</th>
                                 <th>Form</th>
                                 <th>Period</th>
                                 <th>Due Date</th>
@@ -193,44 +100,22 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize calendar
+    const countryCode = document.getElementById('complianceCalendar').dataset.country;
     var calendarEl = document.getElementById('complianceCalendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        events: '/api/compliance/deadlines/',
-        eventClick: function(info) {
-            // Show filing details modal
-            showFilingModal(info.event);
-        },
+        events: `/api/compliance/deadlines/?country=${countryCode}`,
         eventDidMount: function(info) {
-            // Color code by urgency
-            var daysUntilDue = Math.ceil((info.event.start - new Date()) / (1000*60*60*24));
-            if (daysUntilDue < 0) {
-                info.el.style.backgroundColor = '#dc3545'; // Overdue - red
-            } else if (daysUntilDue < 7) {
-                info.el.style.backgroundColor = '#ffc107'; // Warning - yellow
-            } else {
-                info.el.style.backgroundColor = '#28a745'; // On track - green
-            }
+            var daysUntil = Math.ceil((info.event.start - new Date()) / (1000*60*60*24));
+            if (daysUntil < 0) info.el.style.backgroundColor = '#dc3545';
+            else if (daysUntil < 7) info.el.style.backgroundColor = '#ffc107';
+            else info.el.style.backgroundColor = '#28a745';
         }
     });
     calendar.render();
     
-    // Load upcoming deadlines
     loadUpcomingDeadlines();
-    
-    // Load pending filings
     loadPendingFilings();
-    
-    // Country selector change
-    document.getElementById('countrySelector').addEventListener('change', function(e) {
-        filterByCountry(e.target.value);
-    });
 });
 
 function loadUpcomingDeadlines() {
@@ -241,16 +126,16 @@ function loadUpcomingDeadlines() {
             container.innerHTML = '';
             data.forEach(deadline => {
                 container.innerHTML += `
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <div class="list-group-item">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">${deadline.country_flag} ${deadline.form}</h6>
+                            <h6 class="mb-1">${deadline.form}</h6>
                             <small class="${deadline.days_until < 0 ? 'text-danger' : 'text-warning'}">
                                 ${deadline.days_until < 0 ? 'Overdue' : deadline.days_until + ' days left'}
                             </small>
                         </div>
-                        <p class="mb-1">${deadline.description}</p>
+                        <p class="mb-1 small">${deadline.description}</p>
                         <small>Due: ${deadline.due_date}</small>
-                    </a>
+                    </div>
                 `;
             });
         });
@@ -267,36 +152,17 @@ function loadPendingFilings() {
                                    (filing.status === 'due_soon' ? 'warning' : 'success');
                 tbody.innerHTML += `
                     <tr>
-                        <td>${filing.country_flag} ${filing.country}</td>
                         <td><strong>${filing.form}</strong></td>
                         <td>${filing.period}</td>
                         <td>${filing.due_date}</td>
                         <td><span class="badge bg-${statusClass}">${filing.status_text}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="prepareFiling('${filing.id}')">
-                                <i class="fas fa-file-export"></i> Prepare
-                            </button>
-                            <button class="btn btn-sm btn-info" onclick="previewFiling('${filing.id}')">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>
+                            <a href="/compliance/prepare/${filing.id}/" class="btn btn-sm btn-primary">Prepare</a>
                         </td>
                     </tr>
                 `;
             });
         });
-}
-
-function filterByCountry(country) {
-    if (country === 'all') {
-        document.querySelectorAll('.country-kpi').forEach(el => el.style.display = 'block');
-    } else {
-        document.querySelectorAll('.country-kpi').forEach(el => {
-            el.style.display = el.dataset.country === country ? 'block' : 'none';
-        });
-    }
-    // Also filter calendar and pending filings
-    window.calendar.refetchEvents();
-    loadPendingFilings();
 }
 </script>
 {% endblock %}
