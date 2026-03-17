@@ -76,23 +76,24 @@ def get_compliance_submenu(country_code):
             {'name': '💵 PAYE/PRSI', 'url': 'compliance:paye'},
         ],
         'GB': [
-            {'name': '🇬🇧 VAT Return', 'url': 'compliance:vat'},
-            {'name': '📊 CT600', 'url': 'compliance:vat'}, # Placeholder link
-            {'name': '🏢 Companies House', 'url': 'compliance:vat'}, # Placeholder
-            {'name': '💷 PAYE RTI', 'url': 'compliance:vat'}, # Placeholder
+            {'name': '🇬🇧 VAT Return (VAT100)', 'url': 'compliance:vat'},
+            # Other features mentioned in tax engine/general knowledge but maybe not fully implemented yet
+            {'name': '📊 CT600 Corporate Tax', 'url': 'compliance:gb_ct600'},
+            {'name': '🏢 Companies House', 'url': 'compliance:gb_companies_house'},
+            {'name': '💷 PAYE RTI', 'url': 'compliance:gb_paye'},
         ],
         'IN': [
-            {'name': '🇮🇳 GSTR-3B', 'url': 'compliance:vat'},
-            {'name': '📑 GSTR-1', 'url': 'compliance:vat'}, # Placeholder
-            {'name': '💰 TDS Returns', 'url': 'compliance:vat'}, # Placeholder
-            {'name': '🚚 E-Way Bill', 'url': 'compliance:vat'}, # Placeholder
-            {'name': '📱 E-Invoicing', 'url': 'compliance:vat'}, # Placeholder
+            {'name': '🇮🇳 GSTR-3B', 'url': 'compliance:in_gstr3b'},
+            {'name': '📑 GSTR-1', 'url': 'compliance:in_gstr1'},
+            {'name': '💰 TDS Returns', 'url': 'compliance:in_tds'},
+            {'name': '🚚 E-Way Bill', 'url': 'compliance:in_eway'},
+            {'name': '📱 E-Invoicing', 'url': 'compliance:in_einvoice'},
         ],
         'AE': [
             {'name': '🇦🇪 VAT 201', 'url': 'compliance:vat'},
-            {'name': '🧪 Excise Tax', 'url': 'compliance:vat'}, # Match test assertion
-            {'name': '🏛️ Corporate Tax', 'url': 'compliance:vat'},
-            {'name': '📋 ESR/UBO', 'url': 'compliance:vat'},
+            {'name': '🧪 Excise Tax', 'url': 'compliance:ae_excise'},
+            {'name': '🏛️ Corporate Tax', 'url': 'compliance:ae_corporate_tax'},
+            {'name': '📋 ESR/UBO', 'url': 'compliance:ae_esr'},
         ],
     }
     

@@ -24,6 +24,42 @@ def rbo(request):
 def paye(request):
     return render(request, 'compliance/paye.html')
 
+# --- Great Britain (UK) Placeholders ---
+def gb_ct600(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'CT600 Corporate Tax'})
+
+def gb_companies_house(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'Companies House'})
+
+def gb_paye(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'PAYE RTI'})
+
+# --- India Placeholders ---
+def in_gstr3b(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'GSTR-3B'})
+
+def in_gstr1(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'GSTR-1'})
+
+def in_tds(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'TDS Returns'})
+
+def in_eway(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'E-Way Bill'})
+
+def in_einvoice(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'E-Invoicing'})
+
+# --- UAE Placeholders ---
+def ae_excise(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'Excise Tax'})
+
+def ae_corporate_tax(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'Corporate Tax'})
+
+def ae_esr(request):
+    return render(request, 'compliance/placeholder.html', {'title': 'ESR/UBO'})
+
 def calendar(request):
     return render(request, 'compliance/calendar.html')
 
