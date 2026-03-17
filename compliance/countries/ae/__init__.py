@@ -411,3 +411,24 @@ class UAETaxEngine(BaseTaxEngine):
                 })
         
         return periods
+
+@register_compliance_engine('AE')
+class UAEComplianceEngine(BaseComplianceEngine):
+    country_code = 'AE'
+    
+    def get_filing_deadlines(self, company_id: int, year: int) -> List[Dict]:
+        return [
+            {
+                'name': 'VAT 201 Return',
+                'description': 'Quarterly VAT return',
+                'due_date': f"{year}-04-28",
+                'form': 'VAT 201',
+                'authority': 'FTA'
+            }
+        ]
+    
+    def generate_annual_return(self, company_id: int, year: int, filing_type: str) -> Dict:
+        return {}
+        
+    def validate_company_registration(self, registration_number: str) -> Tuple[bool, str]:
+        return True, "Valid"

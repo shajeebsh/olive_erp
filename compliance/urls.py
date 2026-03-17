@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import views, api
 
 app_name = "compliance"
 
@@ -16,5 +16,9 @@ urlpatterns = [
     path('return_preview/', views.return_preview, name='return_preview'),
     path('return_preview/<int:return_id>/', views.return_preview, name='return_preview_id'),
     path('approval/', views.approval_workflow, name='approval_workflow'),
-    path('consolidated/', views.consolidated_reports, name='consolidated_reports'),
+    
+    # API endpoints
+    path('api/deadlines/', api.ComplianceDeadlinesView.as_view(), name='api_deadlines'),
+    path('api/deadlines/upcoming/', api.UpcomingDeadlinesView.as_view(), name='api_upcoming'),
+    path('api/pending/', api.PendingFilingsView.as_view(), name='api_pending'),
 ]

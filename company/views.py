@@ -46,6 +46,12 @@ class SetupStep2View(LoginRequiredMixin, FormView):
         # Store country selection in session
         self.request.session['setup_country'] = form.cleaned_data['country']
         self.request.session['setup_features'] = form.cleaned_data['features']
+        
+        company = getattr(self.request.user, 'company', None)
+        if company:
+            company.country_code = form.cleaned_data['country']
+            company.save()
+            
         return super().form_valid(form)
 
 
