@@ -69,14 +69,14 @@ def get_compliance_submenu(country_code):
     
     country_forms = {
         'IE': [
-            {'name': '🇮🇪 VAT3 Return', 'url': 'compliance:vat'},
-            {'name': '📄 CRO B1', 'url': 'compliance:cro_b1'},
-            {'name': '💰 CT1 Corporation Tax', 'url': 'compliance:ct1'},
-            {'name': '👥 RBO Register', 'url': 'compliance:rbo'},
-            {'name': '💵 PAYE/PRSI', 'url': 'compliance:paye'},
+            {'name': '🇮🇪 VAT3 Return', 'url': 'compliance:ie_vat3'},
+            {'name': '📄 CRO B1', 'url': 'compliance:ie_cro_b1'},
+            {'name': '💰 CT1 Corporation Tax', 'url': 'compliance:ie_ct1'},
+            {'name': '👥 RBO Register', 'url': 'compliance:ie_rbo'},
+            {'name': '💵 PAYE/PRSI', 'url': 'compliance:ie_paye'},
         ],
         'GB': [
-            {'name': '🇬🇧 VAT Return (VAT100)', 'url': 'compliance:vat'},
+            {'name': '🇬🇧 VAT Return (VAT100)', 'url': 'compliance:dashboard'},
             # Other features mentioned in tax engine/general knowledge but maybe not fully implemented yet
             {'name': '📊 CT600 Corporate Tax', 'url': 'compliance:gb_ct600'},
             {'name': '🏢 Companies House', 'url': 'compliance:gb_companies_house'},
@@ -90,7 +90,7 @@ def get_compliance_submenu(country_code):
             {'name': '📱 E-Invoicing', 'url': 'compliance:in_einvoice'},
         ],
         'AE': [
-            {'name': '🇦🇪 VAT 201', 'url': 'compliance:vat'},
+            {'name': '🇦🇪 VAT 201', 'url': 'compliance:dashboard'},
             {'name': '🧪 Excise Tax', 'url': 'compliance:ae_excise'},
             {'name': '🏛️ Corporate Tax', 'url': 'compliance:ae_corporate_tax'},
             {'name': '📋 ESR/UBO', 'url': 'compliance:ae_esr'},
@@ -98,8 +98,7 @@ def get_compliance_submenu(country_code):
     }
     
     base_items.extend(country_forms.get(country_code, []))
-    base_items.append({'name': '📅 Calendar', 'url': 'compliance:calendar'})
-    base_items.append({'name': '⏳ Filing History', 'url': 'compliance:history'})
-    base_items.append({'name': '✅ Approvals', 'url': 'compliance:approval_workflow'})
+    base_items.append({'name': '⏳ Filing History', 'url': 'compliance:filing_history'})
+    base_items.append({'name': '✅ Approvals', 'url': 'compliance:approvals'})
     
     return base_items

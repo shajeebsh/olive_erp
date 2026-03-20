@@ -212,12 +212,12 @@ Full implementation of the United Arab Emirates (AE) module, conforming to Feder
 
 ### Phase 3: UI Enhancements & Completeness (Completed)
 Brought the user interface to 100% completion by implementing:
-- **Compliance Dashboard**: Unified dashboard with fullcalendar.io integration, KPI cards by country, and pending filing status.
-- **Tax Return UI**: Interactive preview with live calculation updates, PDF preview tabs, and validation steps.
-- **Multi-Country Management**: Global country switcher and consolidated cross-border reports (VAT, Tax Liability).
+- **Single-Country Architecture**: Replaced multi-country management with a strict, single-country configuration experience. Workflows and navigation are heavily filtered to ensure users only see UI elements and tax logic relevant to their registered operating country.
+- **Compliance Dashboard**: Unified dashboard with dynamic KPI cards, overdue filing metrics, and upcoming specific regional obligations.
+- **Interactive Tax Return UI**: Real-time Javascript calculation forms capturing comprehensive reporting metrics for Ireland (VAT3, CT1, CRO B1, RBO, PAYE/PRSI stubs).
+- **Approval Workflows**: Robust multi-step structural pipeline for tax filings representing actual business validation chains (Draft -> CFO Review -> Board Approval -> Filed).
 - **System Configuration**: F11/F12 Tally-style configuration interface for Accounting, Inventory, Statutory, and General settings.
 - **Audit Log Viewer**: Advanced tracking interface with filters, JSON diff views, and export features.
-- **Approval Workflows**: Multi-step visual workflow for tax filings (Preparation -> CFO -> Board -> Filing).
 - **Mobile Responsiveness**: Dedicated mobile CSS for responsive dashboards and touch-friendly interface elements.
 
 ## System Architecture

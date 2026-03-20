@@ -1,5 +1,5 @@
 import importlib
-from .base.models import CountryConfig, TaxPeriod, TaxFiling
+from .base.models import CountryConfig, TaxPeriod, TaxFiling, FilingApproval
 from .countries.ie.models import Director, Secretary, Shareholder, OrdinaryShare, PreferenceShare
 from .countries.ie.rbo import BeneficialOwner, RBORegistration
 
@@ -33,6 +33,7 @@ __all__ = [
     'CountryConfig',
     'TaxPeriod',
     'TaxFiling',
+    'FilingApproval',
     'CompanyOfficer',
     'ConfirmationStatement',
     'PersonWithSignificantControl',

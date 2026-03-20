@@ -101,27 +101,59 @@ class TaxPeriod(models.Model):
 
 
 class TaxFiling(models.Model):
-    """
-    Record of actual tax filings submitted
-    """
-    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
-    tax_period = models.ForeignKey(TaxPeriod, on_delete=models.CASCADE)
-    filing_type = models.CharField(max_length=50)  # e.g., 'VAT3', 'GSTR-1'
+    FILING_TYPES = [
+        ("VAT3","VAT3 Return"),
+        ("CT1","CT1 Corporation Tax"),
+        ("CRO_B1","CRO B1 Annual Return"),
+        ("RBO","RBO Beneficial Ownership"),
+        ("PAYE","PAYE/PRSI"),
+    ]
+    STATUS = [
+        ("draft","Draft"),
+        ("pending","Pending Approval"),
+        ("approved","Approved"),
+        ("filed","Filed"),
+        ("rejected","Rejected"),
+    ]
+    company = models.ForeignKey("company.CompanyProfile", on_delete=models.CASCADE)
+    filing_type = models.CharField(max_length=20, choices=FILING_TYPES)
+    period = models.CharField(max_length=20)          # e.g. "2024-Q2"
+    due_date = models.DateField()
+    filed_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS, default="draft")
+    reference = models.CharField(max_length=100, blank=True)
+    data = models.JSONField(default=dict)              # Stores form field values
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    filing_data = models.JSONField()  # Data that was filed
-    response_data = models.JSONField(null=True, blank=True)  # Response from tax authority
+    @property
+    def is_overdue(self):
+        from django.utils import timezone
+        return self.due_date < timezone.now().date() and self.status not in ["filed"]
 
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-
-    # For electronic filing
-    acknowledgment_no = models.CharField(max_length=100, blank=True)
-    filing_status = models.CharField(max_length=20, choices=[
-        ('draft', 'Draft'),
-        ('submitted', 'Submitted'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected')
-    ], default='draft')
+    @property
+    def due_soon(self):
+        from django.utils import timezone
+        delta = self.due_date - timezone.now().date()
+        return 0 <= delta.days <= 7 and self.status not in ["filed"]
 
     def __str__(self):
-        return f"{self.filing_type} - {self.tax_period}"
+        return f"{self.get_filing_type_display()} - {self.period}"
+
+class FilingApproval(models.Model):
+    filing = models.OneToOneField(TaxFiling, on_delete=models.CASCADE)
+    stage = models.CharField(max_length=20, choices=[
+        ("prepare","Prepare"),
+        ("cfo","CFO Review"),
+        ("board","Board Approval"),
+        ("filed","Filed"),
+    ], default="prepare")
+    cfo_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        related_name="cfo_approvals", on_delete=models.SET_NULL)
+    board_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        related_name="board_approvals", on_delete=models.SET_NULL)
+    filed_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}CRO B1 Annual Return{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">B1 Annual Return <span class="badge bg-success fs-6 align-middle ms-2">IE</span></h2>
+    <span class="badge bg-secondary fs-6">Draft</span>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold">Company Details (Pre-filled from ERP)</div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Company Name</label>
+          <div class="form-control bg-light">{{ company.name }}</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Company Registration Number (CRN)</label>
+          <div class="form-control bg-light">{{ company.registration_number|default:"Not Set" }}</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Registered Office Address</label>
+          <div class="form-control bg-light" style="height: auto;">
+            {{ company.address_line1 }}<br>
+            {{ company.address_line2 }}<br>
+            {{ company.city }}, {{ company.state }}<br>
+            {{ company.postal_code }}
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Annual Return Date (ARD)</label>
+          <div class="form-control bg-light fw-bold">{{ ard }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">Return Attachments & Declaration</div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label for="financialStatements" class="form-label">Upload Audited Financial Statements (PDF)</label>
+          <input class="form-control" type="file" id="financialStatements" accept=".pdf" required>
+          <div class="form-text">Must be signed by 2 directors. Max size 10MB.</div>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="declaration" required>
+          <label class="form-check-label" for="declaration">
+            I certify that the information provided is correct and the attached financial statements are a true copy of those laid before the company in general meeting.
+          </label>
+        </div>
+        
+        <hr class="mt-4 mb-4">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="submit" class="btn btn-outline-secondary">Save Progress</button>
+          <a href="#" class="btn btn-outline-danger" title="Integration pending" data-bs-toggle="tooltip">Submit to CORE (CRO)</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Compliance Approvals{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Approvals Pipeline
+      <span class="badge bg-success fs-6 align-middle ms-2">{{ company.country_code }}</span>
+    </h2>
+  </div>
+
+  <!-- Stepper Visualizer -->
+  <div class="card border-0 shadow-sm mb-4 bg-light">
+    <div class="card-body">
+      <div class="d-flex justify-content-between text-center fw-bold">
+        <div class="text-secondary w-25 border-end border-2 border-secondary border-opacity-50">[1] Prepare</div>
+        <div class="text-info w-25 border-end border-2 border-secondary border-opacity-50">[2] CFO Review</div>
+        <div class="text-primary w-25 border-end border-2 border-secondary border-opacity-50">[3] Board Approval</div>
+        <div class="text-success w-25">[4] File</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Filing Type</th><th>Period</th><th>Due Date</th>
+            <th>Current Stage</th><th>Notes</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for approval in approvals %}
+          <tr>
+            <td>{{ approval.filing.get_filing_type_display }}</td>
+            <td>{{ approval.filing.period }}</td>
+            <td>{{ approval.filing.due_date|date:"d M Y" }}</td>
+            <td>
+              {% if approval.stage == 'prepare' %}<span class="badge bg-secondary">Prepare</span>
+              {% elif approval.stage == 'cfo' %}<span class="badge bg-info text-dark">CFO Review</span>
+              {% elif approval.stage == 'board' %}<span class="badge bg-primary">Board Approval</span>
+              {% elif approval.stage == 'filed' %}<span class="badge bg-warning text-dark">Ready to File</span>{% endif %}
+            </td>
+            <td><small class="text-muted text-break" style="max-width:200px; display:inline-block;">{{ approval.notes }}</small></td>
+            <td>
+              <form method="post" class="d-flex gap-2 align-items-center">
+                {% csrf_token %}
+                <input type="hidden" name="approval_id" value="{{ approval.pk }}">
+                
+                {% if approval.stage == 'prepare' %}
+                <button type="submit" name="action" value="submit_review" class="btn btn-sm btn-primary">Submit for Review</button>
+                {% endif %}
+
+                {% if approval.stage == 'cfo' %}
+                <button type="submit" name="action" value="cfo_approve" class="btn btn-sm btn-success">Approve</button>
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" name="comment" placeholder="Rejection note..." required>
+                  <button type="submit" name="action" value="cfo_reject" class="btn btn-danger form-control-sm">Reject</button>
+                </div>
+                {% endif %}
+
+                {% if approval.stage == 'board' %}
+                <button type="submit" name="action" value="board_approve" class="btn btn-sm btn-success">Approve</button>
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" name="comment" placeholder="Rejection note..." required>
+                  <button type="submit" name="action" value="board_reject" class="btn btn-danger form-control-sm">Reject</button>
+                </div>
+                {% endif %}
+
+                {% if approval.stage == 'filed' %}
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" name="reference" placeholder="CRO/Revenue Ref..." required>
+                  <button type="submit" name="action" value="mark_filed" class="btn btn-success form-control-sm">Mark Filed</button>
+                </div>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No active approvals found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

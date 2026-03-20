@@ -10,7 +10,13 @@ class Currency(models.Model):
     def __str__(self):
         return f"{self.code} ({self.symbol})"
 
+class CompanyProfileManager(models.Manager):
+    def get_current(self):
+        return self.first()
+
 class CompanyProfile(models.Model):
+    objects = CompanyProfileManager()
+
     name = models.CharField(max_length=255)
     address = models.TextField()
     phone = models.CharField(max_length=20)
