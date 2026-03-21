@@ -11,5 +11,4 @@ urlpatterns = [
     path('crm/', views.crm_dashboard, name='crm_dashboard'),
     path('projects/', views.projects_dashboard, name='projects_dashboard'),
     path('reporting/', views.reporting_dashboard, name='reporting_dashboard'),
-    path('compliance/', views.compliance_dashboard, name='compliance_dashboard'),
 ]

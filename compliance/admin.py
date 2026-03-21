@@ -9,8 +9,8 @@ class TaxPeriodAdmin(admin.ModelAdmin):
 
 @admin.register(TaxFiling)
 class TaxFilingAdmin(admin.ModelAdmin):
-    list_display = ('tax_period', 'filing_type', 'filing_status', 'submitted_at')
-    list_filter = ('filing_status', 'filing_type')
+    list_display = ('company', 'filing_type', 'period', 'status', 'due_date')
+    list_filter = ('status', 'filing_type', 'company')
 
 # Import country-specific admins
 try:
