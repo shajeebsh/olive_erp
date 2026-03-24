@@ -114,7 +114,8 @@ WSGI_APPLICATION = "wagtailerp.wsgi.application"
 
 import dj_database_url
 
-DATABASE_URL = config("DATABASE_URL", default="mysql://root:newpassword@localhost:3306/oliveerp")
+# Default to SQLite for easier local development
+DATABASE_URL = config("DATABASE_URL", default="sqlite:///db.sqlite3")
 DATABASES = {
     "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, conn_health_checks=True)
 }
