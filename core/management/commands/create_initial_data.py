@@ -12,6 +12,9 @@ class Command(BaseCommand):
         self.create_currencies()
         self.create_chart_of_accounts()
         self.create_tax_rates()
+        self.create_inventory_data()
+        self.create_crm_data()
+        self.create_hr_data()
         self.stdout.write(self.style.SUCCESS('Initial data creation completed!'))
     
     def create_currencies(self):
@@ -34,23 +37,16 @@ class Command(BaseCommand):
             )
             if created:
                 created_count += 1
-                self.stdout.write(f'  Created currency: {curr_data["code"]} - {curr_data["name"]}')
         self.stdout.write(self.style.SUCCESS(f'  Currencies: {created_count} created'))
     
     def create_chart_of_accounts(self):
         accounts = [
             {'code': '1000', 'name': 'Cash', 'account_type': 'Asset', 'group_type': 'Ledger'},
-            {'code': '1010', 'name': 'Bank Account', 'account_type': 'Asset', 'group_type': 'Ledger'},
             {'code': '1100', 'name': 'Accounts Receivable', 'account_type': 'Asset', 'group_type': 'Ledger'},
-            {'code': '1200', 'name': 'Inventory', 'account_type': 'Asset', 'group_type': 'Ledger'},
             {'code': '2000', 'name': 'Accounts Payable', 'account_type': 'Liability', 'group_type': 'Ledger'},
-            {'code': '2100', 'name': 'Tax Payable', 'account_type': 'Liability', 'group_type': 'Ledger'},
             {'code': '3000', 'name': 'Capital', 'account_type': 'Equity', 'group_type': 'Ledger'},
-            {'code': '3100', 'name': 'Retained Earnings', 'account_type': 'Equity', 'group_type': 'Ledger'},
             {'code': '4000', 'name': 'Sales Revenue', 'account_type': 'Income', 'group_type': 'Ledger'},
             {'code': '5000', 'name': 'Cost of Goods Sold', 'account_type': 'Expense', 'group_type': 'Ledger'},
-            {'code': '5100', 'name': 'Salaries & Wages', 'account_type': 'Expense', 'group_type': 'Ledger'},
-            {'code': '5200', 'name': 'Rent', 'account_type': 'Expense', 'group_type': 'Ledger'},
         ]
         created_count = 0
         for acc_data in accounts:
@@ -72,9 +68,7 @@ class Command(BaseCommand):
             from compliance.models import TaxRate
             tax_rates = [
                 {'rate': 23.0, 'name': 'VAT Standard (23%)', 'country': 'IE'},
-                {'rate': 13.5, 'name': 'VAT Reduced (13.5%)', 'country': 'IE'},
                 {'rate': 20.0, 'name': 'VAT Standard (20%)', 'country': 'GB'},
-                {'rate': 5.0, 'name': 'GST (5%)', 'country': 'IN'},
                 {'rate': 18.0, 'name': 'GST (18%)', 'country': 'IN'},
                 {'rate': 5.0, 'name': 'VAT Standard (5%)', 'country': 'AE'},
             ]
@@ -90,3 +84,51 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'  Tax Rates: {created_count} created'))
         except ImportError:
             self.stdout.write(self.style.WARNING('  TaxRate model not found - skipping'))
+
+    def create_inventory_data(self):
+        try:
+            from inventory.models import Category, Warehouse
+            # Categories
+            categories = ['Electronics', 'Software', 'Services', 'Hardware', 'Office Supplies']
+            cat_count = 0
+            for name in categories:
+                _, created = Category.objects.get_or_create(name=name)
+                if created: cat_count += 1
+            
+            # Warehouses
+            warehouses = [
+                {'name': 'Main Warehouse', 'location': 'Headquarters'},
+                {'name': 'Showroom', 'location': 'City Center'},
+            ]
+            wh_count = 0
+            for wh_data in warehouses:
+                _, created = Warehouse.objects.get_or_create(name=wh_data['name'], defaults=wh_data)
+                if created: wh_count += 1
+            
+            self.stdout.write(self.style.SUCCESS(f'  Inventory: {cat_count} categories, {wh_count} warehouses created'))
+        except ImportError:
+            self.stdout.write(self.style.WARNING('  Inventory models not found - skipping'))
+
+    def create_crm_data(self):
+        try:
+            from crm.models import CustomerGroup
+            groups = ['Retail', 'Wholesale', 'Corporate', 'Government']
+            count = 0
+            for name in groups:
+                _, created = CustomerGroup.objects.get_or_create(name=name)
+                if created: count += 1
+            self.stdout.write(self.style.SUCCESS(f'  CRM: {count} customer groups created'))
+        except ImportError:
+            self.stdout.write(self.style.WARNING('  CRM models not found - skipping'))
+
+    def create_hr_data(self):
+        try:
+            from hr.models import Department
+            depts = ['Administration', 'Finance', 'Sales', 'Technical', 'Human Resources']
+            count = 0
+            for name in depts:
+                _, created = Department.objects.get_or_create(name=name)
+                if created: count += 1
+            self.stdout.write(self.style.SUCCESS(f'  HR: {count} departments created'))
+        except ImportError:
+            self.stdout.write(self.style.WARNING('  HR models not found - skipping'))
