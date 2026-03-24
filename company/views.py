@@ -6,19 +6,37 @@ from .models import CompanyProfile, Currency
 from .forms import CompanyProfileForm, FeatureSelectionForm
 from django.contrib import messages
 
-class CompanySetupView(LoginRequiredMixin, FormView):
-    template_name = 'company/setup/step1_company.html'
+class SetupStep1View(LoginRequiredMixin, FormView):
+    template_name = 'company/setup/step1.html'
     form_class = CompanyProfileForm
     success_url = reverse_lazy('company:setup_features')
-
+    
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
         instance = CompanyProfile.objects.first()
         if instance:
             kwargs.update({'instance': instance})
         return kwargs
-
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if Currency.objects.count() == 0:
+            context['no_currencies'] = True
+            messages.error(self.request, 'No currencies available. Run: python manage.py create_initial_data')
+        else:
+            context['currencies'] = Currency.objects.filter(is_active=True)
+        return context
+    
     def form_valid(self, form):
+        currency_id = form.cleaned_data.get('default_currency')
+        if currency_id:
+            try:
+                currency = Currency.objects.get(id=currency_id)
+                form.instance.default_currency = currency
+            except Currency.DoesNotExist:
+                messages.error(self.request, 'Selected currency does not exist.')
+                return self.form_invalid(form)
         self.object = form.save()
         self.request.session['company_id'] = self.object.id
         return super().form_valid(form)

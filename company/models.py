@@ -6,6 +6,7 @@ class Currency(models.Model):
     name = models.CharField(max_length=50)
     symbol = models.CharField(max_length=5)
     exchange_rate_to_base = models.DecimalField(max_digits=18, decimal_places=6, default=1.0)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.code} ({self.symbol})"

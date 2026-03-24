@@ -72,6 +72,8 @@ Olive_ERP is a comprehensive, modular Enterprise Resource Planning (ERP) system 
    python manage.py create_initial_data
    ```
 
+   *Note: If the currency dropdown is empty during setup, ensure `create_initial_data` was run.*
+
 5. **Create Admin User**:
    ```bash
    python manage.py createsuperuser
