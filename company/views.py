@@ -29,14 +29,6 @@ class SetupStep1View(LoginRequiredMixin, FormView):
         return context
     
     def form_valid(self, form):
-        currency_id = form.cleaned_data.get('default_currency')
-        if currency_id:
-            try:
-                currency = Currency.objects.get(id=currency_id)
-                form.instance.default_currency = currency
-            except Currency.DoesNotExist:
-                messages.error(self.request, 'Selected currency does not exist.')
-                return self.form_invalid(form)
         self.object = form.save()
         self.request.session['company_id'] = self.object.id
         return super().form_valid(form)

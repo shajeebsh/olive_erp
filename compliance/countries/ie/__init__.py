@@ -144,10 +144,7 @@ class IrelandTaxEngine(BaseTaxEngine):
                 return False, "Invalid VAT number - digits portion must be numeric"
         
         # Additional check for common suffixes
-        if suffix and suffix not in ['A', 'B', 'C', 'D', 'W', 'AB', 'AC', 'AD']:
-            # Not exhaustive, but catches obvious errors
-            return False, f"Unusual suffix '{suffix}' - please verify"
-        
+        # Suffix must be 1-2 letters as per regex; we allow any letters to support modern formats like WA, AI, etc.
         return True, f"Valid Irish VAT number: {tax_number}"
     
     def generate_tax_return(self, from_date: date, to_date: date,
