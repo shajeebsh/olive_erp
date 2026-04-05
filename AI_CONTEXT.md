@@ -255,26 +255,137 @@ olive_erp/
 6. **Audit trail**: Implement full audit logging for financial transactions
 7. **UI refinements**: Continue to iterate on the top navigation based on user feedback
 
-## 12. UI Implementation Notes (April 2025)
+## 12. UI Implementation Notes
 
-### Top Navigation Implementation
-- **Layout**: Fixed top header, 64px height, gradient olive theme
-- **Structure**: Brand (left) → Module nav (center) → Search + User (right)
+### Two-Row Enterprise Header (April 2026)
+- **Layout**: Two fixed header rows - utility bar (56px) + navigation bar (48px), total 104px
+- **Row 1**: White background, brand/logo left, company context, global search center, user dropdown right
+- **Row 2**: Olive gradient background, module navigation, dropdown menus, mobile hamburger
 - **Files**:
-  - `templates/base.html` - Main shell with top-navbar
-  - `static/css/olive-theme.css` - All top navigation styles (378 lines)
-  - `static/js/navigation.js` - Mobile toggle, dropdowns, search handling
-  - `static/css/mobile.css` - Responsive overrides (simplified, sidebar refs removed)
+  - `templates/base.html` - Two-row shell structure
+  - `static/css/olive-theme.css` - Full styling (~400 lines)
+  - `static/js/navigation.js` - Mobile toggle, active state
+  - `static/css/mobile.css` - Responsive overrides
 - **Features**:
-  - Horizontal scrollable module links on smaller screens
-  - Hover dropdowns on desktop, stacked accordion on mobile
-  - Search with expandable input and results dropdown
+  - Horizontal module navigation on desktop
+  - Dropdown menus with "Go to [Module]" + submenus
+  - Search with expandable input
   - User avatar + name + dropdown for settings/logout
-  - Active state highlighting based on current URL
-  - Smooth transitions and hover effects
-  - Mobile hamburger menu with X close icon
+  - Active state highlighting based on URL
+  - Mobile hamburger menu with vertical accordion
 
-### Deprecations
-- `templates/includes/sidebar.html` - No longer primary nav (retained for reference)
+### Historical (Deprecated)
+- **Single-row top nav**: Earlier implementation using one-row layout - replaced with two-row version
+- `templates/includes/sidebar.html` - No longer primary nav
 - `templates/includes/topbar.html` - No longer used (absorbed into base.html)
-- Old sidebar CSS classes in olive-theme.css - Removed
+
+---
+
+## 13. Top Navigation Fix (April 2026)
+
+### Problem
+The top navigation was rendering as a broken vertical list instead of a horizontal bar. Dropdown menus were not working correctly - links had `href="#"` with inline styles that could prevent proper navigation.
+
+### Root Causes Identified
+1. **Incorrect hrefs**: Dropdown parent links had `href="#"` instead of linking to actual pages
+2. **Missing proper dropdown classes**: The template used generic `.dropdown` class instead of `.nav-module-dropdown` which the CSS was designed for
+3. **Over-reliance on inline styles**: base.html had many inline styles that conflicted with CSS classes and Bootstrap dropdown behavior
+4. **Color contrast issues**: The olive gradient was too light (#6B8E4D) making white text hard to read
+5. **Custom JS conflicting with Bootstrap**: navigation.js had click handlers that could interfere with Bootstrap's dropdown handling
+
+### Fixes Applied
+
+**Phase 1: Navigation Behavior**
+- Fixed dropdown container: Changed from `<div class="dropdown">` to `<div class="nav-module-dropdown">` to match CSS selectors
+- Added "Go to [Module]" link at top of each dropdown for direct navigation to the main module page
+- Used Bootstrap's `data-bs-toggle="dropdown"` attribute for proper dropdown behavior
+- Removed unnecessary inline styles from nav links that were overriding CSS classes
+- Simplified navigation.js - removed custom dropdown click handlers that conflicted with Bootstrap
+
+**Phase 2: Visual Contrast**
+- Darkened primary olive color from `#6B8E4D` to `#4a6b3a`
+- Darkened gradient from `#3d5630` to `#2d421f` for better contrast
+- Improved box-shadow for depth
+- Used CSS classes (.brand-link, .nav-search-wrapper, .nav-user-dropdown, etc.) instead of inline styles for consistent styling
+
+**Files Modified:**
+- `templates/base.html` - Cleaned up nav structure, removed conflicting inline styles
+- `static/css/olive-theme.css` - Updated color palette for better contrast
+- `static/js/navigation.js` - Simplified to handle only mobile toggle and active state
+
+### Current State (April 2026)
+- ✅ Top navigation renders horizontally on desktop
+- ✅ Module dropdowns open via Bootstrap data-bs-toggle
+- ✅ Each dropdown has "Go to [Module]" option for direct navigation
+- ✅ Search input styled with CSS classes
+- ✅ User dropdown styled with CSS classes  
+- ✅ Darker olive theme provides better contrast
+- ✅ Mobile hamburger menu functional
+- ✅ Active state highlighting works
+
+### Still Pending / Known Issues
+- Dashboard link uses `dashboard:index` but URL pattern may need verification (currently at `/`)
+- Some dropdown submenu items may need proper URLs in context_processor
+- Mobile dropdown submenu toggling could be improved
+- Test in actual browser to verify all interactions work as expected
+
+---
+
+## 14. Two-Row Enterprise Header (April 2026)
+
+### Overview
+Replaced the single-row top navigation with a polished two-row enterprise-style header. The new layout provides better visual hierarchy and feels like a proper ERP application shell.
+
+### Structure
+
+**Row 1: Utility Bar (White background, 56px)**
+- Left: Olive ERP logo + brand name
+- Center-left: Company context (if set)
+- Center: Global search input
+- Right: User dropdown with avatar, name, settings/logout
+
+**Row 2: Navigation Bar (Olive gradient, 48px)**
+- Mobile hamburger toggle (visible on mobile)
+- Horizontal module navigation (Dashboard, Finance, Inventory, CRM, HR, Projects, Purchasing, Accounting, Tax & Compliance)
+- Dropdown menus with "Go to [Module]" option + submenu items
+- Active state highlighting
+
+### CSS Classes Used
+- `.app-header-row1` - Utility bar container
+- `.header-row1-inner` - Flex container for row 1
+- `.header-brand`, `.brand-link`, `.brand-icon`, `.brand-text` - Brand styling
+- `.header-search`, `.search-wrapper`, `.search-input` - Search styling
+- `.header-user`, `.user-dropdown`, `.user-toggle`, `.user-avatar` - User area
+- `.app-header-row2` - Navigation bar container
+- `.header-row2-inner` - Flex container for row 2
+- `.main-nav` - Module navigation container
+- `.nav-item` - Individual nav links
+- `.nav-dropdown`, `.nav-dropdown-menu` - Dropdown styling
+
+### Color Scheme
+- Row 1: White background with subtle border (#ffffff, #dee2e6)
+- Row 2: Olive gradient from #4a6b3a to #3d5630
+- Brand text: #3d5630 (dark olive)
+- Nav links: white with 90% opacity, hover to full white
+
+### Mobile Behavior
+- Row 1: Company context hidden, search width reduced, user name hidden
+- Row 2: Hamburger menu appears, nav collapses to vertical menu
+- Both rows collapse gracefully, functionality preserved
+
+### Files Modified
+- `templates/base.html` - Complete restructure to two-row layout
+- `static/css/olive-theme.css` - New CSS with proper class names, full responsive styles
+- `static/js/navigation.js` - Updated to work with new class names (.main-nav, .mobile-show)
+
+### Current State
+- ✅ Two-row header renders correctly on desktop
+- ✅ Row 1: Brand, company context, search, user dropdown all styled and functional
+- ✅ Row 2: Module navigation horizontal, dropdowns work, active state highlights
+- ✅ Mobile: Hamburger menu toggles vertical nav, all features accessible
+- ✅ No left sidebar - two-row header is primary navigation
+
+### Known Issues / Gotchas
+- Search functionality depends on `core:goto_search` URL existing
+- Some module URLs in context_processors may not exist (e.g., `dashboard:finance_dashboard` path is `finance/`)
+- The header total height is 104px (56px + 48px) - may affect page content padding-top

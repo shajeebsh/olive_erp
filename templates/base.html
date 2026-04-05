@@ -13,57 +13,114 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
 </head>
 <body>
     {% if user.is_authenticated %}
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="top-navbar-inner">
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-nav-toggle" type="button" aria-label="Toggle navigation">
-                <i class="bi bi-list"></i>
-            </button>
-
-            <!-- Brand / Logo -->
-            <div class="top-nav-brand">
+    <!-- Row 1: Utility Bar -->
+    <header class="app-header-row1">
+        <div class="header-row1-inner">
+            <!-- Brand -->
+            <div class="header-brand">
                 <a href="{% url 'dashboard:index' %}" class="brand-link">
                     <span class="brand-icon">🌿</span>
                     <span class="brand-text">Olive ERP</span>
                 </a>
+                {% if company %}
+                <span class="company-context">{{ company.name }}</span>
+                {% endif %}
             </div>
 
-            <!-- Main Navigation -->
-            <div class="top-nav-links">
-                {% if not company %}
-                    <a href="{% url 'company:setup' %}" class="nav-module-link setup-warning">
-                        <i class="bi bi-gear-fill"></i>
-                        <span>Complete Setup</span>
-                        <span class="badge bg-danger">Required</span>
+            <!-- Search -->
+            <div class="header-search">
+                <div class="search-wrapper">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="search" id="global-search" 
+                           name="q" placeholder="Search anything..." aria-label="Global search"
+                           class="search-input"
+                           hx-get="{% url 'core:goto_search' %}"
+                           hx-trigger="keyup changed delay:500ms"
+                           hx-target="#search-results">
+                </div>
+            </div>
+
+            <!-- User Menu -->
+            <div class="header-user">
+                <div class="user-dropdown">
+                    <a href="#" class="user-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                        <i class="bi bi-chevron-down"></i>
                     </a>
+                    <div class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <div class="user-fullname">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="user-email">{{ user.email }}</div>
+                            {% if company %}
+                            <div class="user-company">{{ company.name }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'company:setup' %}">
+                            <i class="bi bi-gear"></i>Settings
+                        </a>
+                        <form action="{% url 'logout' %}" method="post" class="dropdown-item-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-box-arrow-right"></i>Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Row 2: Navigation Bar -->
+    <nav class="app-header-row2" role="navigation" aria-label="Main navigation">
+        <div class="header-row2-inner">
+            <!-- Mobile Toggle -->
+            <button class="mobile-nav-toggle" type="button" aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Main Nav Links -->
+            <div class="main-nav" id="mainNav">
+                {% if not company %}
+                <a href="{% url 'company:setup' %}" class="nav-item setup-warning">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Complete Setup</span>
+                    <span class="badge bg-danger">Required</span>
+                </a>
                 {% endif %}
                 
                 {% for module in modules %}
                     {% if not module.submenu %}
-                        <a class="nav-module-link {% if module.url == request.path %}active{% endif %}" 
-                           href="{% url module.url %}">
+                        <a class="nav-item" href="{% url module.url %}">
                             <i class="bi {{ module.icon }}"></i>
                             <span>{{ module.name }}</span>
                         </a>
                     {% else %}
-                        <div class="nav-module-dropdown dropdown">
-                            <a class="nav-module-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="nav-dropdown">
+                            <a class="nav-item nav-item-dropdown" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                                 <i class="bi {{ module.icon }}"></i>
                                 <span>{{ module.name }}</span>
-                                <i class="bi bi-chevron-down small"></i>
+                                <i class="bi bi-chevron-down"></i>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-nav">
+                            <ul class="dropdown-menu nav-dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url module.url %}"><i class="bi bi-arrow-right me-2"></i>Go to {{ module.name }}</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 {% for item in module.submenu %}
                                     {% if item.submenu %}
                                         <li class="dropdown-submenu">
                                             <a class="dropdown-item dropdown-toggle" href="#">{{ item.name }}</a>
                                             <ul class="dropdown-menu">
                                                 {% for subitem in item.submenu %}
-                                                    <li><a class="dropdown-item" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
+                                                <li><a class="dropdown-item" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
                                                 {% endfor %}
                                             </ul>
                                         </li>
@@ -75,49 +132,6 @@
                         </div>
                     {% endif %}
                 {% endfor %}
-            </div>
-
-            <!-- Right Side: Search & User -->
-            <div class="top-nav-user">
-                <div class="nav-search-wrapper">
-                    <form class="nav-search-form" autocomplete="off">
-                        <i class="bi bi-search nav-search-icon"></i>
-                        <input class="form-control nav-search-input" type="search" id="global-search" 
-                               name="q" placeholder="Search..." aria-label="Search"
-                               hx-get="{% url 'core:goto_search' %}"
-                               hx-trigger="keyup changed delay:500ms"
-                               hx-target="#search-results">
-                    </form>
-                    <div id="search-results" class="search-results-dropdown"></div>
-                </div>
-
-                <div class="nav-user-dropdown dropdown">
-                    <a class="nav-user-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="user-avatar">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <span class="nav-user-name">{{ user.get_full_name|default:user.username }}</span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-user shadow">
-                        <div class="user-dropdown-header">
-                            <div class="user-dropdown-name">{{ user.get_full_name|default:user.username }}</div>
-                            <div class="user-dropdown-email">{{ user.email }}</div>
-                            {% if company %}
-                            <div class="user-dropdown-company">{{ company.name }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'company:setup' %}">
-                            <i class="bi bi-gear me-2"></i>Settings
-                        </a>
-                        <form action="{% url 'logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger">
-                                <i class="bi bi-box-arrow-right me-2"></i>Logout
-                            </button>
-                        </form>
-                    </div>
-                </div>
             </div>
         </div>
     </nav>
