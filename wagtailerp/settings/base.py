@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "projects",
     "tax_engine",
     "reporting",
+    "apps.accounting",
     "apps.accounting.assets",
     "apps.accounting.reconciliation",
     "apps.accounting.related_party",
