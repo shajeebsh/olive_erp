@@ -321,7 +321,7 @@ class RTISubmission:
             'tax_code': getattr(employee, 'tax_code', '1257L')
         }
         
-        html_string = render_to_string('compliance/uk/p60.html', context)
+        html_string = render_to_string('tax_engine/uk/p60.html', context)
         
         # Generate PDF
         import tempfile

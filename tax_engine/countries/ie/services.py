@@ -74,7 +74,7 @@ class CROB1Generator:
             'financial_statements': self.get_financial_statements(),
         }
         
-        html_string = render_to_string('compliance/ie/cro_b1.html', context)
+        html_string = render_to_string('tax_engine/ie/cro_b1.html', context)
         
         # Generate PDF
         pdf_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
