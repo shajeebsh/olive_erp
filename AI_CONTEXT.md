@@ -331,61 +331,74 @@ The top navigation was rendering as a broken vertical list instead of a horizont
 
 ---
 
-## 14. Two-Row Enterprise Header (April 2026)
+## 14. Two-Row Enterprise Header — Full Fix (April 2026)
 
-### Overview
-Replaced the single-row top navigation with a polished two-row enterprise-style header. The new layout provides better visual hierarchy and feels like a proper ERP application shell.
+### Root Cause of Rendering Failure
+The header structure and CSS were correct on paper, but the rendered UI showed plain vertically-stacked links with no styling. After browser inspection the root causes were:
 
-### Structure
+1. **CSS not applying despite correct DOM/CSS**: The external `olive-theme.css` defined all the header flex rules, but they were not visible in the browser despite the file serving 200 OK. Investigation confirmed that Bootstrap's base styles (loaded first) were not overridden reliably because the custom class names and specificity weren't strong enough in some edge cases.
 
-**Row 1: Utility Bar (White background, 56px)**
-- Left: Olive ERP logo + brand name
-- Center-left: Company context (if set)
-- Center: Global search input
-- Right: User dropdown with avatar, name, settings/logout
+2. **`overflow: auto` clipping nav dropdowns**: Even after the header rows appeared, the module navigation dropdowns were invisible. The `.app-nav-scroll` container had `overflow-x: auto` which clipped absolutely-positioned dropdown menus that extend below the nav bar. Changed to `overflow: visible`.
 
-**Row 2: Navigation Bar (Olive gradient, 48px)**
-- Mobile hamburger toggle (visible on mobile)
-- Horizontal module navigation (Dashboard, Finance, Inventory, CRM, HR, Projects, Purchasing, Accounting, Tax & Compliance)
-- Dropdown menus with "Go to [Module]" option + submenu items
-- Active state highlighting
+3. **`overflow` on `.app-header-nav`**: Same issue — needed `overflow: visible` to allow dropdown menus to extend below the 48px nav bar.
 
-### CSS Classes Used
-- `.app-header-row1` - Utility bar container
-- `.header-row1-inner` - Flex container for row 1
-- `.header-brand`, `.brand-link`, `.brand-icon`, `.brand-text` - Brand styling
-- `.header-search`, `.search-wrapper`, `.search-input` - Search styling
-- `.header-user`, `.user-dropdown`, `.user-toggle`, `.user-avatar` - User area
-- `.app-header-row2` - Navigation bar container
-- `.header-row2-inner` - Flex container for row 2
-- `.main-nav` - Module navigation container
-- `.nav-item` - Individual nav links
-- `.nav-dropdown`, `.nav-dropdown-menu` - Dropdown styling
+4. **JS dropdown close handler race condition**: The `document.addEventListener('click')` that closed all dropdowns was being triggered on the same event as the trigger click, causing the menu to open and immediately close. Fixed by using a containment check (`dd.contains(e.target)`) so outside-click only closes when the click is genuinely outside all dropdown containers.
 
-### Color Scheme
-- Row 1: White background with subtle border (#ffffff, #dee2e6)
-- Row 2: Olive gradient from #4a6b3a to #3d5630
-- Brand text: #3d5630 (dark olive)
-- Nav links: white with 90% opacity, hover to full white
+### What Was Rewritten
 
-### Mobile Behavior
-- Row 1: Company context hidden, search width reduced, user name hidden
-- Row 2: Hamburger menu appears, nav collapses to vertical menu
-- Both rows collapse gracefully, functionality preserved
+**`templates/base.html`** — Complete structural rewrite:
+- **Old**: Used `.app-header-row1` / `.app-header-row2` class names with all CSS in external `olive-theme.css`
+- **New**: Renamed to `.app-shell-header` → `.app-header-utility` (Row 1) + `.app-header-nav` (Row 2)
+- All layout-critical header CSS **inlined in `<style>` tag** inside `base.html` — eliminates load-order and caching failures
+- Dropdown menus use custom `.app-nav-dropdown-menu` (not Bootstrap `.dropdown-menu`) to avoid Bootstrap's `display: none` override
+- User menu is a custom `<div class="app-user-menu">` toggled by inline JS — no Bootstrap dependency
+- Nav trigger buttons are `<button type="button">` with `data-dropdown` / `data-dropdown-trigger` data attributes for JS targeting
+- `overflow: visible` on both `.app-header-nav` and `.app-nav-scroll` so dropdowns are not clipped
+- `body.user-authenticated { padding-top: 104px }` instead of body-level padding
+- Mobile hamburger toggle with `.mobile-open` class, closes on outside click and resize
+- All dropdown JS inlined in `<script>` at bottom of `base.html` — no external JS dependency for header behaviour
 
-### Files Modified
-- `templates/base.html` - Complete restructure to two-row layout
-- `static/css/olive-theme.css` - New CSS with proper class names, full responsive styles
-- `static/js/navigation.js` - Updated to work with new class names (.main-nav, .mobile-show)
+**`static/css/olive-theme.css`** — stripped to page-content styles only:
+- Removed all header/nav CSS (now inlined in base.html)
+- Retained: card styles, button styles, table styles, badge utilities, form control focus states, KPI card styles, modal refinements, utility classes
 
-### Current State
-- ✅ Two-row header renders correctly on desktop
-- ✅ Row 1: Brand, company context, search, user dropdown all styled and functional
-- ✅ Row 2: Module navigation horizontal, dropdowns work, active state highlights
-- ✅ Mobile: Hamburger menu toggles vertical nav, all features accessible
-- ✅ No left sidebar - two-row header is primary navigation
+**`static/js/navigation.js`** — simplified:
+- Removed all header dropdown / mobile toggle logic (now inlined)
+- Retained only: `Alt+G` keyboard shortcut to focus global search
 
-### Known Issues / Gotchas
-- Search functionality depends on `core:goto_search` URL existing
-- Some module URLs in context_processors may not exist (e.g., `dashboard:finance_dashboard` path is `finance/`)
-- The header total height is 104px (56px + 48px) - may affect page content padding-top
+### Verified Working State (April 2026)
+- ✅ Row 1 (white bar): `🌿 Olive ERP` brand + company badge + centered search + user avatar/name + dropdown
+- ✅ Row 2 (olive gradient): Dashboard + Finance ▾ + Inventory ▾ + CRM ▾ + HR ▾ + Projects ▾ + Purchasing ▾ + Accounting ▾ + Tax & Compliance ▾
+- ✅ Finance dropdown opens: Go to Finance / Dashboard / Invoices / Expenses / Journal / Accounts / Cost Centres / Budgets
+- ✅ User dropdown opens: name / email / company / Settings / Logout
+- ✅ Active state highlights current module
+- ✅ Hover state on all nav items
+- ✅ Mobile hamburger collapses nav to vertical menu
+- ✅ No raw default-link appearance anywhere
+
+### CSS Architecture (Post-Fix)
+```
+base.html <style> block        — ALL layout-critical header CSS (inlined)
+static/css/olive-theme.css     — Page content styles only (cards, tables, etc.)
+static/css/mobile.css          — Calendar, KPI, misc mobile helpers
+static/css/accounting.css      — Accounting module-specific styles
+```
+
+### Key Class Reference (Current)
+| Element | Class |
+|---------|-------|
+| Fixed header wrapper | `.app-shell-header` |
+| Row 1 (white) | `.app-header-utility` |
+| Brand link | `.app-brand` |
+| Company badge | `.app-company-badge` |
+| Search wrapper | `.app-header-search` / `.app-search-wrap` / `.app-search-input` |
+| User area | `.app-header-user` / `.app-user-toggle` / `.app-user-menu` |
+| Row 2 (olive) | `.app-header-nav` |
+| Nav link | `.app-nav-link` |
+| Dropdown wrapper | `.app-nav-dropdown` (with `data-dropdown`) |
+| Dropdown trigger | `button[data-dropdown-trigger]` |
+| Dropdown menu | `.app-nav-dropdown-menu` (toggled via `.open` class) |
+| Mobile toggle | `.app-mobile-toggle` |
+| Mobile nav scroll | `.app-nav-scroll` (toggled via `.mobile-open` class) |
+| Page content | `.app-main-content` |
+
