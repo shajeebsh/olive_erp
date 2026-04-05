@@ -15,7 +15,7 @@ from crm.models import Customer, SalesOrder, SalesOrderLine
 from hr.models import Department, Employee, LeaveRequest, Attendance
 from projects.models import Project, Task
 from purchasing.models import Supplier, PurchaseOrder, PurchaseOrderLine, GoodsReceivedNote
-from compliance.models import TaxPeriod, Filing, FinancialStatement, BeneficialOwner
+from tax_engine.models import TaxPeriod, TaxFiling, BeneficialOwner
 from apps.accounting.assets.models import FixedAsset
 from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend
@@ -69,8 +69,7 @@ class Command(BaseCommand):
     def clear_database(self):
         # Ordered by foreign key dependencies
         BeneficialOwner.objects.all().delete()
-        FinancialStatement.objects.all().delete()
-        Filing.objects.all().delete()
+        TaxFiling.objects.all().delete()
         TaxPeriod.objects.all().delete()
         
         GoodsReceivedNote.objects.all().delete()
@@ -118,6 +117,7 @@ class Command(BaseCommand):
 
     def generate_company(self):
         self.stdout.write("Generating Company...")
+        from datetime import date
         currency, _ = Currency.objects.get_or_create(
             code="EUR", defaults={'name': 'Euro', 'symbol': '€', 'exchange_rate_to_base': 1.0}
         )
@@ -129,7 +129,7 @@ class Command(BaseCommand):
                 'email': "info@olivetech.ie",
                 'website': "www.olivetech.ie",
                 'tax_id': "IE1234567A",
-                'fiscal_year_start_date': "2026-01-01",
+                'fiscal_year_start_date': date(2026, 1, 1),
                 'default_currency': currency
             }
         )
@@ -139,32 +139,32 @@ class Command(BaseCommand):
         self.stdout.write("Generating Chart of Accounts...")
         accounts = {}
         top_level = [
-            ('1000', 'Assets', 'ASSET'),
-            ('2000', 'Liabilities', 'LIABILITY'),
-            ('3000', 'Equity', 'EQUITY'),
-            ('4000', 'Income', 'INCOME'),
-            ('5000', 'Expenses', 'EXPENSE')
+            ('1000', 'Assets', 'Asset'),
+            ('2000', 'Liabilities', 'Liability'),
+            ('3000', 'Equity', 'Equity'),
+            ('4000', 'Income', 'Income'),
+            ('5000', 'Expenses', 'Expense')
         ]
         
         for code, name, acc_type in top_level:
-            acc, _ = Account.objects.get_or_create(code=code, defaults={'name': name, 'type': acc_type, 'company': self.company})
+            acc, _ = Account.objects.get_or_create(code=code, defaults={'name': name, 'account_type': acc_type, 'company': self.company})
             accounts[code] = acc
             
         # Assets
-        accounts['1100'], _ = Account.objects.get_or_create(code='1100', defaults={'name': 'Current Assets', 'type': 'ASSET', 'parent': accounts['1000'], 'company': self.company})
-        accounts['1110'], _ = Account.objects.get_or_create(code='1110', defaults={'name': 'Bank Accounts', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1120'], _ = Account.objects.get_or_create(code='1120', defaults={'name': 'Accounts Receivable', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1130'], _ = Account.objects.get_or_create(code='1130', defaults={'name': 'Inventory', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1200'], _ = Account.objects.get_or_create(code='1200', defaults={'name': 'Fixed Assets', 'type': 'ASSET', 'parent': accounts['1000'], 'company': self.company})
+        accounts['1100'], _ = Account.objects.get_or_create(code='1100', defaults={'name': 'Current Assets', 'account_type': 'Asset', 'parent': accounts['1000'], 'company': self.company})
+        accounts['1110'], _ = Account.objects.get_or_create(code='1110', defaults={'name': 'Bank Accounts', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1120'], _ = Account.objects.get_or_create(code='1120', defaults={'name': 'Accounts Receivable', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1130'], _ = Account.objects.get_or_create(code='1130', defaults={'name': 'Inventory', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1200'], _ = Account.objects.get_or_create(code='1200', defaults={'name': 'Fixed Assets', 'account_type': 'Asset', 'parent': accounts['1000'], 'company': self.company})
         
         # Liabilities
-        accounts['2100'], _ = Account.objects.get_or_create(code='2100', defaults={'name': 'Current Liabilities', 'type': 'LIABILITY', 'parent': accounts['2000'], 'company': self.company})
-        accounts['2110'], _ = Account.objects.get_or_create(code='2110', defaults={'name': 'Accounts Payable', 'type': 'LIABILITY', 'parent': accounts['2100'], 'company': self.company})
-        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'Taxes Payable', 'type': 'LIABILITY', 'parent': accounts['2100'], 'company': self.company})
+        accounts['2100'], _ = Account.objects.get_or_create(code='2100', defaults={'name': 'Current Liabilities', 'account_type': 'Liability', 'parent': accounts['2000'], 'company': self.company})
+        accounts['2110'], _ = Account.objects.get_or_create(code='2110', defaults={'name': 'Accounts Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
+        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'VAT Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
         
         # Equity
-        accounts['3100'], _ = Account.objects.get_or_create(code='3100', defaults={'name': 'Capital', 'type': 'EQUITY', 'parent': accounts['3000'], 'company': self.company})
-        accounts['3200'], _ = Account.objects.get_or_create(code='3200', defaults={'name': 'Retained Earnings', 'type': 'EQUITY', 'parent': accounts['3000'], 'company': self.company})
+        accounts['3100'], _ = Account.objects.get_or_create(code='3100', defaults={'name': 'Capital', 'account_type': 'Equity', 'parent': accounts['3000'], 'company': self.company})
+        accounts['3200'], _ = Account.objects.get_or_create(code='3200', defaults={'name': 'Retained Earnings', 'account_type': 'Equity', 'parent': accounts['3000'], 'company': self.company})
         
         # Income
         accounts['4100'], _ = Account.objects.get_or_create(code='4100', defaults={'name': 'Sales Revenue', 'account_type': 'Income', 'parent': accounts['4000'], 'company': self.company})
@@ -186,7 +186,6 @@ class Command(BaseCommand):
         accounts['5290'], _ = Account.objects.get_or_create(code='5290', defaults={'name': 'Depreciation', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
         
         # VAT Accounts
-        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'VAT Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
         accounts['2130'], _ = Account.objects.get_or_create(code='2130', defaults={'name': 'VAT Receivable', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
         
         # Add more detailed Fixed Assets accounts
@@ -503,29 +502,41 @@ class Command(BaseCommand):
         # Create a tax period
         tp, _ = TaxPeriod.objects.get_or_create(
             company=self.company,
+            country='IE',
             start_date=end_date.replace(month=1, day=1) - timedelta(days=365),
             end_date=end_date.replace(month=12, day=31) - timedelta(days=365),
-            defaults={'period_type': 'ANNUAL', 'is_closed': True}
+            defaults={
+                'period_type': 'annual',
+                'status': 'filed'
+            }
         )
         
-        # Draft CT1
-        Filing.objects.get_or_create(
+        # Draft CT1 Tax Filing
+        TaxFiling.objects.get_or_create(
             company=self.company,
-            tax_period=tp,
-            filing_type='CT',
+            filing_type='CT1',
+            period=f'{end_date.year - 1}',
             defaults={
-                'status': 'DRAFT',
+                'status': 'draft',
                 'due_date': end_date + timedelta(days=90),
-                'amount_due': Decimal('15000.00')
             }
         )
 
-        # RBO Beneficial Owners
+        # RBO Beneficial Owners - just use first_name/last_name for lookup
+        from datetime import date
         BeneficialOwner.objects.get_or_create(
             company=self.company,
-            owner_type='INDIVIDUAL',
-            name=self.fake.name(),
-            defaults={'address': self.fake.address(), 'nationality': 'Irish'}
+            first_name=self.fake.first_name(),
+            last_name=self.fake.last_name(),
+            defaults={
+                'date_of_birth': date(1980, 1, 1),
+                'became_owner_date': date(2020, 1, 1),
+                'address_line1': self.fake.street_address(),
+                'city': self.fake.city(),
+                'county': 'Dublin',
+                'nationality': 'Irish',
+                'country_code': 'IE'
+            }
         )
         
         # Generate Fixed Assets
@@ -581,6 +592,7 @@ class Command(BaseCommand):
 
     def generate_bank_reconciliation(self):
         self.stdout.write("Generating Bank Reconciliation...")
+        from datetime import date
         from dateutil.relativedelta import relativedelta
         import calendar
         
@@ -616,6 +628,7 @@ class Command(BaseCommand):
 
     def generate_dividends(self):
         self.stdout.write("Generating Dividends...")
+        from datetime import date
         
         # Create sample dividends
         dividend_data = [
