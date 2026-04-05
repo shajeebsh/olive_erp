@@ -1,0 +1,100 @@
+:root {
+  --acc-dark-blue:   #1F3864;
+  --acc-mid-blue:    #2E75B6;
+  --acc-light-blue:  #BDD7EE;
+  --acc-pale-blue:   #DEEAF1;
+  --acc-amber:       #FFF2CC;
+  --acc-amber-dark:  #BF8F00;
+  --acc-green:       #E2EFDA;
+  --acc-dark-green:  #375623;
+  --acc-red:         #FCE4D6;
+  --acc-dark-red:    #C00000;
+  --acc-light-grey:  #F2F2F2;
+}
+
+.acc-section-header td {
+  background: var(--acc-dark-blue) !important;
+  color: #fff !important;
+  font-weight: bold;
+  padding: 8px 12px !important;
+  border-left: 8px solid var(--acc-mid-blue) !important;
+}
+
+.acc-total-row {
+  background: var(--acc-light-blue) !important;
+  font-weight: bold;
+  border-top: 2px solid var(--acc-mid-blue) !important;
+}
+
+.acc-highlight-row {
+  background: var(--acc-dark-blue) !important;
+  color: #fff !important;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.acc-badge-reconciled {
+  background: var(--acc-green);
+  color: var(--acc-dark-green);
+  font-weight: bold;
+}
+
+.acc-badge-discrepancy {
+  background: var(--acc-red);
+  color: var(--acc-dark-red);
+  font-weight: bold;
+}
+
+.acc-badge-in-progress {
+  background: var(--acc-amber);
+  color: var(--acc-amber-dark);
+  font-weight: bold;
+}
+
+.acc-badge-not-started {
+  background: var(--acc-light-grey);
+  color: #595959;
+}
+
+.acc-amber-input {
+  background: var(--acc-amber) !important;
+}
+
+.acc-auto-field {
+  background: var(--acc-pale-blue) !important;
+  color: var(--acc-mid-blue);
+}
+
+.acc-warn-banner {
+  background: var(--acc-amber);
+  border-left: 4px solid var(--acc-amber-dark);
+  padding: 10px 16px;
+  font-weight: bold;
+  color: #7B3F00;
+}
+
+.acc-legal-note {
+  background: var(--acc-light-grey);
+  font-family: serif;
+  font-size: 11px;
+  font-style: italic;
+  color: #595959;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+@media print {
+  nav, .btn, .filter-bar, form {
+    display: none !important;
+  }
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

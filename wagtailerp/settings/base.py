@@ -22,6 +22,12 @@ INSTALLED_APPS = [
     "projects",
     "compliance",
     "reporting",
+    "apps.accounting.assets",
+    "apps.accounting.reconciliation",
+    "apps.accounting.related_party",
+    "apps.accounting.statutory",
+    "apps.accounting.compliance",
+    "apps.accounting.reporting",
     "dashboard",
     "home",
     "wagtail.contrib.forms",
@@ -43,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "rest_framework",
     "django_htmx",
     "django_celery_beat",
@@ -60,6 +67,14 @@ CELERY_BEAT_SCHEDULE = {
     'generate-recurring-invoices-daily': {
         'task': 'finance.generate_recurring_invoices',
         'schedule': crontab(hour=0, minute=0),  # midnight daily
+    },
+    'send-compliance-reminders-daily': {
+        'task': 'core.tasks.send_deadline_reminders',
+        'schedule': crontab(hour=8, minute=0),  # 8 AM daily
+    },
+    'notify-vat-threshold-daily': {
+        'task': 'core.tasks.notify_vat_threshold',
+        'schedule': crontab(hour=9, minute=0),  # 9 AM daily
     },
 }
 # Country framework settings

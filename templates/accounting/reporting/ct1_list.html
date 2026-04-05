@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/accounting.css">
+{% endblock %}
+
+{% block content %}
+<div class='d-flex justify-content-between align-items-center mb-4'>
+  <h2 class='fw-bold'>💰 {% trans "Corporation Tax (CT1) Computations" %}</h2>
+  <a href="{% url 'accounting:ct1_create' %}" class="btn" style="background:var(--acc-dark-green);color:#fff">
+    <i class="fas fa-plus"></i> {% trans "New Computation" %}
+  </a>
+</div>
+
+<div class='row'>
+  {% for comp in computations %}
+  <div class='col-md-6 mb-4'>
+    <div class='card shadow-sm h-100 border-0'>
+      <div class='card-header d-flex justify-content-between align-items-center' 
+           style='background:var(--acc-dark-blue);color:#fff'>
+        <h5 class='mb-0'>{% trans "Period Ending" %}: {{ comp.period_end }}</h5>
+        {% if comp.is_finalized %}
+        <span class='badge bg-success'>{% trans "Finalized" %}</span>
+        {% else %}
+        <span class='badge bg-warning text-dark'>{% trans "Draft" %}</span>
+        {% endif %}
+      </div>
+      <div class='card-body p-0'>
+        <table class='table table-sm border-0 mb-0'>
+          <tr>
+            <td class='ps-3 py-2'>{% trans "Net Profit per Accounts" %}</td>
+            <td class='text-end pe-3 py-2 acc-auto-field'>€{{ comp.net_profit_per_accounts|floatformat:2|intcomma }}</td>
+          </tr>
+          <tr>
+            <td class='ps-3 py-2'>{% trans "Add-backs" %}</td>
+            <td class='text-end pe-3 py-2 text-danger'>+€{{ comp.add_back_expenses|floatformat:2|intcomma }}</td>
+          </tr>
+          <tr>
+            <td class='ps-3 py-2'>{% trans "Less Deductions" %}</td>
+            <td class='text-end pe-3 py-2 text-success'>-€{{ comp.less_deductions|floatformat:2|intcomma }}</td>
+          </tr>
+          <tr style='background:var(--acc-pale-blue);font-weight:bold'>
+            <td class='ps-3 py-2'>{% trans "Taxable Profit" %}</td>
+            <td class='text-end pe-3 py-2'>€{{ comp.taxable_profit|floatformat:2|intcomma }}</td>
+          </tr>
+        </table>
+      </div>
+      <div class='card-footer bg-white border-top-0 d-flex justify-content-between align-items-center p-3'>
+        <div class='fw-bold' style='color:var(--acc-dark-red)'>
+          {% trans "Tax Payable" %}: €{{ comp.tax_payable|floatformat:2|intcomma }}
+        </div>
+        <div class="btn-group">
+          <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View" %}</a>
+          <a href="#" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class='col-12'>
+    <div class='text-center py-5'>
+      <div style='font-size:3rem'>🧮</div>
+      <h5 class='mt-3'>{% trans "No CT1 computations yet" %}</h5>
+      <p class='text-muted'>{% trans "Create a computation to bridge your accounting profit to your taxable income." %}<br>
+      {% trans "Accounting profit is auto-populated from your Profit & Loss statement." %}</p>
+      <a href="#" class="btn" style="background:var(--acc-dark-green);color:#fff">
+        + {% trans "New CT1 Computation" %}
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class='mt-4 p-3 acc-legal-note'>
+  {% trans "S.76 TCA 1997: Trading income taxed @ 12.5% | S.284 TCA 1997: Capital allowances 12.5% p.a. over 8 years | File CT1 with Revenue within 9 months of financial year-end." %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% load humanize %}
+<tr id="recon-row-{{ recon.pk }}" class="{% cycle '' 'table-light' %} htmx-request">
+  <td class='fw-bold' style='color:var(--acc-mid-blue)'>{{ recon.month_label }}</td>
+  <td style='font-size:.8rem;color:#666'>{{ recon.period_display }}</td>
+  <td class='text-end' style='background:var(--acc-amber)'>
+    <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+          hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+      {% csrf_token %}
+      <input type='number' name='opening_balance' step='0.01'
+             value='{{ recon.opening_balance|floatformat:2 }}'
+             class='form-control form-control-sm text-end border-0'
+             style='background:transparent;min-width:110px'
+             onchange='this.form.requestSubmit()'>
+    </form>
+  </td>
+  <td class='text-end acc-auto-field'>€{{ recon.period_income|floatformat:2|intcomma }}</td>
+  <td class='text-end acc-auto-field'>€{{ recon.period_expenses|floatformat:2|intcomma }}</td>
+  <td class='text-end acc-auto-field'>€{{ recon.expected_closing|floatformat:2|intcomma }}</td>
+  <td class='text-end' style='background:var(--acc-amber)'>
+    <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+          hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+      {% csrf_token %}
+      <input type='number' name='actual_closing_balance' step='0.01'
+             value='{{ recon.actual_closing_balance|floatformat:2|default:"" }}'
+             class='form-control form-control-sm text-end border-0'
+             style='background:transparent;min-width:110px'
+             onchange='this.form.requestSubmit()'>
+    </form>
+  </td>
+  <td class='text-end fw-bold' style='
+    {% if recon.difference == 0 %}color:var(--acc-dark-green)
+    {% elif recon.difference != None %}color:var(--acc-dark-red)
+    {% else %}color:#999{% endif %}'>
+    {% if recon.difference != None %}€{{ recon.difference|floatformat:2|intcomma }}{% else %}—{% endif %}
+  </td>
+  <td class='text-center'>
+    {% if recon.status == 'RC' %}
+      <span class='acc-badge-reconciled px-2 py-1 rounded-pill small'>✅ Reconciled</span>
+    {% elif recon.status == 'DC' %}
+      <span class='acc-badge-discrepancy px-2 py-1 rounded-pill small'>⚠️ Discrepancy</span>
+    {% elif recon.status == 'IP' %}
+      <span class='acc-badge-in-progress px-2 py-1 rounded-pill small'>🔄 In Progress</span>
+    {% else %}
+      <span class='acc-badge-not-started px-2 py-1 rounded-pill small'>⏳ Not Started</span>
+    {% endif %}
+  </td>
+  <td>
+    <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+          hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+      {% csrf_token %}
+      <input type='text' name='notes' value='{{ recon.notes }}'
+             class='form-control form-control-sm border-0'
+             style='background:transparent' placeholder='Notes...'
+             onchange='this.form.requestSubmit()'>
+    </form>
+  </td>
+</tr>

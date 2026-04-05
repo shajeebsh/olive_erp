@@ -32,6 +32,16 @@ class CompanyProfile(models.Model):
         ('IE', 'Ireland'), ('GB', 'United Kingdom'), ('IN', 'India'), ('AE', 'UAE'),
     ], default='IE')
     state_code = models.CharField(max_length=5, blank=True, help_text="State/Province code for tax purposes")
+    
+    # VAT and Compliance
+    vat_registered = models.BooleanField(default=False)
+    vat_registration_number = models.CharField(max_length=20, blank=True)
+    vat_services_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=42500)
+    vat_goods_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=80000)
+    
+    # Banking
+    bank_name = models.CharField(max_length=100, blank=True)
+    iban = models.CharField(max_length=34, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.financial_year_end and self.fiscal_year_start_date:

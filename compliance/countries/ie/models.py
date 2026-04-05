@@ -25,6 +25,7 @@ class Director(models.Model):
     city = models.CharField(max_length=50)
     county = models.CharField(max_length=50)
     country = models.CharField(max_length=50, default='Ireland')
+    country_code = models.CharField(max_length=2, default='IE')
     
     # Appointment details
     appointment_date = models.DateField()
@@ -72,6 +73,7 @@ class Secretary(models.Model):
     city = models.CharField(max_length=50)
     county = models.CharField(max_length=50)
     country = models.CharField(max_length=50, default='Ireland')
+    country_code = models.CharField(max_length=2, default='IE')
     
     appointment_date = models.DateField()
     resignation_date = models.DateField(null=True, blank=True)
@@ -146,6 +148,7 @@ class Shareholder(models.Model):
     city = models.CharField(max_length=50)
     county = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
+    country_code = models.CharField(max_length=2, default='IE')
     
     # Shareholding
     ordinary_shares_held = models.PositiveIntegerField(default=0)

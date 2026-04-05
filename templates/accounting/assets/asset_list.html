@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/accounting.css">
+{% endblock %}
+
+{% block content %}
+<div class='d-flex justify-content-between align-items-center mb-4'>
+  <h2 class='fw-bold'>🚜 {% trans "Fixed Asset Register" %}</h2>
+  <a href="#" class="btn btn-primary">
+    <i class="fas fa-plus"></i> {% trans "Add New Asset" %}
+  </a>
+</div>
+
+<div class='card shadow'>
+  <div class='card-body p-0'>
+    <div class='table-responsive'>
+      <table class='table table-bordered table-hover mb-0' id='asset-table'>
+        <thead>
+          <tr style='background:var(--acc-mid-blue);color:#fff;font-size:.85rem'>
+            <th>{% trans "Asset ID" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Category" %}</th>
+            <th class='text-end'>{% trans "Cost (€)" %}</th>
+            <th class='text-center'>{% trans "Method" %}</th>
+            <th class='text-center'>{% trans "Rate" %}</th>
+            <th class='text-center'>{% trans "Years Held" %}</th>
+            <th class='text-end'>{% trans "Accum Depr (€)" %}</th>
+            <th class='text-end'>{% trans "NBV (€)" %}</th>
+            <th class='text-center'>{% trans "Status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for asset in assets %}
+          <tr>
+            <td class='fw-bold'>{{ asset.asset_code }}</td>
+            <td>{{ asset.name }}</td>
+            <td>{{ asset.asset_account.name }}</td>
+            <td class='text-end'>€{{ asset.purchase_value|floatformat:2|intcomma }}</td>
+            <td class='text-center'>{{ asset.get_depreciation_method_display }}</td>
+            <td class='text-center'>{{ asset.depreciation_rate }}%</td>
+            <td class='text-center acc-auto-field'>{{ asset.years_held }}</td>
+            <td class='text-end text-danger'>€{{ asset.accumulated_depreciation|floatformat:2|intcomma }}</td>
+            <td class='text-end fw-bold' style='color:var(--acc-mid-blue)'>€{{ asset.net_book_value|floatformat:2|intcomma }}</td>
+            <td class='text-center'>
+              {% if asset.is_disposed %}
+              <span class='badge bg-secondary'>{% trans "Disposed" %}</span>
+              {% else %}
+              <span class='badge bg-success'>{% trans "Active" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="text-center py-5">
+              <div style='font-size:2.5rem'>🚜</div>
+              <h5 class='mt-3'>{% trans "No fixed assets found" %}</h5>
+              <p class='text-muted'>{% trans "Start tracking your company's physical assets here." %}</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if assets %}
+        <tfoot class='acc-total-row'>
+          <tr>
+            <td colspan='3' class='text-end'>{% trans "TOTALS" %}</td>
+            <td class='text-end'>€{{ total_cost|floatformat:2|intcomma }}</td>
+            <td colspan='3'></td>
+            <td class='text-end text-danger'>€{{ total_accum_depr|floatformat:2|intcomma }}</td>
+            <td class='text-end'>€{{ total_nbv|floatformat:2|intcomma }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class='mt-4 p-3 acc-legal-note'>
+  {% trans "Assets must be recorded at historical cost. Depreciation should be applied consistently each year. S.284 TCA 1997 allows for tax-deductible wear & tear allowances @ 12.5% for most plant & machinery." %}
+</div>
+{% endblock %}

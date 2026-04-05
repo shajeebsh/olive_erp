@@ -52,6 +52,17 @@ def navigation_menu(request):
             {'name': '🤝 Suppliers', 'url': 'purchasing:suppliers'},
             {'name': '🛒 Purchase Orders', 'url': 'purchasing:purchase_orders'},
         ]},
+        {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
+            {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
+            {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
+            {'name': '📑 VAT Summary', 'url': 'accounting:vat_summary'},
+            {'name': '🏦 Bank Reconciliation', 'url': 'accounting:bank_reconciliation'},
+            {'name': '🚜 Fixed Assets', 'url': 'accounting:asset_list'},
+            {'name': '📖 Statutory Registers', 'url': 'accounting:statutory_registers'},
+            {'name': '📜 Dividend Register', 'url': 'accounting:dividend_list'},
+            {'name': '🤝 Related Party TX', 'url': 'accounting:related_party_list'},
+            {'name': '💰 CT1 Computation', 'url': 'accounting:ct1_list'},
+        ]},
     ]
     
     if company and company.country_code:

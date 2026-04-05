@@ -1,0 +1,262 @@
+/* OliveERP Accounting Module Design System */
+
+:root {
+  /* Primary Accounting Colors - Irish LTD Template */
+  --acc-dark-blue: #1F3864;
+  --acc-mid-blue: #2E75B6;
+  --acc-light-blue: #BDD7EE;
+  --acc-pale-blue: #DEEAF1;
+  --acc-amber: #FFF2CC;
+  --acc-amber-dark: #BF8F00;
+  --acc-green: #E2EFDA;
+  --acc-dark-green: #375623;
+  --acc-red: #FCE4D6;
+  --acc-dark-red: #C00000;
+  --acc-light-grey: #F2F2F2;
+  
+  /* Olive Green Theme */
+  --olive-green: #4A7C3F;
+  --olive-green-light: #6B8E4D;
+}
+
+/* ========== SHARED COMPONENT CLASSES ========== */
+
+/* Section Header - Dark blue background, white bold text */
+.acc-section-header td {
+  background: var(--acc-dark-blue);
+  color: #fff;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-left: 4px solid var(--acc-mid-blue);
+}
+
+/* Total Row - Light blue background, bold text */
+.acc-total-row {
+  background: var(--acc-light-blue) !important;
+  font-weight: bold;
+  border-top: 2px solid var(--acc-mid-blue);
+}
+
+/* Highlight Row - Dark blue background, white bold text (Net Profit, Total Assets) */
+.acc-highlight-row {
+  background: var(--acc-dark-blue) !important;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* ========== STATUS BADGES ========== */
+
+/* Reconciled - Green */
+.acc-badge-reconciled {
+  background: var(--acc-green);
+  color: var(--acc-dark-green);
+  font-weight: bold;
+  border-radius: 9999px;
+  padding: 2px 12px;
+}
+
+/* Discrepancy - Red */
+.acc-badge-discrepancy {
+  background: var(--acc-red);
+  color: var(--acc-dark-red);
+  font-weight: bold;
+  border-radius: 9999px;
+  padding: 2px 12px;
+}
+
+/* In Progress - Amber */
+.acc-badge-in-progress {
+  background: var(--acc-amber);
+  color: var(--acc-amber-dark);
+  font-weight: bold;
+  border-radius: 9999px;
+  padding: 2px 12px;
+}
+
+/* Not Started - Light Grey */
+.acc-badge-not-started {
+  background: var(--acc-light-grey);
+  color: #595959;
+  border-radius: 9999px;
+  padding: 2px 12px;
+}
+
+/* ========== INPUT STYLES ========== */
+
+/* Amber Input - Manual entry required */
+.acc-amber-input {
+  background: var(--acc-amber) !important;
+}
+
+.acc-amber-input input,
+.acc-amber-input select {
+  background: transparent;
+  border: none;
+}
+
+/* Auto Field - Read-only, auto-calculated */
+.acc-auto-field {
+  background: var(--acc-pale-blue) !important;
+  color: var(--acc-mid-blue);
+  font-weight: 600;
+}
+
+/* ========== ALERT BANNERS ========== */
+
+/* Warning Banner */
+.acc-warn-banner {
+  background: var(--acc-amber);
+  border-left: 4px solid var(--acc-amber-dark);
+  padding: 10px 16px;
+  font-weight: bold;
+  color: #7B3F00;
+  border-radius: 4px;
+}
+
+/* Legal Note */
+.acc-legal-note {
+  background: var(--acc-light-grey);
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #595959;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+/* ========== TABLE ENHANCEMENTS ========== */
+
+#pl-table tbody tr:hover {
+  background-color: rgba(46, 117, 182, 0.05);
+}
+
+#bank-recon-table tbody tr:hover {
+  background-color: rgba(46, 117, 182, 0.03);
+}
+
+/* Row Alternating */
+.table-row-alt {
+  background-color: var(--acc-pale-blue);
+}
+
+/* Section Subheaders */
+.acc-sub-header {
+  background: var(--acc-pale-blue);
+  font-weight: 600;
+}
+
+.acc-sub-header td {
+  color: var(--acc-dark-blue);
+  padding: 6px 16px;
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  /* Hide navigation and controls when printing */
+  nav, .sidebar-container, .btn, 
+  form.filter-form, .card-header .btn,
+  .topbar, #topbar, .no-print {
+    display: none !important;
+  }
+  
+  /* Expand content area */
+  .content-area {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Remove shadows and borders for cleaner print */
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  
+  .card-body {
+    padding: 10px !important;
+  }
+  
+  /* Ensure tables print properly */
+  table {
+    font-size: 10pt;
+  }
+  
+  /* Print-friendly colors */
+  .acc-auto-field {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .acc-total-row {
+    background: #ddd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .acc-section-header td,
+  .acc-highlight-row {
+    background: #333 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .acc-badge-reconciled,
+  .acc-badge-discrepancy,
+  .acc-badge-in-progress {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+  
+  #bank-recon-table th,
+  #bank-recon-table td {
+    padding: 4px;
+    font-size: 0.75rem;
+  }
+  
+  .acc-badge-reconciled,
+  .acc-badge-discrepancy,
+  .acc-badge-in-progress,
+  .acc-badge-not-started {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+  }
+}
+
+/* ========== FORM VALIDATION STATES ========== */
+.is-valid-amount {
+  border-color: var(--acc-dark-green) !important;
+  background-color: var(--acc-green) !important;
+}
+
+.is-warning-amount {
+  border-color: var(--acc-amber-dark) !important;
+  background-color: var(--acc-amber) !important;
+}
+
+.is-error-amount {
+  border-color: var(--acc-dark-red) !important;
+  background-color: var(--acc-red) !important;
+}
+
+/* ========== HTMX LOADING STATES ========== */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
