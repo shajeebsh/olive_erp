@@ -88,6 +88,11 @@ class JournalEntryLine(models.Model):
     credit = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
     cost_centre = models.ForeignKey('CostCentre', on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True)
+    
+    # New fields for enhancements
+    payment_method = models.CharField(max_length=50, blank=True)
+    invoice_number = models.CharField(max_length=50, blank=True)
+    is_related_party = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.journal_entry.entry_number} - {self.account.name}"

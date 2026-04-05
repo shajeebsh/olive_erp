@@ -27,6 +27,7 @@ class BeneficialOwner(models.Model):
     city = models.CharField(max_length=50)
     county = models.CharField(max_length=50)
     country = models.CharField(max_length=50, default='Ireland')
+    country_code = models.CharField(max_length=2, default='IE')
     
     # Nature of beneficial interest
     interest_type = models.CharField(max_length=20, choices=INTEREST_TYPES)

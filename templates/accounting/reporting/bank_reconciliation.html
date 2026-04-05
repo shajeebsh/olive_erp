@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/accounting.css">
+{% endblock %}
+
+{% block content %}
+<div class='d-flex justify-content-between align-items-center mb-3'>
+  <h2 class='fw-bold'>🏦 {% trans "Bank Reconciliation" %}</h2>
+  <button onclick='window.print()' class='btn btn-outline-secondary'>🖨️ {% trans "Print" %}</button>
+</div>
+
+{# Instruction Banner #}
+<div class='alert mb-3' style='background:var(--acc-pale-blue);
+     border-left:4px solid var(--acc-mid-blue)'>
+  <strong>{% trans "How to use:" %}</strong> {% trans "At month end: (1) Enter Opening Balance. (2) Enter Actual Bank Closing Balance. (3) Difference must = €0.00. If not zero, check Transaction Log for missing or incorrect entries." %}
+</div>
+
+{# Colour Key #}
+<div class='mb-3 d-flex gap-3 flex-wrap align-items-center' style='font-size:.85rem'>
+  <span class='acc-badge-reconciled px-2 py-1 rounded'>✅ {% trans "Reconciled" %}</span>
+  <span class='acc-badge-discrepancy px-2 py-1 rounded'>⚠️ {% trans "Discrepancy" %}</span>
+  <span class='acc-badge-in-progress px-2 py-1 rounded'>🔄 {% trans "In Progress" %}</span>
+  <span class='acc-badge-not-started px-2 py-1 rounded'>⏳ {% trans "Not Started" %}</span>
+  <span class='ms-auto' style='background:var(--acc-amber);padding:4px 12px;border-radius:4px'>
+    {% trans "Amber cells = manual entry required" %}
+  </span>
+</div>
+
+{# Main Table — 10 columns #}
+<div class="card shadow">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class='table table-bordered table-sm mb-0' id='bank-recon-table'>
+        <thead>
+          <tr style='background:var(--acc-mid-blue);color:#fff;font-size:.85rem'>
+            <th>{% trans "Month" %}</th>
+            <th>{% trans "Period" %}</th>
+            <th class='text-end'>{% trans "Opening Balance (€)" %}<br><small>← {% trans "Enter manually" %}</small></th>
+            <th class='text-end'>{% trans "Income (€)" %}<br><small>{% trans "auto" %}</small></th>
+            <th class='text-end'>{% trans "Expenses (€)" %}<br><small>{% trans "auto" %}</small></th>
+            <th class='text-end'>{% trans "Expected Closing (€)" %}<br><small>{% trans "auto" %}</small></th>
+            <th class='text-end'>{% trans "Actual Bank Balance (€)" %}<br><small>← {% trans "Enter manually" %}</small></th>
+            <th class='text-end'>{% trans "Difference (€)" %}<br><small>{% trans "auto – must be €0" %}</small></th>
+            <th class='text-center'>{% trans "Status" %}</th>
+            <th>{% trans "Notes" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for recon in reconciliations %}
+        <tr id="recon-row-{{ recon.pk }}" class='{% cycle '' 'table-light' %}'>
+          <td class='fw-bold' style='color:var(--acc-mid-blue)'>{{ recon.month_label }}</td>
+          <td style='font-size:.8rem;color:#666'>{{ recon.period_display }}</td>
+          <td class='text-end' style='background:var(--acc-amber)'>
+            <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+                  hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+              {% csrf_token %}
+              <input type='number' name='opening_balance' step='0.01'
+                     value='{{ recon.opening_balance|floatformat:2|default:"" }}'
+                     class='form-control form-control-sm text-end border-0'
+                     style='background:transparent;min-width:110px'
+                     onchange='this.form.requestSubmit()'>
+            </form>
+          </td>
+          <td class='text-end acc-auto-field'>€{{ recon.period_income|floatformat:2|intcomma }}</td>
+          <td class='text-end acc-auto-field'>€{{ recon.period_expenses|floatformat:2|intcomma }}</td>
+          <td class='text-end acc-auto-field'>€{{ recon.expected_closing|floatformat:2|intcomma }}</td>
+          <td class='text-end' style='background:var(--acc-amber)'>
+            <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+                  hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+              {% csrf_token %}
+              <input type='number' name='actual_closing_balance' step='0.01'
+                     value='{{ recon.actual_closing_balance|floatformat:2|default:"" }}'
+                     class='form-control form-control-sm text-end border-0'
+                     style='background:transparent;min-width:110px'
+                     onchange='this.form.requestSubmit()'>
+            </form>
+          </td>
+          <td class='text-end fw-bold' style='
+            {% if recon.difference == 0 %}color:var(--acc-dark-green)
+            {% elif recon.difference != None %}color:var(--acc-dark-red)
+            {% else %}color:#999{% endif %}'>
+            {% if recon.difference != None %}€{{ recon.difference|floatformat:2|intcomma }}{% else %}—{% endif %}
+          </td>
+          <td class='text-center'>
+            {% if recon.status == 'RC' %}
+              <span class='acc-badge-reconciled px-2 py-1 rounded-pill small'>✅ {% trans "Reconciled" %}</span>
+            {% elif recon.status == 'DC' %}
+              <span class='acc-badge-discrepancy px-2 py-1 rounded-pill small'>⚠️ {% trans "Discrepancy" %}</span>
+            {% elif recon.status == 'IP' %}
+              <span class='acc-badge-in-progress px-2 py-1 rounded-pill small'>🔄 {% trans "In Progress" %}</span>
+            {% else %}
+              <span class='acc-badge-not-started px-2 py-1 rounded-pill small'>⏳ {% trans "Not Started" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method='post' hx-post="{% url 'accounting:recon_update' recon.pk %}"
+                  hx-target='#recon-row-{{ recon.pk }}' hx-swap='outerHTML'>
+              {% csrf_token %}
+              <input type='text' name='notes' value='{{ recon.notes }}'
+                     class='form-control form-control-sm border-0'
+                     style='background:transparent' placeholder='{% trans "Notes..." %}'
+                     onchange='this.form.requestSubmit()'>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+
+        {# Year Total Row #}
+        <tr style='background:var(--acc-mid-blue);color:#fff;font-weight:bold'>
+          <td colspan='2'>{% trans "YEAR TOTAL" %}</td>
+          <td></td>
+          <td class='text-end'>€{{ year_total_income|floatformat:2|intcomma }}</td>
+          <td class='text-end'>€{{ year_total_expenses|floatformat:2|intcomma }}</td>
+          <td colspan='5'></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
