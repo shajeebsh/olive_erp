@@ -150,7 +150,7 @@ function updateCalculations() {
     // Fetch updated totals from server
     const formData = new FormData(document.getElementById('returnForm'));
     
-    fetch('/api/compliance/calculate/', {
+    fetch('/tax/api/calculate/', {
         method: 'POST',
         body: formData
     })
@@ -164,7 +164,7 @@ function updateCalculations() {
 function generatePDF() {
     const formData = new FormData(document.getElementById('returnForm'));
     
-    fetch('/api/compliance/generate-pdf/', {
+    fetch('/tax/api/generate-pdf/', {
         method: 'POST',
         body: formData
     })
@@ -181,7 +181,7 @@ function generatePDF() {
 function saveDraft() {
     const formData = new FormData(document.getElementById('returnForm'));
     
-    fetch('/api/compliance/save-draft/', {
+    fetch('/tax/api/save-draft/', {
         method: 'POST',
         body: formData
     })
@@ -195,7 +195,7 @@ function saveDraft() {
 
 function fileReturn() {
     // Validate form first
-    fetch('/api/compliance/validate/', {
+    fetch('/tax/api/validate/', {
         method: 'POST',
         body: new FormData(document.getElementById('returnForm'))
     })
@@ -212,7 +212,7 @@ function fileReturn() {
 function submitFiling() {
     const formData = new FormData(document.getElementById('returnForm'));
     
-    fetch('/api/compliance/file/', {
+    fetch('/tax/api/file/', {
         method: 'POST',
         body: formData
     })
@@ -221,7 +221,7 @@ function submitFiling() {
         $('#filingModal').modal('hide');
         if (data.success) {
             alert(`Return filed successfully!\nAcknowledgment: ${data.ack_no}`);
-            window.location.href = '/compliance/history/';
+            window.location.href = '/tax/filings/';
         } else {
             alert('Filing failed: ' + data.error);
         }

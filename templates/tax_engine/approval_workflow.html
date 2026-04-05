@@ -219,19 +219,14 @@ let currentReturnId = null;
 
 function reviewReturn(id) {
     currentReturnId = id;
-    document.getElementById('returnPreview').src = `/api/compliance/preview/${id}/`;
-    $('#reviewModal').modal('show');
-}
-
-function submitApproval(action) {
-    const comments = document.getElementById('reviewerComments').value;
+    document.getElementById('returnPreview').src = `/tax/api/preview/${id}/`;
     
     if (action === 'reject' && !comments) {
         alert('Comments are required when rejecting a return.');
         return;
     }
     
-    fetch(`/api/compliance/workflow/${currentReturnId}/`, {
+    fetch(`/tax/api/workflow/${currentReturnId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
