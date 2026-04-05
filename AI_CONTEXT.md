@@ -66,6 +66,7 @@ olive_erp/
 - **Accounting Extensions**: `apps.accounting/*` adds specialized features (fixed assets, bank reconciliation)
 - **Custom Signals**: `finance/signals.py` defines `journal_entry_posted` signal, emitted from `JournalEntry.post()`, with receivers in `core/signals.py` (budget updates, reconciliation invalidation, VAT threshold checks) and `apps/accounting/*/signals.py`
 - **Tax Engine Registry**: `tax_engine` uses registry pattern (`BaseTaxEngine`) for multi-country tax compliance
+- **UI Layout**: Top navigation layout (not sidebar) - see templates/base.html, static/css/olive-theme.css, static/js/navigation.js
 
 ---
 
@@ -104,10 +105,11 @@ olive_erp/
 - Fixed assets management
 - Bank reconciliation
 - Dividend register
-- UI with top navigation layout
+- **UI with polished top navigation layout** - Horizontal app shell with dropdowns, search, user dropdown
 
 ### 🔄 In-progress Features
-- **Accounting module**: Being enhanced with better reporting, seed data, and compliance features
+- **Top navigation UI polish**: Completed major CSS/styling improvements, refined horizontal layout, dropdowns, mobile responsiveness
+- **Accounting module**: Enhanced reporting, seed data, compliance features
 - **Test coverage**: Test discovery for `apps.accounting` module
 - **Related party transactions**: Consolidation between two models in progress
 
@@ -212,7 +214,7 @@ olive_erp/
 3. **Navigation via context processor**: `core.context_processors.navigation_menu` generates all nav items - modify there, not hardcoded
 4. **Signal workflows**: `core/signals.py` handles automatic inventory/invoice updates - be careful modifying
 5. **Custom User model**: Must use `core.User` - don't switch to default Django user
-6. **Top navigation layout**: The new top-nav layout in `templates/base.html` should be preserved
+6. **Top navigation layout**: The polished top-nav layout in `templates/base.html` with CSS in `static/css/olive-theme.css` must be preserved - do not revert to left sidebar
 
 ---
 
@@ -251,3 +253,28 @@ olive_erp/
 4. **Improve test coverage**: Add more tests for `apps.accounting` and other modules
 5. **API development**: Expose key entities via DRF for potential mobile/web apps
 6. **Audit trail**: Implement full audit logging for financial transactions
+7. **UI refinements**: Continue to iterate on the top navigation based on user feedback
+
+## 12. UI Implementation Notes (April 2025)
+
+### Top Navigation Implementation
+- **Layout**: Fixed top header, 64px height, gradient olive theme
+- **Structure**: Brand (left) → Module nav (center) → Search + User (right)
+- **Files**:
+  - `templates/base.html` - Main shell with top-navbar
+  - `static/css/olive-theme.css` - All top navigation styles (378 lines)
+  - `static/js/navigation.js` - Mobile toggle, dropdowns, search handling
+  - `static/css/mobile.css` - Responsive overrides (simplified, sidebar refs removed)
+- **Features**:
+  - Horizontal scrollable module links on smaller screens
+  - Hover dropdowns on desktop, stacked accordion on mobile
+  - Search with expandable input and results dropdown
+  - User avatar + name + dropdown for settings/logout
+  - Active state highlighting based on current URL
+  - Smooth transitions and hover effects
+  - Mobile hamburger menu with X close icon
+
+### Deprecations
+- `templates/includes/sidebar.html` - No longer primary nav (retained for reference)
+- `templates/includes/topbar.html` - No longer used (absorbed into base.html)
+- Old sidebar CSS classes in olive-theme.css - Removed
