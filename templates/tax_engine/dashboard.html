@@ -66,7 +66,7 @@
             <td>{{ filing.due_date|date:"d M Y" }}</td>
             <td><span class="badge bg-warning text-dark">{{ filing.get_status_display }}</span></td>
             <td>
-              <a href="{% url 'compliance:filing_detail' filing.pk %}"
+              <a href="{% url 'tax_engine:filing_detail' filing.pk %}"
                  class="btn btn-sm btn-outline-primary">Prepare</a>
             </td>
           </tr>
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var cal = new FullCalendar.Calendar(document.getElementById('compliance-calendar'), {
         initialView: 'dayGridMonth',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
-        events: '{% url "compliance:calendar_events" %}',
+        events: '{% url "tax_engine:calendar_events" %}',
         eventClick: function(info) {
           window.location.href = info.event.url;
         }
