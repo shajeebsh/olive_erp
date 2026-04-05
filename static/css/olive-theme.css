@@ -9,6 +9,7 @@
     --info-blue: #17A2B8;
     --light-gray: #f8f9fa;
     --dark-gray: #343a40;
+    --sidebar-width: 280px;
 }
 
 body {
@@ -18,11 +19,18 @@ body {
 }
 
 .sidebar-container {
-    width: 280px;
-    min-height: 100vh;
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
     background-color: var(--primary-olive);
     color: white;
     transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
 }
 
 .sidebar-header {
@@ -30,11 +38,19 @@ body {
     text-align: center;
     font-size: 1.5rem;
     font-weight: 700;
+    flex-shrink: 0;
 }
 
 .sidebar-brand {
     color: white;
     text-decoration: none;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 1rem;
 }
 
 .sidebar-nav .nav-item .nav-link {
@@ -85,13 +101,20 @@ body {
 }
 
 .content-area {
-    width: calc(100% - 280px);
+    width: calc(100% - var(--sidebar-width));
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     transition: all 0.3s;
 }
 
 .topbar {
     background-color: white !important;
     border-bottom: 1px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .card {
@@ -123,5 +146,88 @@ body {
     }
     .content-area {
         width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* Sidebar User Section */
+.sidebar-user-section {
+    padding: 1rem 1.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    overflow: hidden;
+}
+
+.user-info i {
+    flex-shrink: 0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-logout {
+    color: white;
+    padding: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-logout:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Mobile: Hide sidebar by default */
+@media (max-width: 991px) {
+    .sidebar-container {
+        margin-left: -280px;
+        position: fixed;
+        z-index: 1050;
+    }
+    
+    .sidebar-container.show {
+        margin-left: 0;
+    }
+    
+    .content-area {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .sidebar-user-section {
+        padding: 0.75rem 1rem;
     }
 }

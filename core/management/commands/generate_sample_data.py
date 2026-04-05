@@ -96,6 +96,22 @@ class Command(BaseCommand):
         Category.objects.all().delete()
         Warehouse.objects.all().delete()
 
+        # Delete accounting records first to avoid FK issues
+        try:
+            from apps.accounting.assets.models import FixedAsset
+            from apps.accounting.reconciliation.models import BankReconciliation
+            from apps.accounting.compliance.models import (
+                ComplianceDeadline, CT1Computation, Dividend, RelatedPartyTransaction
+            )
+            FixedAsset.objects.all().delete()
+            BankReconciliation.objects.all().delete()
+            ComplianceDeadline.objects.all().delete()
+            CT1Computation.objects.all().delete()
+            Dividend.objects.all().delete()
+            RelatedPartyTransaction.objects.all().delete()
+        except Exception:
+            pass
+        
         JournalEntryLine.objects.all().delete()
         JournalEntry.objects.all().delete()
         Account.objects.all().delete()
@@ -548,6 +564,12 @@ class Command(BaseCommand):
         # Generate Dividends
         self.generate_dividends()
         
+        # Generate Related Party Transactions
+        self.generate_related_party_transactions()
+        
+        # Generate posted journal entries for meaningful P&L
+        self.generate_posted_journals()
+        
         self.stdout.write(self.style.SUCCESS("Accounting data generation complete!"))
 
     def generate_fixed_assets(self):
@@ -653,3 +675,175 @@ class Command(BaseCommand):
                     'is_paid': True,
                 }
             )
+
+    def generate_related_party_transactions(self):
+        self.stdout.write("Generating Related Party Transactions...")
+        from datetime import date
+        from apps.accounting.compliance.models import RelatedPartyTransaction
+        
+        rpt_data = [
+            ('Director Loan - John Doe', 'director_related', date(2024, 1, 15), 'Loan from director', Decimal('25000.00'), True),
+            ('Subsidiary - Acme Ltd', 'subsidiary', date(2024, 3, 1), 'Management fees', Decimal('12000.00'), True),
+            ('Associate - Tech Partners', 'associate', date(2024, 6, 15), 'Consulting services', Decimal('8000.00'), True),
+        ]
+        
+        for party, rel_type, txn_date, nature, amount, is_arm in rpt_data:
+            RelatedPartyTransaction.objects.get_or_create(
+                company=self.company,
+                party_name=party,
+                transaction_date=txn_date,
+                defaults={
+                    'relationship': rel_type,
+                    'transaction_nature': nature,
+                    'amount': amount,
+                    'is_arm_length': is_arm,
+                }
+            )
+
+    def generate_posted_journals(self):
+        self.stdout.write("Generating Posted Journal Entries for P&L...")
+        from datetime import date, timedelta
+        from django.utils import timezone
+        
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=180)  # 6 months of data
+        
+        # Get required accounts
+        accounts = {}
+        required_codes = {
+            '1110': 'Bank Accounts',
+            '1120': 'Accounts Receivable',
+            '2110': 'Accounts Payable',
+            '2120': 'VAT Payable',
+            '4100': 'Sales Revenue',
+            '4110': 'Consulting Services',
+            '4200': 'Other Income',
+            '5100': 'Cost of Goods Sold',
+            '5210': 'Payroll Expenses',
+            '5220': 'Rent',
+            '5230': 'Utilities',
+            '5250': 'Professional Fees',
+            '5260': 'Travel & Subsistence',
+            '5270': 'Marketing',
+            '5290': 'Depreciation',
+        }
+        
+        for code, name in required_codes.items():
+            try:
+                accounts[code] = Account.objects.get(code=code, company=self.company)
+            except Account.DoesNotExist:
+                continue
+        
+        if not accounts:
+            self.stdout.write(self.style.WARNING("No accounts found, skipping posted journals"))
+            return
+        
+        journal_entries = [
+            # Sales invoices
+            (date(2025, 1, 15), 'Sales - Invoice INV-001', [
+                (accounts.get('1120'), Decimal('12300.00'), Decimal('0')),
+                (accounts.get('4100'), Decimal('0'), Decimal('10000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('2300.00')),
+            ]),
+            (date(2025, 1, 20), 'Sales - Invoice INV-002', [
+                (accounts.get('1120'), Decimal('6150.00'), Decimal('0')),
+                (accounts.get('4100'), Decimal('0'), Decimal('5000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('1150.00')),
+            ]),
+            (date(2025, 2, 10), 'Sales - Invoice INV-003', [
+                (accounts.get('1120'), Decimal('24600.00'), Decimal('0')),
+                (accounts.get('4110'), Decimal('0'), Decimal('20000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('4600.00')),
+            ]),
+            # Expenses
+            (date(2025, 1, 31), 'Rent Payment - January', [
+                (accounts.get('5220'), Decimal('2500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2500.00')),
+            ]),
+            (date(2025, 2, 28), 'Rent Payment - February', [
+                (accounts.get('5220'), Decimal('2500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2500.00')),
+            ]),
+            (date(2025, 1, 31), 'Utilities - January', [
+                (accounts.get('5230'), Decimal('450.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('450.00')),
+            ]),
+            (date(2025, 2, 28), 'Utilities - February', [
+                (accounts.get('5230'), Decimal('380.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('380.00')),
+            ]),
+            # Payroll
+            (date(2025, 1, 31), 'Payroll - January', [
+                (accounts.get('5210'), Decimal('15000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('15000.00')),
+            ]),
+            (date(2025, 2, 28), 'Payroll - February', [
+                (accounts.get('5210'), Decimal('15000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('15000.00')),
+            ]),
+            # Professional Fees
+            (date(2025, 1, 15), 'Legal Fees', [
+                (accounts.get('5250'), Decimal('2000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2000.00')),
+            ]),
+            (date(2025, 2, 20), 'Accountancy Fees', [
+                (accounts.get('5250'), Decimal('1500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('1500.00')),
+            ]),
+            # Travel & Marketing
+            (date(2025, 2, 5), 'Travel Expenses', [
+                (accounts.get('5260'), Decimal('800.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('800.00')),
+            ]),
+            (date(2025, 1, 20), 'Marketing Campaign', [
+                (accounts.get('5270'), Decimal('3000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('3000.00')),
+            ]),
+            # COGS
+            (date(2025, 1, 25), 'Cost of Goods Sold', [
+                (accounts.get('5100'), Decimal('4000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('4000.00')),
+            ]),
+            (date(2025, 2, 25), 'Cost of Goods Sold', [
+                (accounts.get('5100'), Decimal('3500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('3500.00')),
+            ]),
+            # Other Income
+            (date(2025, 2, 1), 'Interest Income', [
+                (accounts.get('1110'), Decimal('50.00'), Decimal('0')),
+                (accounts.get('4200'), Decimal('0'), Decimal('50.00')),
+            ]),
+            # Depreciation
+            (date(2025, 1, 31), 'Depreciation Entry', [
+                (accounts.get('5290'), Decimal('500.00'), Decimal('0')),
+                (accounts.get('1290'), Decimal('0'), Decimal('500.00')),
+            ]),
+            (date(2025, 2, 28), 'Depreciation Entry', [
+                (accounts.get('5290'), Decimal('500.00'), Decimal('0')),
+                (accounts.get('1290'), Decimal('0'), Decimal('500.00')),
+            ]),
+        ]
+        
+        # Create journal entries
+        for i, (je_date, description, lines) in enumerate(journal_entries):
+            je, created = JournalEntry.objects.get_or_create(
+                entry_number=f'JE-{je_date.strftime("%Y%m%d")}-{i+1}',
+                defaults={
+                    'date': je_date,
+                    'description': description,
+                    'created_by': self.admin_user,
+                    'is_posted': True
+                }
+            )
+            
+            if created:
+                for account, debit, credit in lines:
+                    if account:
+                        JournalEntryLine.objects.create(
+                            journal_entry=je,
+                            account=account,
+                            debit=debit,
+                            credit=credit
+                        )
+        
+        self.stdout.write(self.style.SUCCESS(f"Created {len(journal_entries)} posted journal entries"))

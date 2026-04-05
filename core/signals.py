@@ -24,11 +24,20 @@ def handle_journal_entry_posted(sender, instance, **kwargs):
     cache.delete(f"report_pl_{company.id}")
     cache.delete(f"report_bs_{company.id}")
     
-    # 2. Mark BankReconciliation for affected month as 'IP' (In Progress)
+    # 2. Mark ONLY the BankReconciliation for the specific month of the JE as 'IP' (In Progress)
+    # Get the month/year of the journal entry
+    je_year = instance.date.year
+    je_month = instance.date.month
+    
+    # Find bank accounts affected by this journal entry
+    affected_account_ids = instance.lines.values_list('account_id', flat=True)
+    
+    # Only invalidate the specific reconciliation period, not all future periods
     reconciliations = BankReconciliation.objects.filter(
         company=company,
-        account__in=instance.lines.values_list('account', flat=True),
-        period_date__gte=instance.date
+        account_id__in=affected_account_ids,
+        period_date__year=je_year,
+        period_date__month=je_month
     )
     reconciliations.update(status='IP')
     

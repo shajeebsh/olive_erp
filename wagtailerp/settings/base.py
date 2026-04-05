@@ -169,5 +169,8 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard:index'
 LOGOUT_REDIRECT_URL = 'login'
 
+# Testing
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 WAGTAIL_SITE_NAME = "Olive_ERP"
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"
