@@ -18,7 +18,7 @@ urlpatterns = [
     path("projects/", include("projects.urls")),
     path("purchasing/", include("purchasing.urls")),
     path("reporting/", include("reporting.urls")),
-    path("compliance/", include("compliance.urls")),
+    path("tax/", include("tax_engine.urls")),
     path("company/", include("company.urls")),
     path("core/", include("core.urls")),
     path("accounting/", include("apps.accounting.urls", namespace='accounting')),

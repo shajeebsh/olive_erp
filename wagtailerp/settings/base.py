@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     "purchasing",
     "hr",
     "projects",
-    "compliance",
+    "tax_engine",
     "reporting",
     "apps.accounting.assets",
     "apps.accounting.reconciliation",
@@ -81,7 +81,7 @@ CELERY_BEAT_SCHEDULE = {
 COUNTRY_CONFIG = {
     'DEFAULT_COUNTRY': 'IE',
     'AUTO_DISCOVER_COUNTRIES': True,
-    'COUNTRY_MODULES_PATH': 'compliance.countries',
+    'COUNTRY_MODULES_PATH': 'tax_engine.countries',
 }
 
 # Tax calculation settings

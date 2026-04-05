@@ -106,7 +106,7 @@ olive_erp/
 ├── home/             # Public CMS pages
 └── wagtailerp/       # Main project configuration
 ├── reporting/        # Reporting & BI Layer (NEW)
-└── compliance/       # Tax & Compliance (NEW)
+└── tax_engine/        # Tax & Compliance (NEW)
 
 ## New Modules
 
@@ -154,7 +154,7 @@ A robust, dynamically loaded compliance engine designed to handle multi-country 
 **Country Registry & Architecture:**
 - **Pluggable Architecture**: Country-specific tax and compliance logic is decoupled from the core and loaded dynamically via a centralized `registry`.
 - **Abstract Interfaces (`BaseTaxEngine`)**: Enforces strict contracts for tax calculation, tax number validation, and localized serialization.
-- **Auto-Discovery**: Simply add `@register_country('CODE')` over a new engine class in `compliance.countries` and it is instantly available across the ERP.
+- **Auto-Discovery**: Simply add `@register_country('CODE')` over a new engine class in `tax_engine.countries` and it is instantly available across the ERP.
 
 **Company Setup & Configuration:**
 - **Dynamic Setup Wizard**: Replaced static company creation with a multi-step flow allowing users to select their operating country and preferred modules.
