@@ -1,19 +1,6 @@
-/* Mobile Optimization for Dashboards */
+/* Mobile Optimization for OliveERP */
 
 @media (max-width: 768px) {
-    /* Adjust sidebar for mobile */
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        padding-bottom: 20px;
-    }
-    
-    .content-area {
-        margin-left: 0 !important;
-        width: 100%;
-    }
-    
     /* KPI Cards should stack and have margin */
     .country-kpi {
         margin-bottom: 1rem;
@@ -44,38 +31,37 @@
     .table-responsive {
         border: 0;
     }
-    
-    /* Topbar adjustments */
-    #topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px;
-    }
-    
-    #countrySwitcher {
-        margin-top: 10px;
-        width: 100%;
-    }
-    
-    #countrySwitcher .btn {
-        width: 100%;
-        text-align: left;
-    }
 }
 
-/* Touch-friendly buttons */
+/* Touch-friendly buttons for all devices */
 @media (hover: none) and (pointer: coarse) {
     .btn {
-        min-height: 44px; /* Apple recommendation for touch targets */
+        min-height: 44px;
         padding: 10px 16px;
     }
     
     .form-control, .form-select {
         min-height: 44px;
-        font-size: 16px; /* Prevent iOS zoom */
+        font-size: 16px;
     }
     
     .dropdown-item {
         padding: 12px 16px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .main-content .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-size: 1.1rem;
     }
 }

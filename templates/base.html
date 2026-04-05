@@ -19,6 +19,11 @@
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="top-navbar-inner">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-nav-toggle" type="button" aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
+            </button>
+
             <!-- Brand / Logo -->
             <div class="top-nav-brand">
                 <a href="{% url 'dashboard:index' %}" class="brand-link">
@@ -45,30 +50,28 @@
                             <span>{{ module.name }}</span>
                         </a>
                     {% else %}
-                        <div class="dropdown nav-module-dropdown">
+                        <div class="nav-module-dropdown dropdown">
                             <a class="nav-module-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi {{ module.icon }}"></i>
                                 <span>{{ module.name }}</span>
                                 <i class="bi bi-chevron-down small"></i>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-nav">
+                            <ul class="dropdown-menu dropdown-menu-nav">
                                 {% for item in module.submenu %}
                                     {% if item.submenu %}
-                                        <div class="dropdown-submenu">
+                                        <li class="dropdown-submenu">
                                             <a class="dropdown-item dropdown-toggle" href="#">{{ item.name }}</a>
-                                            <div class="dropdown-menu">
+                                            <ul class="dropdown-menu">
                                                 {% for subitem in item.submenu %}
-                                                    <a class="dropdown-item" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a>
+                                                    <li><a class="dropdown-item" href="{% if subitem.url %}{% url subitem.url %}{% else %}#{% endif %}">{{ subitem.name }}</a></li>
                                                 {% endfor %}
-                                            </div>
-                                        </div>
+                                            </ul>
+                                        </li>
                                     {% else %}
-                                        <a class="dropdown-item" href="{% if item.url %}{% url item.url %}{% else %}#{% endif %}">
-                                            {{ item.name }}
-                                        </a>
+                                        <li><a class="dropdown-item" href="{% if item.url %}{% url item.url %}{% else %}#{% endif %}">{{ item.name }}</a></li>
                                     {% endif %}
                                 {% endfor %}
-                            </div>
+                            </ul>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -76,28 +79,31 @@
 
             <!-- Right Side: Search & User -->
             <div class="top-nav-user">
-                <form class="nav-search-form" autocomplete="off">
-                    <input class="form-control nav-search-input" type="search" id="global-search" 
-                           name="q" placeholder="Search (Alt+G)..." aria-label="Search"
-                           hx-get="{% url 'core:goto_search' %}"
-                           hx-trigger="keyup changed delay:500ms"
-                           hx-target="#search-results"
-                           hx-indicator=".search-loader">
+                <div class="nav-search-wrapper">
+                    <form class="nav-search-form" autocomplete="off">
+                        <i class="bi bi-search nav-search-icon"></i>
+                        <input class="form-control nav-search-input" type="search" id="global-search" 
+                               name="q" placeholder="Search..." aria-label="Search"
+                               hx-get="{% url 'core:goto_search' %}"
+                               hx-trigger="keyup changed delay:500ms"
+                               hx-target="#search-results">
+                    </form>
                     <div id="search-results" class="search-results-dropdown"></div>
-                    <div class="search-loader htmx-indicator spinner-border spinner-border-sm" style="display:none;"></div>
-                </form>
+                </div>
 
                 <div class="nav-user-dropdown dropdown">
                     <a class="nav-user-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle fs-5"></i>
-                        <span class="nav-user-name d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                        <div class="user-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="nav-user-name">{{ user.get_full_name|default:user.username }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end dropdown-menu-user shadow">
-                        <div class="user-dropdown-header px-3 py-2">
-                            <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
-                            <div class="small text-muted">{{ user.email }}</div>
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="user-dropdown-email">{{ user.email }}</div>
                             {% if company %}
-                            <div class="small text-muted mt-1">{{ company.name }}</div>
+                            <div class="user-dropdown-company">{{ company.name }}</div>
                             {% endif %}
                         </div>
                         <div class="dropdown-divider"></div>
