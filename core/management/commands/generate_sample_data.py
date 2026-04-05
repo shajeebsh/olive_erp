@@ -16,6 +16,9 @@ from hr.models import Department, Employee, LeaveRequest, Attendance
 from projects.models import Project, Task
 from purchasing.models import Supplier, PurchaseOrder, PurchaseOrderLine, GoodsReceivedNote
 from compliance.models import TaxPeriod, Filing, FinancialStatement, BeneficialOwner
+from apps.accounting.assets.models import FixedAsset
+from apps.accounting.reconciliation.models import BankReconciliation
+from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend
 
 User = get_user_model()
 
@@ -164,14 +167,33 @@ class Command(BaseCommand):
         accounts['3200'], _ = Account.objects.get_or_create(code='3200', defaults={'name': 'Retained Earnings', 'type': 'EQUITY', 'parent': accounts['3000'], 'company': self.company})
         
         # Income
-        accounts['4100'], _ = Account.objects.get_or_create(code='4100', defaults={'name': 'Sales Revenue', 'type': 'INCOME', 'parent': accounts['4000'], 'company': self.company})
-        accounts['4200'], _ = Account.objects.get_or_create(code='4200', defaults={'name': 'Other Income', 'type': 'INCOME', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4100'], _ = Account.objects.get_or_create(code='4100', defaults={'name': 'Sales Revenue', 'account_type': 'Income', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4110'], _ = Account.objects.get_or_create(code='4110', defaults={'name': 'Consulting Services', 'account_type': 'Income', 'parent': accounts['4100'], 'company': self.company})
+        accounts['4200'], _ = Account.objects.get_or_create(code='4200', defaults={'name': 'Other Income', 'account_type': 'Income', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4210'], _ = Account.objects.get_or_create(code='4210', defaults={'name': 'Interest Income', 'account_type': 'Income', 'parent': accounts['4200'], 'company': self.company})
         
         # Expenses
-        accounts['5100'], _ = Account.objects.get_or_create(code='5100', defaults={'name': 'Cost of Goods Sold', 'type': 'EXPENSE', 'parent': accounts['5000'], 'company': self.company})
-        accounts['5200'], _ = Account.objects.get_or_create(code='5200', defaults={'name': 'Operating Expenses', 'type': 'EXPENSE', 'parent': accounts['5000'], 'company': self.company})
-        accounts['5210'], _ = Account.objects.get_or_create(code='5210', defaults={'name': 'Payroll Expenses', 'type': 'EXPENSE', 'parent': accounts['5200'], 'company': self.company})
-        accounts['5220'], _ = Account.objects.get_or_create(code='5220', defaults={'name': 'Rent', 'type': 'EXPENSE', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5100'], _ = Account.objects.get_or_create(code='5100', defaults={'name': 'Cost of Goods Sold', 'account_type': 'Expense', 'parent': accounts['5000'], 'company': self.company})
+        accounts['5200'], _ = Account.objects.get_or_create(code='5200', defaults={'name': 'Operating Expenses', 'account_type': 'Expense', 'parent': accounts['5000'], 'company': self.company})
+        accounts['5210'], _ = Account.objects.get_or_create(code='5210', defaults={'name': 'Payroll Expenses', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5220'], _ = Account.objects.get_or_create(code='5220', defaults={'name': 'Rent', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5230'], _ = Account.objects.get_or_create(code='5230', defaults={'name': 'Utilities', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5240'], _ = Account.objects.get_or_create(code='5240', defaults={'name': 'IT & Software', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5250'], _ = Account.objects.get_or_create(code='5250', defaults={'name': 'Professional Fees', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5260'], _ = Account.objects.get_or_create(code='5260', defaults={'name': 'Travel & Subsistence', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5270'], _ = Account.objects.get_or_create(code='5270', defaults={'name': 'Marketing', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5280'], _ = Account.objects.get_or_create(code='5280', defaults={'name': 'Insurance', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5290'], _ = Account.objects.get_or_create(code='5290', defaults={'name': 'Depreciation', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        
+        # VAT Accounts
+        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'VAT Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
+        accounts['2130'], _ = Account.objects.get_or_create(code='2130', defaults={'name': 'VAT Receivable', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        
+        # Add more detailed Fixed Assets accounts
+        accounts['1210'], _ = Account.objects.get_or_create(code='1210', defaults={'name': 'Computer Equipment', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1220'], _ = Account.objects.get_or_create(code='1220', defaults={'name': 'Office Furniture', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1230'], _ = Account.objects.get_or_create(code='1230', defaults={'name': 'Vehicles', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1290'], _ = Account.objects.get_or_create(code='1290', defaults={'name': 'Accumulated Depreciation', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
 
         return accounts
 
@@ -505,3 +527,116 @@ class Command(BaseCommand):
             name=self.fake.name(),
             defaults={'address': self.fake.address(), 'nationality': 'Irish'}
         )
+        
+        # Generate Fixed Assets
+        self.generate_fixed_assets()
+        
+        # Generate Bank Reconciliation
+        self.generate_bank_reconciliation()
+        
+        # Generate Dividends
+        self.generate_dividends()
+        
+        self.stdout.write(self.style.SUCCESS("Accounting data generation complete!"))
+
+    def generate_fixed_assets(self):
+        self.stdout.write("Generating Fixed Assets...")
+        from datetime import date
+        from dateutil.relativedelta import relativedelta
+        
+        # Get asset accounts
+        try:
+            fa_account = Account.objects.get(code='1210', company=self.company)
+            dep_account = Account.objects.get(code='1290', company=self.company)
+            exp_account = Account.objects.get(code='5290', company=self.company)
+        except Account.DoesNotExist:
+            return
+        
+        # Create sample fixed assets
+        assets_data = [
+            ('LAPTOP-001', 'Dell Laptop XPS 15', date(2024, 1, 15), Decimal('1500.00'), Decimal('10.00'), Decimal('15.00')),
+            ('DESK-001', 'Standing Desk - Electric', date(2024, 3, 20), Decimal('800.00'), Decimal('50.00'), Decimal('10.00')),
+            ('CHAIR-001', 'Ergonomic Office Chair', date(2024, 3, 20), Decimal('450.00'), Decimal('25.00'), Decimal('10.00')),
+            ('SERVER-001', 'Dell PowerEdge Server', date(2023, 6, 1), Decimal('5000.00'), Decimal('500.00'), Decimal('20.00')),
+            ('PRINTER-001', 'HP LaserJet Pro', date(2024, 2, 10), Decimal('600.00'), Decimal('50.00'), Decimal('15.00')),
+            ('VEHICLE-001', 'Company Van - Ford Transit', date(2023, 1, 1), Decimal('25000.00'), Decimal('5000.00'), Decimal('20.00')),
+        ]
+        
+        for asset_code, name, purchase_date, purchase_value, salvage_value, dep_rate in assets_data:
+            FixedAsset.objects.get_or_create(
+                asset_code=asset_code,
+                defaults={
+                    'name': name,
+                    'company': self.company,
+                    'asset_account': fa_account,
+                    'accumulated_depreciation_account': dep_account,
+                    'depreciation_expense_account': exp_account,
+                    'purchase_date': purchase_date,
+                    'purchase_value': purchase_value,
+                    'salvage_value': salvage_value,
+                    'depreciation_method': 'SL',
+                    'depreciation_rate': dep_rate,
+                }
+            )
+
+    def generate_bank_reconciliation(self):
+        self.stdout.write("Generating Bank Reconciliation...")
+        from dateutil.relativedelta import relativedelta
+        import calendar
+        
+        # Get bank account
+        try:
+            bank_account = Account.objects.get(code='1110', company=self.company)
+        except Account.DoesNotExist:
+            return
+        
+        # Generate 12 months of reconciliation
+        opening_balance = Decimal('10000.00')
+        for i in range(12):
+            month_date = date.today() - relativedelta(months=11-i)
+            last_day = calendar.monthrange(month_date.year, month_date.month)[1]
+            period_date = date(month_date.year, month_date.month, last_day)
+            
+            # Random balance fluctuation
+            closing_balance = opening_balance + Decimal(random.uniform(-2000, 5000))
+            
+            BankReconciliation.objects.get_or_create(
+                company=self.company,
+                account=bank_account,
+                period_date=period_date,
+                defaults={
+                    'opening_balance': opening_balance,
+                    'actual_closing_balance': closing_balance,
+                    'book_balance': closing_balance + Decimal(random.uniform(-100, 100)),
+                    'status': 'RC' if i < 10 else ('IP' if i == 10 else 'NS'),
+                }
+            )
+            
+            opening_balance = closing_balance
+
+    def generate_dividends(self):
+        self.stdout.write("Generating Dividends...")
+        
+        # Create sample dividends
+        dividend_data = [
+            ('John Doe', date(2024, 6, 30), date(2024, 7, 15), Decimal('0.25'), 10000),
+            ('Jane Smith', date(2024, 6, 30), date(2024, 7, 15), Decimal('0.25'), 5000),
+            ('Acme Holdings Ltd', date(2024, 12, 15), date(2024, 12, 31), Decimal('0.50'), 20000),
+        ]
+        
+        for shareholder, dec_date, pay_date, per_share, shares in dividend_data:
+            net_amount = per_share * Decimal(shares) * Decimal('0.80')  # 80% after tax
+            Dividend.objects.get_or_create(
+                company=self.company,
+                shareholder_name=shareholder,
+                declaration_date=dec_date,
+                payment_date=pay_date,
+                defaults={
+                    'dividend_per_share': per_share,
+                    'number_of_shares': shares,
+                    'net_amount': net_amount,
+                    'tax_credit': per_share * Decimal(shares) * Decimal('0.20'),
+                    'voucher_number': f'DIV-{shareholder[:3].upper()}-{date.today().year}',
+                    'is_paid': True,
+                }
+            )

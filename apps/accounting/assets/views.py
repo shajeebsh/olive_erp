@@ -25,5 +25,5 @@ class FixedAssetListView(LoginRequiredMixin, ListView):
         assets = context['assets']
         context['total_cost'] = sum(a.purchase_value for a in assets)
         context['total_accum_depr'] = sum(a.accumulated_depreciation for a in assets)
-        context['total_nbv'] = sum(a.book_value for a in assets)
+        context['total_nbv'] = sum(a.net_book_value for a in assets)
         return context

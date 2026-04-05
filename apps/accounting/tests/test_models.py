@@ -48,7 +48,7 @@ class AccountingModelTest(TestCase):
             depreciation_rate=20
         )
         self.assertEqual(asset.name, "Laptop")
-        self.assertEqual(asset.book_value, 1000)
+        self.assertEqual(asset.net_book_value, 1000)
 
     def test_bank_reconciliation_creation(self):
         recon = BankReconciliation.objects.create(
