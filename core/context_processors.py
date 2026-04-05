@@ -68,14 +68,14 @@ def navigation_menu(request):
     if company and company.country_code:
         country = company.country_code
         modules.append({
-            'name': 'Compliance',
+            'name': 'Tax & Compliance',
             'icon': 'bi-shield-check',
-            'submenu': get_compliance_submenu(country)
+            'submenu': get_tax_engine_submenu(country)
         })
     
     return {'modules': modules, 'company': company}
 
-def get_compliance_submenu(country_code):
+def get_tax_engine_submenu(country_code):
     base_items = [{'name': '📋 Dashboard', 'url': 'tax_engine:dashboard'}]
     
     country_forms = {
