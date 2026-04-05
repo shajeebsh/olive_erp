@@ -3,7 +3,7 @@
 Phase 3 focuses on bringing the Olive ERP user interface to 100% completion, delivering a modern, responsive, and intuitive experience for complex accounting and compliance tasks.
 
 ## 1. Unified Compliance Dashboard
-**File**: `templates/compliance/dashboard.html`
+**File**: `templates/tax_engine/dashboard.html`
 - **Features**: 
   - Dynamic KPI cards filtered by country (Ireland, UK, India, UAE).
   - FullCalendar.io integration for visual deadline tracking.
@@ -11,14 +11,14 @@ Phase 3 focuses on bringing the Olive ERP user interface to 100% completion, del
   - Automated summary of obligations via REST APIs.
 
 ## 2. Interactive Tax Return Preview
-**File**: `templates/compliance/return_preview.html`
+**File**: `templates/tax_engine/return_preview.html`
 - **Features**:
   - Live recalculation of tax liabilities as users adjust input boxes.
   - Multi-tab layout separating Form Entry, PDF Preview, and Validation Results.
   - Safety modal requiring explicit confirmation before final filing.
 
 ## 3. Multi-Country Management
-**Files**: `templates/includes/country_switcher.html`, `templates/compliance/consolidated_reports.html`
+**Files**: `templates/includes/country_switcher.html`, `templates/tax_engine/consolidated_reports.html`
 - **Features**:
   - Global navigation country switcher updating the active session context.
   - Consolidated cross-border reporting summarizing output VAT, input VAT, and net payable across all jurisdictions.
@@ -46,7 +46,7 @@ Phase 3 focuses on bringing the Olive ERP user interface to 100% completion, del
   - Optimized calendar rendering for smaller screens.
 
 ## 7. Approval Workflows
-**File**: `templates/compliance/approval_workflow.html`
+**File**: `templates/tax_engine/approval_workflow.html`
 - **Features**:
   - Visual step-by-step progress indicator for tax returns.
   - Role-based queue (e.g., waiting for CFO vs Board).

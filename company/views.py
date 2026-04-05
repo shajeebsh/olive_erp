@@ -42,7 +42,7 @@ class SetupStep2View(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from compliance.registry import registry
+        from tax_engine.registry import registry
         
         # Get all available countries
         context['countries'] = registry.get_all_countries()
@@ -73,7 +73,7 @@ class SetupStep3View(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         country_code = self.request.session.get('setup_country', 'IE')
         
-        from compliance.registry import registry
+        from tax_engine.registry import registry
         engine = registry.get_tax_engine(country_code)
         
         if engine:
@@ -91,7 +91,7 @@ class SetupStep3View(LoginRequiredMixin, TemplateView):
         country_code = request.session.get('setup_country', 'IE')
         tax_number = request.POST.get('tax_number')
         
-        from compliance.registry import registry
+        from tax_engine.registry import registry
         is_valid, message = registry.validate_tax_number(country_code, tax_number)
         
         if not is_valid:
