@@ -13,7 +13,7 @@ OliveERP is a comprehensive, modular Enterprise Resource Planning (ERP) system b
 ## 2. Tech Stack
 
 - **Backend**: Python 3.11+, Django 4.2 LTS, Wagtail CMS 5.2+
-- **Frontend**: Django Templates, Bootstrap 5, HTMX, Chart.js
+- **Frontend**: Django Templates, Bootstrap 5, **HTMX** (for partial page updates: bank reconciliation, live tax previews), Chart.js
 - **Database**: MySQL (production) / SQLite (dev)
 - **Task Queue**: Celery with Redis
 - **Authentication**: Custom User model in `core/models.py`
@@ -64,6 +64,8 @@ olive_erp/
 - **Navigation**: Generated via `core.context_processors.navigation_menu`
 - **Accounting**: Uses `finance.Account`, `JournalEntry`, `JournalEntryLine` as source of truth
 - **Accounting Extensions**: `apps.accounting/*` adds specialized features (fixed assets, bank reconciliation)
+- **Custom Signals**: `finance/signals.py` defines `journal_entry_posted` signal for post-entry automation (budget updates, reconciliation status invalidation, VAT threshold checks)
+- **Tax Engine Registry**: `tax_engine` uses registry pattern (`BaseTaxEngine`) for multi-country tax compliance
 
 ---
 
@@ -81,8 +83,8 @@ olive_erp/
 | **purchasing** | Suppliers, purchase orders, GRNs | `purchasing/models.py` |
 | **reporting** | Report definitions and exports | `reporting/models.py`, `reporting/services.py` |
 | **dashboard** | Dashboard KPIs | `dashboard/views.py` |
-| **tax_engine** | Tax periods, filings, RBO (IE/UK/IN/AE) | `tax_engine/base/models.py`, `tax_engine/countries/` |
-| **apps.accounting** | Extended accounting (fixed assets, reconciliation, compliance) | `apps/accounting/*/models.py` |
+| **tax_engine** | Tax periods, filings, RBO for IE/UK/IN/AE (uses registry pattern) | `tax_engine/base/models.py`, `tax_engine/countries/` |
+| **apps.accounting** | Extended accounting (fixed assets, reconciliation, compliance); statutory registers (Directors, Members, Beneficial Owners) registered as Wagtail snippets | `apps/accounting/*/models.py` |
 
 ---
 
@@ -115,6 +117,11 @@ olive_erp/
 - Advanced workflow automation beyond signals
 - API documentation
 
+### Optional / Workarounds
+- **Accounting seed data**: Use `python manage.py generate_sample_data` or `python manage.py reset_demo_data` to populate accounting tables (required after migrations on fresh DB)
+- **Testing accounting**: Run tests with `python manage.py test apps.accounting.tests.test_models`
+- **Multi-country tax**: The `tax_engine` uses registry pattern (`BaseTaxEngine`) - each country implements `ITaxEngine` interface
+
 ---
 
 ## 6. Known Issues & Workarounds
@@ -124,10 +131,12 @@ olive_erp/
    - Migrations exist but table creation may fail on SQLite
 
 2. **Test discovery**: `manage.py test apps.accounting` fails due to module discovery issues
-   - Workaround: Run specific test files or use `-m django test`
+   - Workaround: Run specific test files with `python manage.py test apps.accounting.tests.test_models` or use `-m django test`
 
-3. **Company scoping inconsistency**: Some views use `get_user_company()` helper, others directly query
-   - Helper defined in: `apps/accounting/reporting/views.py`, `apps/accounting/assets/views.py`
+3. **Duplicate `get_user_company()` helper**: The helper is currently duplicated in:
+   - `apps/accounting/reporting/views.py`
+   - `apps/accounting/assets/views.py`
+   - **Refactor suggestion**: Centralize in `core/utils.py`
 
 4. **Duplicate RelatedPartyTransaction**: Two models exist:
    - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (standalone)
@@ -181,6 +190,10 @@ olive_erp/
 - `REDIS_URL` - Redis connection for Celery
 - `EMAIL_*` - Email configuration
 - `WAGTAIL_*` - Wagtail settings
+
+### Celery Beat Schedule
+- Celery Beat schedules are defined in `wagtailerp/settings/base.py` under `CELERY_BEAT_SCHEDULE`
+- Example: daily invoice generation, nightly stock valuations
 
 ### Third-Party Services
 - **Wagtail CMS** - Content management and admin panels
