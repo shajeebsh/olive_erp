@@ -69,6 +69,7 @@ def navigation_menu(request):
         country = company.country_code
         modules.append({
             'name': 'Tax & Compliance',
+            'url': 'tax_engine:dashboard',
             'icon': 'bi-shield-check',
             'submenu': get_tax_engine_submenu(country)
         })

@@ -1,6 +1,14 @@
-/* Color Palette */
+/* ==========================================================
+   olive-theme.css
+   Page content styling for OliveERP.
+   NOTE: The two-row enterprise header CSS is inlined in
+         base.html to guarantee load-order reliability.
+   ========================================================== */
+
 :root {
-    --primary-olive: #6B8E4D;
+    --primary-olive: #4a6b3a;
+    --primary-olive-dark: #2d4a1f;
+    --primary-olive-light: #6B8E4D;
     --secondary-sage: #A9B89C;
     --accent-gold: #D4AF37;
     --success-green: #28A745;
@@ -9,119 +17,218 @@
     --info-blue: #17A2B8;
     --light-gray: #f8f9fa;
     --dark-gray: #343a40;
+    --border-color: #dee2e6;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    background-color: var(--light-gray);
-}
-
-.sidebar-container {
-    width: 280px;
-    min-height: 100vh;
-    background-color: var(--primary-olive);
-    color: white;
-    transition: all 0.3s;
-}
-
-.sidebar-header {
-    padding: 1.5rem;
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.sidebar-brand {
-    color: white;
-    text-decoration: none;
-}
-
-.sidebar-nav .nav-item .nav-link {
-    color: white;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-}
-
-.sidebar-nav .nav-item .nav-link:hover,
-.sidebar-nav .nav-item .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-nav .nav-item .nav-link i.bi-chevron-down {
-    transition: transform 0.3s;
-}
-
-.sidebar-nav .nav-item .nav-link.active i.bi-chevron-down {
-    transform: rotate(180deg);
-}
-
-.submenu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.submenu .nav-link {
-    padding: 0.75rem 1.5rem 0.75rem 3.5rem !important;
-    font-size: 0.875rem;
-    opacity: 0.8;
-}
-
-.submenu .nav-link:hover {
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.submenu-header {
-    padding: 0.75rem 1.5rem 0.25rem 3.5rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 600;
-}
-
-.content-area {
-    width: calc(100% - 280px);
-    transition: all 0.3s;
-}
-
-.topbar {
-    background-color: white !important;
-    border-bottom: 1px solid #dee2e6;
-}
-
+/* ============================================
+   CARDS & PANELS
+   ============================================ */
 .card {
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
 }
 
+.card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
 .btn-primary {
-    background: linear-gradient(to right, #6B8E4D, #5A7A3D);
+    background: linear-gradient(135deg, var(--primary-olive) 0%, var(--primary-olive-dark) 100%);
     border: none;
     border-radius: 8px;
-    padding: 10px 20px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-olive-light) 0%, var(--primary-olive) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107,142,77,0.3);
+}
+
+.btn-outline-primary {
+    color: var(--primary-olive);
+    border-color: var(--primary-olive);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-olive);
+    border-color: var(--primary-olive);
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
 .table {
-    border-radius: 8px;
-    overflow: hidden;
+    font-size: 0.875rem;
 }
 
-.table thead {
-    background-color: #F0F4EB;
+.table thead th {
+    font-weight: 600;
+    color: var(--dark-gray);
+    background-color: #f0f4eb;
+    border-bottom: 2px solid var(--primary-olive);
+    white-space: nowrap;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar-container {
-        margin-left: -280px;
-    }
-    .content-area {
-        width: 100%;
-    }
+.table tbody tr {
+    transition: background 0.1s;
+}
+
+.table tbody tr:hover {
+    background: #fafcf8;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge-olive {
+    background: var(--primary-olive);
+    color: #fff;
+}
+
+/* ============================================
+   FORM CONTROLS
+   ============================================ */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-olive);
+    box-shadow: 0 0 0 0.2rem rgba(74,107,58,0.2);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+/* ============================================
+   PAGE HEADERS
+   ============================================ */
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-olive-dark);
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* ============================================
+   KPI / STAT CARDS
+   ============================================ */
+.kpi-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.kpi-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}
+
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark-gray);
+    line-height: 1.2;
+}
+
+.kpi-change-up   { color: var(--success-green); font-size: 0.82rem; }
+.kpi-change-down { color: var(--danger-red);    font-size: 0.82rem; }
+
+/* ============================================
+   SIDEBAR / LEGACY (for any older templates)
+   ============================================ */
+.sidebar-container {
+    display: none; /* Sidebar replaced by top-nav */
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+.alert {
+    border-radius: 10px;
+    border: none;
+    font-size: 0.875rem;
+}
+
+.alert-info    { background: #e8f4f8; color: #0c5460; }
+.alert-success { background: #d4edda; color: #155724; }
+.alert-warning { background: #fff3cd; color: #856404; }
+.alert-danger  { background: #f8d7da; color: #721c24; }
+
+/* ============================================
+   MODAL refinements
+   ============================================ */
+.modal-content {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 0.875rem 1.5rem;
+}
+
+/* ============================================
+   UTILITY
+   ============================================ */
+.text-olive { color: var(--primary-olive) !important; }
+.bg-olive   { background-color: var(--primary-olive) !important; }
+.bg-olive-light { background-color: #f0f6f0 !important; }
+
+.border-olive   { border-color: var(--primary-olive) !important; }
+
+.fs-xs  { font-size: 0.75rem; }
+.fs-sm  { font-size: 0.875rem; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+
+/* ============================================
+   COMPLIANCE / CALENDAR
+   ============================================ */
+.country-kpi {
+    margin-bottom: 1rem;
+}
+
+.fc-header-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
 }

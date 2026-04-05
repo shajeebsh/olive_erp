@@ -15,7 +15,10 @@ from crm.models import Customer, SalesOrder, SalesOrderLine
 from hr.models import Department, Employee, LeaveRequest, Attendance
 from projects.models import Project, Task
 from purchasing.models import Supplier, PurchaseOrder, PurchaseOrderLine, GoodsReceivedNote
-from compliance.models import TaxPeriod, Filing, FinancialStatement, BeneficialOwner
+from tax_engine.models import TaxPeriod, TaxFiling, BeneficialOwner
+from apps.accounting.assets.models import FixedAsset
+from apps.accounting.reconciliation.models import BankReconciliation
+from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend
 
 User = get_user_model()
 
@@ -66,8 +69,7 @@ class Command(BaseCommand):
     def clear_database(self):
         # Ordered by foreign key dependencies
         BeneficialOwner.objects.all().delete()
-        FinancialStatement.objects.all().delete()
-        Filing.objects.all().delete()
+        TaxFiling.objects.all().delete()
         TaxPeriod.objects.all().delete()
         
         GoodsReceivedNote.objects.all().delete()
@@ -94,6 +96,22 @@ class Command(BaseCommand):
         Category.objects.all().delete()
         Warehouse.objects.all().delete()
 
+        # Delete accounting records first to avoid FK issues
+        try:
+            from apps.accounting.assets.models import FixedAsset
+            from apps.accounting.reconciliation.models import BankReconciliation
+            from apps.accounting.compliance.models import (
+                ComplianceDeadline, CT1Computation, Dividend, RelatedPartyTransaction
+            )
+            FixedAsset.objects.all().delete()
+            BankReconciliation.objects.all().delete()
+            ComplianceDeadline.objects.all().delete()
+            CT1Computation.objects.all().delete()
+            Dividend.objects.all().delete()
+            RelatedPartyTransaction.objects.all().delete()
+        except Exception:
+            pass
+        
         JournalEntryLine.objects.all().delete()
         JournalEntry.objects.all().delete()
         Account.objects.all().delete()
@@ -115,6 +133,7 @@ class Command(BaseCommand):
 
     def generate_company(self):
         self.stdout.write("Generating Company...")
+        from datetime import date
         currency, _ = Currency.objects.get_or_create(
             code="EUR", defaults={'name': 'Euro', 'symbol': '€', 'exchange_rate_to_base': 1.0}
         )
@@ -126,7 +145,7 @@ class Command(BaseCommand):
                 'email': "info@olivetech.ie",
                 'website': "www.olivetech.ie",
                 'tax_id': "IE1234567A",
-                'fiscal_year_start_date': "2026-01-01",
+                'fiscal_year_start_date': date(2026, 1, 1),
                 'default_currency': currency
             }
         )
@@ -136,42 +155,60 @@ class Command(BaseCommand):
         self.stdout.write("Generating Chart of Accounts...")
         accounts = {}
         top_level = [
-            ('1000', 'Assets', 'ASSET'),
-            ('2000', 'Liabilities', 'LIABILITY'),
-            ('3000', 'Equity', 'EQUITY'),
-            ('4000', 'Income', 'INCOME'),
-            ('5000', 'Expenses', 'EXPENSE')
+            ('1000', 'Assets', 'Asset'),
+            ('2000', 'Liabilities', 'Liability'),
+            ('3000', 'Equity', 'Equity'),
+            ('4000', 'Income', 'Income'),
+            ('5000', 'Expenses', 'Expense')
         ]
         
         for code, name, acc_type in top_level:
-            acc, _ = Account.objects.get_or_create(code=code, defaults={'name': name, 'type': acc_type, 'company': self.company})
+            acc, _ = Account.objects.get_or_create(code=code, defaults={'name': name, 'account_type': acc_type, 'company': self.company})
             accounts[code] = acc
             
         # Assets
-        accounts['1100'], _ = Account.objects.get_or_create(code='1100', defaults={'name': 'Current Assets', 'type': 'ASSET', 'parent': accounts['1000'], 'company': self.company})
-        accounts['1110'], _ = Account.objects.get_or_create(code='1110', defaults={'name': 'Bank Accounts', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1120'], _ = Account.objects.get_or_create(code='1120', defaults={'name': 'Accounts Receivable', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1130'], _ = Account.objects.get_or_create(code='1130', defaults={'name': 'Inventory', 'type': 'ASSET', 'parent': accounts['1100'], 'company': self.company})
-        accounts['1200'], _ = Account.objects.get_or_create(code='1200', defaults={'name': 'Fixed Assets', 'type': 'ASSET', 'parent': accounts['1000'], 'company': self.company})
+        accounts['1100'], _ = Account.objects.get_or_create(code='1100', defaults={'name': 'Current Assets', 'account_type': 'Asset', 'parent': accounts['1000'], 'company': self.company})
+        accounts['1110'], _ = Account.objects.get_or_create(code='1110', defaults={'name': 'Bank Accounts', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1120'], _ = Account.objects.get_or_create(code='1120', defaults={'name': 'Accounts Receivable', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1130'], _ = Account.objects.get_or_create(code='1130', defaults={'name': 'Inventory', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        accounts['1200'], _ = Account.objects.get_or_create(code='1200', defaults={'name': 'Fixed Assets', 'account_type': 'Asset', 'parent': accounts['1000'], 'company': self.company})
         
         # Liabilities
-        accounts['2100'], _ = Account.objects.get_or_create(code='2100', defaults={'name': 'Current Liabilities', 'type': 'LIABILITY', 'parent': accounts['2000'], 'company': self.company})
-        accounts['2110'], _ = Account.objects.get_or_create(code='2110', defaults={'name': 'Accounts Payable', 'type': 'LIABILITY', 'parent': accounts['2100'], 'company': self.company})
-        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'Taxes Payable', 'type': 'LIABILITY', 'parent': accounts['2100'], 'company': self.company})
+        accounts['2100'], _ = Account.objects.get_or_create(code='2100', defaults={'name': 'Current Liabilities', 'account_type': 'Liability', 'parent': accounts['2000'], 'company': self.company})
+        accounts['2110'], _ = Account.objects.get_or_create(code='2110', defaults={'name': 'Accounts Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
+        accounts['2120'], _ = Account.objects.get_or_create(code='2120', defaults={'name': 'VAT Payable', 'account_type': 'Liability', 'parent': accounts['2100'], 'company': self.company})
         
         # Equity
-        accounts['3100'], _ = Account.objects.get_or_create(code='3100', defaults={'name': 'Capital', 'type': 'EQUITY', 'parent': accounts['3000'], 'company': self.company})
-        accounts['3200'], _ = Account.objects.get_or_create(code='3200', defaults={'name': 'Retained Earnings', 'type': 'EQUITY', 'parent': accounts['3000'], 'company': self.company})
+        accounts['3100'], _ = Account.objects.get_or_create(code='3100', defaults={'name': 'Capital', 'account_type': 'Equity', 'parent': accounts['3000'], 'company': self.company})
+        accounts['3200'], _ = Account.objects.get_or_create(code='3200', defaults={'name': 'Retained Earnings', 'account_type': 'Equity', 'parent': accounts['3000'], 'company': self.company})
         
         # Income
-        accounts['4100'], _ = Account.objects.get_or_create(code='4100', defaults={'name': 'Sales Revenue', 'type': 'INCOME', 'parent': accounts['4000'], 'company': self.company})
-        accounts['4200'], _ = Account.objects.get_or_create(code='4200', defaults={'name': 'Other Income', 'type': 'INCOME', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4100'], _ = Account.objects.get_or_create(code='4100', defaults={'name': 'Sales Revenue', 'account_type': 'Income', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4110'], _ = Account.objects.get_or_create(code='4110', defaults={'name': 'Consulting Services', 'account_type': 'Income', 'parent': accounts['4100'], 'company': self.company})
+        accounts['4200'], _ = Account.objects.get_or_create(code='4200', defaults={'name': 'Other Income', 'account_type': 'Income', 'parent': accounts['4000'], 'company': self.company})
+        accounts['4210'], _ = Account.objects.get_or_create(code='4210', defaults={'name': 'Interest Income', 'account_type': 'Income', 'parent': accounts['4200'], 'company': self.company})
         
         # Expenses
-        accounts['5100'], _ = Account.objects.get_or_create(code='5100', defaults={'name': 'Cost of Goods Sold', 'type': 'EXPENSE', 'parent': accounts['5000'], 'company': self.company})
-        accounts['5200'], _ = Account.objects.get_or_create(code='5200', defaults={'name': 'Operating Expenses', 'type': 'EXPENSE', 'parent': accounts['5000'], 'company': self.company})
-        accounts['5210'], _ = Account.objects.get_or_create(code='5210', defaults={'name': 'Payroll Expenses', 'type': 'EXPENSE', 'parent': accounts['5200'], 'company': self.company})
-        accounts['5220'], _ = Account.objects.get_or_create(code='5220', defaults={'name': 'Rent', 'type': 'EXPENSE', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5100'], _ = Account.objects.get_or_create(code='5100', defaults={'name': 'Cost of Goods Sold', 'account_type': 'Expense', 'parent': accounts['5000'], 'company': self.company})
+        accounts['5200'], _ = Account.objects.get_or_create(code='5200', defaults={'name': 'Operating Expenses', 'account_type': 'Expense', 'parent': accounts['5000'], 'company': self.company})
+        accounts['5210'], _ = Account.objects.get_or_create(code='5210', defaults={'name': 'Payroll Expenses', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5220'], _ = Account.objects.get_or_create(code='5220', defaults={'name': 'Rent', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5230'], _ = Account.objects.get_or_create(code='5230', defaults={'name': 'Utilities', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5240'], _ = Account.objects.get_or_create(code='5240', defaults={'name': 'IT & Software', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5250'], _ = Account.objects.get_or_create(code='5250', defaults={'name': 'Professional Fees', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5260'], _ = Account.objects.get_or_create(code='5260', defaults={'name': 'Travel & Subsistence', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5270'], _ = Account.objects.get_or_create(code='5270', defaults={'name': 'Marketing', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5280'], _ = Account.objects.get_or_create(code='5280', defaults={'name': 'Insurance', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        accounts['5290'], _ = Account.objects.get_or_create(code='5290', defaults={'name': 'Depreciation', 'account_type': 'Expense', 'parent': accounts['5200'], 'company': self.company})
+        
+        # VAT Accounts
+        accounts['2130'], _ = Account.objects.get_or_create(code='2130', defaults={'name': 'VAT Receivable', 'account_type': 'Asset', 'parent': accounts['1100'], 'company': self.company})
+        
+        # Add more detailed Fixed Assets accounts
+        accounts['1210'], _ = Account.objects.get_or_create(code='1210', defaults={'name': 'Computer Equipment', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1220'], _ = Account.objects.get_or_create(code='1220', defaults={'name': 'Office Furniture', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1230'], _ = Account.objects.get_or_create(code='1230', defaults={'name': 'Vehicles', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
+        accounts['1290'], _ = Account.objects.get_or_create(code='1290', defaults={'name': 'Accumulated Depreciation', 'account_type': 'Asset', 'parent': accounts['1200'], 'company': self.company})
 
         return accounts
 
@@ -481,27 +518,332 @@ class Command(BaseCommand):
         # Create a tax period
         tp, _ = TaxPeriod.objects.get_or_create(
             company=self.company,
+            country='IE',
             start_date=end_date.replace(month=1, day=1) - timedelta(days=365),
             end_date=end_date.replace(month=12, day=31) - timedelta(days=365),
-            defaults={'period_type': 'ANNUAL', 'is_closed': True}
+            defaults={
+                'period_type': 'annual',
+                'status': 'filed'
+            }
         )
         
-        # Draft CT1
-        Filing.objects.get_or_create(
+        # Draft CT1 Tax Filing
+        TaxFiling.objects.get_or_create(
             company=self.company,
-            tax_period=tp,
-            filing_type='CT',
+            filing_type='CT1',
+            period=f'{end_date.year - 1}',
             defaults={
-                'status': 'DRAFT',
+                'status': 'draft',
                 'due_date': end_date + timedelta(days=90),
-                'amount_due': Decimal('15000.00')
             }
         )
 
-        # RBO Beneficial Owners
+        # RBO Beneficial Owners - just use first_name/last_name for lookup
+        from datetime import date
         BeneficialOwner.objects.get_or_create(
             company=self.company,
-            owner_type='INDIVIDUAL',
-            name=self.fake.name(),
-            defaults={'address': self.fake.address(), 'nationality': 'Irish'}
+            first_name=self.fake.first_name(),
+            last_name=self.fake.last_name(),
+            defaults={
+                'date_of_birth': date(1980, 1, 1),
+                'became_owner_date': date(2020, 1, 1),
+                'address_line1': self.fake.street_address(),
+                'city': self.fake.city(),
+                'county': 'Dublin',
+                'nationality': 'Irish',
+                'country_code': 'IE'
+            }
         )
+        
+        # Generate Fixed Assets
+        self.generate_fixed_assets()
+        
+        # Generate Bank Reconciliation
+        self.generate_bank_reconciliation()
+        
+        # Generate Dividends
+        self.generate_dividends()
+        
+        # Generate Related Party Transactions
+        self.generate_related_party_transactions()
+        
+        # Generate posted journal entries for meaningful P&L
+        self.generate_posted_journals()
+        
+        self.stdout.write(self.style.SUCCESS("Accounting data generation complete!"))
+
+    def generate_fixed_assets(self):
+        self.stdout.write("Generating Fixed Assets...")
+        from datetime import date
+        from dateutil.relativedelta import relativedelta
+        
+        # Get asset accounts
+        try:
+            fa_account = Account.objects.get(code='1210', company=self.company)
+            dep_account = Account.objects.get(code='1290', company=self.company)
+            exp_account = Account.objects.get(code='5290', company=self.company)
+        except Account.DoesNotExist:
+            return
+        
+        # Create sample fixed assets
+        assets_data = [
+            ('LAPTOP-001', 'Dell Laptop XPS 15', date(2024, 1, 15), Decimal('1500.00'), Decimal('10.00'), Decimal('15.00')),
+            ('DESK-001', 'Standing Desk - Electric', date(2024, 3, 20), Decimal('800.00'), Decimal('50.00'), Decimal('10.00')),
+            ('CHAIR-001', 'Ergonomic Office Chair', date(2024, 3, 20), Decimal('450.00'), Decimal('25.00'), Decimal('10.00')),
+            ('SERVER-001', 'Dell PowerEdge Server', date(2023, 6, 1), Decimal('5000.00'), Decimal('500.00'), Decimal('20.00')),
+            ('PRINTER-001', 'HP LaserJet Pro', date(2024, 2, 10), Decimal('600.00'), Decimal('50.00'), Decimal('15.00')),
+            ('VEHICLE-001', 'Company Van - Ford Transit', date(2023, 1, 1), Decimal('25000.00'), Decimal('5000.00'), Decimal('20.00')),
+        ]
+        
+        for asset_code, name, purchase_date, purchase_value, salvage_value, dep_rate in assets_data:
+            FixedAsset.objects.get_or_create(
+                asset_code=asset_code,
+                defaults={
+                    'name': name,
+                    'company': self.company,
+                    'asset_account': fa_account,
+                    'accumulated_depreciation_account': dep_account,
+                    'depreciation_expense_account': exp_account,
+                    'purchase_date': purchase_date,
+                    'purchase_value': purchase_value,
+                    'salvage_value': salvage_value,
+                    'depreciation_method': 'SL',
+                    'depreciation_rate': dep_rate,
+                }
+            )
+
+    def generate_bank_reconciliation(self):
+        self.stdout.write("Generating Bank Reconciliation...")
+        from datetime import date
+        from dateutil.relativedelta import relativedelta
+        import calendar
+        
+        # Get bank account
+        try:
+            bank_account = Account.objects.get(code='1110', company=self.company)
+        except Account.DoesNotExist:
+            return
+        
+        # Generate 12 months of reconciliation
+        opening_balance = Decimal('10000.00')
+        for i in range(12):
+            month_date = date.today() - relativedelta(months=11-i)
+            last_day = calendar.monthrange(month_date.year, month_date.month)[1]
+            period_date = date(month_date.year, month_date.month, last_day)
+            
+            # Random balance fluctuation
+            closing_balance = opening_balance + Decimal(random.uniform(-2000, 5000))
+            
+            BankReconciliation.objects.get_or_create(
+                company=self.company,
+                account=bank_account,
+                period_date=period_date,
+                defaults={
+                    'opening_balance': opening_balance,
+                    'actual_closing_balance': closing_balance,
+                    'book_balance': closing_balance + Decimal(random.uniform(-100, 100)),
+                    'status': 'RC' if i < 10 else ('IP' if i == 10 else 'NS'),
+                }
+            )
+            
+            opening_balance = closing_balance
+
+    def generate_dividends(self):
+        self.stdout.write("Generating Dividends...")
+        from datetime import date
+        
+        # Create sample dividends
+        dividend_data = [
+            ('John Doe', date(2024, 6, 30), date(2024, 7, 15), Decimal('0.25'), 10000),
+            ('Jane Smith', date(2024, 6, 30), date(2024, 7, 15), Decimal('0.25'), 5000),
+            ('Acme Holdings Ltd', date(2024, 12, 15), date(2024, 12, 31), Decimal('0.50'), 20000),
+        ]
+        
+        for shareholder, dec_date, pay_date, per_share, shares in dividend_data:
+            net_amount = per_share * Decimal(shares) * Decimal('0.80')  # 80% after tax
+            Dividend.objects.get_or_create(
+                company=self.company,
+                shareholder_name=shareholder,
+                declaration_date=dec_date,
+                payment_date=pay_date,
+                defaults={
+                    'dividend_per_share': per_share,
+                    'number_of_shares': shares,
+                    'net_amount': net_amount,
+                    'tax_credit': per_share * Decimal(shares) * Decimal('0.20'),
+                    'voucher_number': f'DIV-{shareholder[:3].upper()}-{date.today().year}',
+                    'is_paid': True,
+                }
+            )
+
+    def generate_related_party_transactions(self):
+        self.stdout.write("Generating Related Party Transactions...")
+        from datetime import date
+        from apps.accounting.compliance.models import RelatedPartyTransaction
+        
+        rpt_data = [
+            ('Director Loan - John Doe', 'director_related', date(2024, 1, 15), 'Loan from director', Decimal('25000.00'), True),
+            ('Subsidiary - Acme Ltd', 'subsidiary', date(2024, 3, 1), 'Management fees', Decimal('12000.00'), True),
+            ('Associate - Tech Partners', 'associate', date(2024, 6, 15), 'Consulting services', Decimal('8000.00'), True),
+        ]
+        
+        for party, rel_type, txn_date, nature, amount, is_arm in rpt_data:
+            RelatedPartyTransaction.objects.get_or_create(
+                company=self.company,
+                party_name=party,
+                transaction_date=txn_date,
+                defaults={
+                    'relationship': rel_type,
+                    'transaction_nature': nature,
+                    'amount': amount,
+                    'is_arm_length': is_arm,
+                }
+            )
+
+    def generate_posted_journals(self):
+        self.stdout.write("Generating Posted Journal Entries for P&L...")
+        from datetime import date, timedelta
+        from django.utils import timezone
+        
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=180)  # 6 months of data
+        
+        # Get required accounts
+        accounts = {}
+        required_codes = {
+            '1110': 'Bank Accounts',
+            '1120': 'Accounts Receivable',
+            '2110': 'Accounts Payable',
+            '2120': 'VAT Payable',
+            '4100': 'Sales Revenue',
+            '4110': 'Consulting Services',
+            '4200': 'Other Income',
+            '5100': 'Cost of Goods Sold',
+            '5210': 'Payroll Expenses',
+            '5220': 'Rent',
+            '5230': 'Utilities',
+            '5250': 'Professional Fees',
+            '5260': 'Travel & Subsistence',
+            '5270': 'Marketing',
+            '5290': 'Depreciation',
+        }
+        
+        for code, name in required_codes.items():
+            try:
+                accounts[code] = Account.objects.get(code=code, company=self.company)
+            except Account.DoesNotExist:
+                continue
+        
+        if not accounts:
+            self.stdout.write(self.style.WARNING("No accounts found, skipping posted journals"))
+            return
+        
+        journal_entries = [
+            # Sales invoices
+            (date(2025, 1, 15), 'Sales - Invoice INV-001', [
+                (accounts.get('1120'), Decimal('12300.00'), Decimal('0')),
+                (accounts.get('4100'), Decimal('0'), Decimal('10000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('2300.00')),
+            ]),
+            (date(2025, 1, 20), 'Sales - Invoice INV-002', [
+                (accounts.get('1120'), Decimal('6150.00'), Decimal('0')),
+                (accounts.get('4100'), Decimal('0'), Decimal('5000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('1150.00')),
+            ]),
+            (date(2025, 2, 10), 'Sales - Invoice INV-003', [
+                (accounts.get('1120'), Decimal('24600.00'), Decimal('0')),
+                (accounts.get('4110'), Decimal('0'), Decimal('20000.00')),
+                (accounts.get('2120'), Decimal('0'), Decimal('4600.00')),
+            ]),
+            # Expenses
+            (date(2025, 1, 31), 'Rent Payment - January', [
+                (accounts.get('5220'), Decimal('2500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2500.00')),
+            ]),
+            (date(2025, 2, 28), 'Rent Payment - February', [
+                (accounts.get('5220'), Decimal('2500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2500.00')),
+            ]),
+            (date(2025, 1, 31), 'Utilities - January', [
+                (accounts.get('5230'), Decimal('450.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('450.00')),
+            ]),
+            (date(2025, 2, 28), 'Utilities - February', [
+                (accounts.get('5230'), Decimal('380.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('380.00')),
+            ]),
+            # Payroll
+            (date(2025, 1, 31), 'Payroll - January', [
+                (accounts.get('5210'), Decimal('15000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('15000.00')),
+            ]),
+            (date(2025, 2, 28), 'Payroll - February', [
+                (accounts.get('5210'), Decimal('15000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('15000.00')),
+            ]),
+            # Professional Fees
+            (date(2025, 1, 15), 'Legal Fees', [
+                (accounts.get('5250'), Decimal('2000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('2000.00')),
+            ]),
+            (date(2025, 2, 20), 'Accountancy Fees', [
+                (accounts.get('5250'), Decimal('1500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('1500.00')),
+            ]),
+            # Travel & Marketing
+            (date(2025, 2, 5), 'Travel Expenses', [
+                (accounts.get('5260'), Decimal('800.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('800.00')),
+            ]),
+            (date(2025, 1, 20), 'Marketing Campaign', [
+                (accounts.get('5270'), Decimal('3000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('3000.00')),
+            ]),
+            # COGS
+            (date(2025, 1, 25), 'Cost of Goods Sold', [
+                (accounts.get('5100'), Decimal('4000.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('4000.00')),
+            ]),
+            (date(2025, 2, 25), 'Cost of Goods Sold', [
+                (accounts.get('5100'), Decimal('3500.00'), Decimal('0')),
+                (accounts.get('1110'), Decimal('0'), Decimal('3500.00')),
+            ]),
+            # Other Income
+            (date(2025, 2, 1), 'Interest Income', [
+                (accounts.get('1110'), Decimal('50.00'), Decimal('0')),
+                (accounts.get('4200'), Decimal('0'), Decimal('50.00')),
+            ]),
+            # Depreciation
+            (date(2025, 1, 31), 'Depreciation Entry', [
+                (accounts.get('5290'), Decimal('500.00'), Decimal('0')),
+                (accounts.get('1290'), Decimal('0'), Decimal('500.00')),
+            ]),
+            (date(2025, 2, 28), 'Depreciation Entry', [
+                (accounts.get('5290'), Decimal('500.00'), Decimal('0')),
+                (accounts.get('1290'), Decimal('0'), Decimal('500.00')),
+            ]),
+        ]
+        
+        # Create journal entries
+        for i, (je_date, description, lines) in enumerate(journal_entries):
+            je, created = JournalEntry.objects.get_or_create(
+                entry_number=f'JE-{je_date.strftime("%Y%m%d")}-{i+1}',
+                defaults={
+                    'date': je_date,
+                    'description': description,
+                    'created_by': self.admin_user,
+                    'is_posted': True
+                }
+            )
+            
+            if created:
+                for account, debit, credit in lines:
+                    if account:
+                        JournalEntryLine.objects.create(
+                            journal_entry=je,
+                            account=account,
+                            debit=debit,
+                            credit=credit
+                        )
+        
+        self.stdout.write(self.style.SUCCESS(f"Created {len(journal_entries)} posted journal entries"))

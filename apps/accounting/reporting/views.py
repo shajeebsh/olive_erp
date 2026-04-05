@@ -98,8 +98,8 @@ class BalanceSheetView(LoginRequiredMixin, TemplateView):
         # Fixed Assets NBV
         try:
             from apps.accounting.assets.models import FixedAsset
-            fixed_assets_nbv = sum(a.book_value for a in FixedAsset.objects.filter(company=company))
-        except:
+            fixed_assets_nbv = sum(a.net_book_value for a in FixedAsset.objects.filter(company=company))
+        except Exception:
             fixed_assets_nbv = sumifs('Asset', 'Fixed Assets')
 
         total_assets = cash_bank + accounts_receivable + fixed_assets_nbv
@@ -245,15 +245,41 @@ class DividendListView(LoginRequiredMixin, ListView):
     context_object_name = 'dividends'
 
     def get_queryset(self):
-        return []  # Dividend model not yet implemented
+        from apps.accounting.compliance.models import Dividend
+        return Dividend.objects.filter(company=get_user_company(self.request))
 
 class RelatedPartyTransactionView(LoginRequiredMixin, ListView):
     template_name = 'accounting/reporting/related_party_list.html'
     context_object_name = 'transactions'
 
     def get_queryset(self):
-        from apps.accounting.related_party.models import RelatedPartyTransaction
-        return RelatedPartyTransaction.objects.filter(journal_entry_line__account__company=get_user_company(self.request))
+        from apps.accounting.compliance.models import RelatedPartyTransaction as ComplianceRPT
+        from apps.accounting.related_party.models import RelatedPartyTransaction as JournalRPT
+        company = get_user_company(self.request)
+        
+        # Get standalone RPTs from compliance
+        compliance_rpts = ComplianceRPT.objects.filter(company=company).values(
+            'company', 'party_name', 'relationship', 'transaction_date', 'amount', 'is_arm_length'
+        )
+        
+        # Get journal-linked RPTs
+        journal_rpts = JournalRPT.objects.filter(
+            journal_entry_line__account__company=company
+        ).values(
+            'company', 'party_name', 'relationship_type', 'journal_entry_line__journal_entry__date', 'amount'
+        )
+        
+        # Combine and return as a list
+        return list(compliance_rpts) + [
+            {
+        'company': rpt['journal_entry_line__account__company'],
+        'party_name': rpt['journal_entry_line__account__name'],
+        'relationship': rpt['relationship_type'],
+        'transaction_date': rpt['journal_entry_line__journal_entry__date'],
+        'amount': rpt['amount'],
+        'is_arm_length': True
+    } for rpt in journal_rpts
+        ]
 
 
 class BankReconciliationUpdateView(LoginRequiredMixin, TemplateView):
