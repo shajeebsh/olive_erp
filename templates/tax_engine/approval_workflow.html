@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h4 class="mb-4">✅ Compliance Approval Workflow</h4>
+            <h4 class="mb-4">✅ Tax & Compliance Approval Workflow</h4>
             
             <!-- Overall Progress -->
             <div class="card shadow mb-4">
@@ -219,19 +219,14 @@ let currentReturnId = null;
 
 function reviewReturn(id) {
     currentReturnId = id;
-    document.getElementById('returnPreview').src = `/api/compliance/preview/${id}/`;
-    $('#reviewModal').modal('show');
-}
-
-function submitApproval(action) {
-    const comments = document.getElementById('reviewerComments').value;
+    document.getElementById('returnPreview').src = `/tax/api/preview/${id}/`;
     
     if (action === 'reject' && !comments) {
         alert('Comments are required when rejecting a return.');
         return;
     }
     
-    fetch(`/api/compliance/workflow/${currentReturnId}/`, {
+    fetch(`/tax/api/workflow/${currentReturnId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

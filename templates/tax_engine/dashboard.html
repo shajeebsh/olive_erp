@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Compliance Dashboard{% endblock %}
+{% block title %}Tax & Compliance Dashboard{% endblock %}
 {% block content %}
 <div class="container-fluid py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Compliance Dashboard
+    <h2 class="mb-0">Tax & Compliance Dashboard
       <span class="badge bg-success fs-6 align-middle ms-2">{{ country_code }}</span>
     </h2>
-    <a href="{% url 'compliance:filing_history' %}" class="btn btn-outline-secondary btn-sm">
+    <a href="{% url 'tax_engine:filing_history' %}" class="btn btn-outline-secondary btn-sm">
       View Filing History
     </a>
   </div>
@@ -66,7 +66,7 @@
             <td>{{ filing.due_date|date:"d M Y" }}</td>
             <td><span class="badge bg-warning text-dark">{{ filing.get_status_display }}</span></td>
             <td>
-              <a href="{% url 'compliance:filing_detail' filing.pk %}"
+              <a href="{% url 'tax_engine:filing_detail' filing.pk %}"
                  class="btn btn-sm btn-outline-primary">Prepare</a>
             </td>
           </tr>
@@ -82,7 +82,7 @@
 
   <!-- Calendar -->
   <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white fw-semibold">Compliance Calendar</div>
+    <div class="card-header bg-white fw-semibold">Tax Calendar</div>
     <div class="card-body"><div id="compliance-calendar"></div></div>
   </div>
 </div>
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var cal = new FullCalendar.Calendar(document.getElementById('compliance-calendar'), {
         initialView: 'dayGridMonth',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
-        events: '{% url "compliance:calendar_events" %}',
+        events: '{% url "tax_engine:calendar_events" %}',
         eventClick: function(info) {
           window.location.href = info.event.url;
         }

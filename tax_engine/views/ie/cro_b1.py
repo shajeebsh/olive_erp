@@ -1,6 +1,7 @@
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from tax_engine.mixins import CountryFilterMixin
+from company.models import CompanyProfile
 
 class CROB1View(LoginRequiredMixin, CountryFilterMixin, TemplateView):
     template_name = "tax_engine/ie/cro_b1.html"
