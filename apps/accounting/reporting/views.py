@@ -231,8 +231,8 @@ class StatutoryRegisterView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         company = get_user_company(self.request)
-        from compliance.countries.ie.models import Director, Secretary, Shareholder
-        from compliance.countries.ie.rbo import BeneficialOwner
+        from tax_engine.countries.ie.models import Director, Secretary, Shareholder
+        from tax_engine.countries.ie.rbo import BeneficialOwner
         
         ctx['directors'] = Director.objects.filter(company=company)
         ctx['secretaries'] = Secretary.objects.filter(company=company)

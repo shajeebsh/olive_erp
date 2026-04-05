@@ -3,7 +3,7 @@ from company.models import CompanyProfile
 from finance.models import Account, JournalEntryLine
 from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation
-from compliance.countries.ie.models import Director, Secretary, Shareholder
+from tax_engine.countries.ie.models import Director, Secretary, Shareholder
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
