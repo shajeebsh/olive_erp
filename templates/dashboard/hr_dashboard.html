@@ -3,63 +3,91 @@
 {% block title %}HR Dashboard | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">HR Dashboard</h1>
+<section class="dashboard-page dashboard-page--compact">
+    <div class="mb-3">
+        <h1 class="page-title">HR Dashboard</h1>
+        <p class="page-subtitle mb-0">Employee metrics and workforce analytics</p>
+    </div>
 
     <!-- Top Stats -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Employees</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">42</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-people-fill fs-2 text-gray-300"></i>
-                        </div>
-                    </div>
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-hr">
+                <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Total Employees</span>
+                    <span class="kpi-value">42</span>
+                    <span class="kpi-meta">Active</span>
                 </div>
             </div>
         </div>
-        <!-- More cards here -->
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-blue">
+                <div class="kpi-icon"><i class="bi bi-person-badge"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Departments</span>
+                    <span class="kpi-value">8</span>
+                    <span class="kpi-meta">Active</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-orange">
+                <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">On Leave</span>
+                    <span class="kpi-value">3</span>
+                    <span class="kpi-meta">This week</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-green">
+                <div class="kpi-icon"><i class="bi bi-person-plus"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">New Hires</span>
+                    <span class="kpi-value">5</span>
+                    <span class="kpi-meta">This quarter</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Charts -->
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Department Distribution</h6>
+    <div class="row g-2 mb-2">
+        <div class="col-lg-6">
+            <div class="card chart-card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Department Distribution</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="departmentDistributionChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="departmentDistributionChart" height="132"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Leave Balances by Dept</h6>
+        <div class="col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Leave Balances by Dept</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="leaveBalancesChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="leaveBalancesChart" height="132"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Tables -->
-    <div class="row">
+    <div class="row g-2">
         <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Pending Leave Requests</h6>
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Pending Leave Requests</span>
+                    <span class="badge bg-warning text-dark">2</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th>Employee</th>
@@ -71,11 +99,11 @@
                             <tbody>
                                 <tr>
                                     <td>John Doe</td>
-                                    <td>2026-03-20 to 2026-03-25</td>
+                                    <td>20-25 Mar</td>
                                     <td>Vacation</td>
                                     <td>
-                                        <button class="btn btn-success btn-sm">Approve</button>
-                                        <button class="btn btn-danger btn-sm">Reject</button>
+                                        <button class="btn btn-success btn-sm py-0 px-2">Approve</button>
+                                        <button class="btn btn-danger btn-sm py-0 px-2">Reject</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -85,7 +113,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
@@ -102,7 +130,14 @@
             }]
         },
         options: {
-            indexAxis: 'y'
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { grid: { display: false } }
+            }
         }
     });
 
@@ -115,6 +150,11 @@
                 data: [120, 90, 60, 40],
                 backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
         }
     });
 </script>

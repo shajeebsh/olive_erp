@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "New Dividend Declaration" %} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <div class="form-card shadow-sm">
+            <div class="form-header d-flex justify-content-between align-items-center">
+                <h2 class="page-title">
+                    <i class="bi bi-cash-coin me-2 text-primary"></i>
+                    {% trans "New Dividend Declaration" %}
+                </h2>
+                <a href="{% url 'accounting:dividend_list' %}" class="btn btn-xs btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+                </a>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-body">
+                    <!-- Shareholder Info Section -->
+                    <div class="form-section">
+                        <h6 class="form-section-title">{% trans "Shareholder Information" %}</h6>
+                        <div class="form-grid">
+                            <div class="form-full-width">
+                                <label class="form-label">{% trans "Shareholder Name" %}</label>
+                                {{ form.shareholder_name }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Number of Shares" %}</label>
+                                {{ form.number_of_shares }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Voucher Number" %}</label>
+                                {{ form.voucher_number }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dates & Payments Section -->
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Dates & Payment" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "Declaration Date" %}</label>
+                                {{ form.declaration_date }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Payment Date" %}</label>
+                                {{ form.payment_date }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financials Section -->
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Financial Details" %}</h6>
+                        <div class="form-grid form-grid--3">
+                            <div>
+                                <label class="form-label">{% trans "Dividend per Share" %}</label>
+                                {{ form.dividend_per_share }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Net Amount" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">€</span>
+                                    {{ form.net_amount }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Tax Credit" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">€</span>
+                                    {{ form.tax_credit }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Section -->
+                    <div class="form-section mt-4">
+                        <div class="form-check form-switch ms-3">
+                            {{ form.is_paid }}
+                            <label class="form-check-label fw-bold ms-2" for="{{ form.is_paid.id_for_label }}">
+                                {% trans "Dividend Issued & Paid" %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'accounting:dividend_list' %}" class="btn btn-sm btn-outline-secondary px-3">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-primary px-4">
+                        <i class="bi bi-check-lg me-2"></i>{% trans "Save Dividend" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

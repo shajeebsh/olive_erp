@@ -25,6 +25,7 @@ urlpatterns = [
     # Cost Centres
     path("cost-centres/", views.CostCentreListView.as_view(), name="costcentre_list"),
     path("cost-centres/create/", views.CostCentreCreateView.as_view(), name="costcentre_create"),
+    path("cost-centres/<int:pk>/update/", views.CostCentreUpdateView.as_view(), name="costcentre_update"),
     
     # Budgets
     path("budgets/", views.BudgetListView.as_view(), name="budget_list"),

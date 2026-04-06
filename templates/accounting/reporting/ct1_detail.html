@@ -6,120 +6,127 @@
 {% endblock %}
 
 {% block content %}
-<div class='mb-4'>
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'accounting:ct1_list' %}">{% trans "CT1 Computations" %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{% trans "New Computation" %}</li>
-    </ol>
-  </nav>
-  <h2 class='fw-bold'>🧮 {% trans "Corporation Tax (CT1) Bridge" %}</h2>
-</div>
+<div class="report-page">
+    <div class="report-container">
+        <div class="mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb fs-xs mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'accounting:ct1_list' %}">{% trans "CT1 Computations" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% trans "New Computation" %}</li>
+                </ol>
+            </nav>
+            <div class="report-header">
+                <h2 class="fw-bold">🧮 {% trans "Corporation Tax (CT1) Bridge" %}</h2>
+            </div>
+        </div>
 
-{# A) Accounting Profit Section #}
-<div class='card mb-4 shadow-sm border-0'>
-  <div class='card-header' style='background:var(--acc-dark-blue);color:#fff;font-weight:bold'>
-    A) {% trans "Accounting Profit from P&L" %}
-  </div>
-  <div class='card-body p-0'>
-    <table class='table table-bordered mb-0'>
-      <tr>
-        <td class='ps-3'>{% trans "Total Income (per P&L)" %}</td>
-        <td class='text-end acc-auto-field w-25'>€{{ accounting_profit.total_income|floatformat:2|intcomma|default:"0.00" }}</td>
-        <td class='text-muted small'>{% trans "Auto from Profit & Loss" %}</td>
-      </tr>
-      <tr class='table-light'>
-        <td class='ps-3'>{% trans "Total Expenses (per P&L)" %}</td>
-        <td class='text-end acc-auto-field'>€{{ accounting_profit.total_expenses|floatformat:2|intcomma|default:"0.00" }}</td>
-        <td class='text-muted small'>{% trans "Auto from Profit & Loss" %}</td>
-      </tr>
-      <tr style='background:var(--acc-light-blue);font-weight:bold'>
-        <td class='ps-3'>{% trans "Net Accounting Profit / (Loss)" %}</td>
-        <td class='text-end'>€{{ accounting_profit.net_profit|floatformat:2|intcomma|default:"0.00" }}</td>
-        <td class='text-muted small'>{% trans "Starting point for tax computation" %}</td>
-      </tr>
-    </table>
-  </div>
-</div>
+        {# A) Accounting Profit Section #}
+        <div class="report-card card mb-3 shadow-sm border-0">
+            <div class="card-header py-2 px-3 fw-bold" style="background:var(--acc-dark-blue); color:#fff; font-size:0.85rem">
+                A) {% trans "Accounting Profit from P&L" %}
+            </div>
+            <div class="card-body">
+                <table class="report-table table table-bordered">
+                    <tr>
+                        <td class="ps-3">{% trans "Total Income (per P&L)" %}</td>
+                        <td class="text-end acc-auto-field w-25 font-monospace">€{{ accounting_profit.total_income|floatformat:2|intcomma|default:"0.00" }}</td>
+                        <td class="text-muted fs-xs">{% trans "Auto from Profit & Loss" %}</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td class="ps-3">{% trans "Total Expenses (per P&L)" %}</td>
+                        <td class="text-end acc-auto-field font-monospace">€{{ accounting_profit.total_expenses|floatformat:2|intcomma|default:"0.00" }}</td>
+                        <td class="text-muted fs-xs">{% trans "Auto from Profit & Loss" %}</td>
+                    </tr>
+                    <tr class="acc-total-row">
+                        <td class="ps-3 fw-bold">{% trans "Net Accounting Profit / (Loss)" %}</td>
+                        <td class="text-end fw-bold font-monospace">€{{ accounting_profit.net_profit|floatformat:2|intcomma|default:"0.00" }}</td>
+                        <td class="text-muted fs-xs">{% trans "Starting point for tax computation" %}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-{# B) Add-backs Section #}
-<form method="post">
-  {% csrf_token %}
-  <div class='card mb-4 shadow-sm border-0'>
-    <div class='card-header' style='background:var(--acc-mid-blue);color:#fff;font-weight:bold'>
-      B) {% trans "Add-backs (Non-allowable Expenses)" %}
-    </div>
-    <div class='card-body p-0'>
-      <table class='table table-bordered mb-0'>
-        <tr>
-          <td class='ps-4'>{% trans "Depreciation charged in accounts" %}</td>
-          <td class='text-end acc-amber-input w-25'>
-            <input type='number' name='addback_depreciation' step='0.01' class='form-control form-control-sm text-end border-0' style='background:transparent'>
-          </td>
-          <td class='text-muted small'>{% trans "Not allowable — replace with capital allowances" %}</td>
-        </tr>
-        <tr>
-          <td class='ps-4'>{% trans "Entertainments & Gifts" %}</td>
-          <td class='text-end acc-amber-input'>
-            <input type='number' name='addback_entertainment' step='0.01' class='form-control form-control-sm text-end border-0' style='background:transparent'>
-          </td>
-          <td class='text-muted small'>{% trans "Generally non-deductible for tax" %}</td>
-        </tr>
-      </table>
-    </div>
-  </div>
+        {# B) Add-backs Section #}
+        <form method="post">
+            {% csrf_token %}
+            <div class="report-card card mb-3 shadow-sm border-0">
+                <div class="card-header py-2 px-3 fw-bold" style="background:var(--acc-mid-blue); color:#fff; font-size:0.85rem">
+                    B) {% trans "Add-backs (Non-allowable Expenses)" %}
+                </div>
+                <div class="card-body">
+                    <table class="report-table table table-bordered">
+                        <tr>
+                            <td class="ps-4">{% trans "Depreciation charged in accounts" %}</td>
+                            <td class="text-end acc-amber-input w-25 p-0">
+                                <input type="number" name="addback_depreciation" step="0.01" class="form-control form-control-sm text-end border-0 bg-transparent font-monospace" placeholder="0.00">
+                            </td>
+                            <td class="text-muted fs-xs">{% trans "Not allowable — replace with capital allowances" %}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">{% trans "Entertainments & Gifts" %}</td>
+                            <td class="text-end acc-amber-input p-0">
+                                <input type="number" name="addback_entertainment" step="0.01" class="form-control form-control-sm text-end border-0 bg-transparent font-monospace" placeholder="0.00">
+                            </td>
+                            <td class="text-muted fs-xs">{% trans "Generally non-deductible for tax" %}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-  {# C) Deductions Section #}
-  <div class='card mb-4 shadow-sm border-0'>
-    <div class='card-header' style='background:var(--acc-mid-blue);color:#fff;font-weight:bold'>
-      C) {% trans "Deductions (Capital Allowances)" %}
-    </div>
-    <div class='card-body p-0'>
-      <table class='table table-bordered mb-0'>
-        <tr>
-          <td class='ps-4'>{% trans "Wear & Tear Allowance (12.5% p.a.)" %}</td>
-          <td class='text-end acc-amber-input w-25'>
-            <input type='number' name='deduction_wear_tear' step='0.01' class='form-control form-control-sm text-end border-0' style='background:transparent'>
-          </td>
-          <td class='text-muted small'>{% trans "S.284 TCA 1997: Machinery & Plant" %}</td>
-        </tr>
-      </table>
-    </div>
-  </div>
+            {# C) Deductions Section #}
+            <div class="report-card card mb-3 shadow-sm border-0">
+                <div class="card-header py-2 px-3 fw-bold" style="background:var(--acc-mid-blue); color:#fff; font-size:0.85rem">
+                    C) {% trans "Deductions (Capital Allowances)" %}
+                </div>
+                <div class="card-body">
+                    <table class="report-table table table-bordered">
+                        <tr>
+                            <td class="ps-4">{% trans "Wear & Tear Allowance (12.5% p.a.)" %}</td>
+                            <td class="text-end acc-amber-input w-25 p-0">
+                                <input type="number" name="deduction_wear_tear" step="0.01" class="form-control form-control-sm text-end border-0 bg-transparent font-monospace" placeholder="0.00">
+                            </td>
+                            <td class="text-muted fs-xs">{% trans "S.284 TCA 1997: Machinery & Plant" %}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-  {# D) Tax Calculation Section #}
-  <div class='card mb-4 shadow-sm border-0'>
-    <div class='card-header' style='background:var(--acc-dark-green);color:#fff;font-weight:bold'>
-      D) {% trans "Tax Calculation" %}
-    </div>
-    <div class='card-body p-0'>
-      <table class='table table-bordered mb-0'>
-        <tr class='acc-total-row'>
-          <td class='ps-3'>{% trans "Adjusted Trading Profit" %}</td>
-          <td class='text-end acc-auto-field w-25'>€0.00</td>
-          <td></td>
-        </tr>
-        <tr>
-          <td class='ps-3'>{% trans "Corporation Tax @ 12.5%" %}</td>
-          <td class='text-end acc-auto-field'>€0.00</td>
-          <td></td>
-        </tr>
-        <tr style='background:var(--acc-dark-blue);color:#fff;font-weight:bold'>
-          <td class='ps-3 py-3'>{% trans "NET CORPORATION TAX PAYABLE" %}</td>
-          <td class='text-end py-3'>€0.00</td>
-          <td class='small py-3'>{% trans "Pay to Revenue by due date" %}</td>
-        </tr>
-      </table>
-    </div>
-  </div>
+            {# D) Tax Calculation Section #}
+            <div class="report-card card mb-4 shadow-sm border-0">
+                <div class="card-header py-2 px-3 fw-bold" style="background:var(--acc-dark-green); color:#fff; font-size:0.85rem">
+                    D) {% trans "Tax Calculation" %}
+                </div>
+                <div class="card-body">
+                    <table class="report-table table table-bordered">
+                        <tr class="acc-total-row">
+                            <td class="ps-3 fw-bold">{% trans "Adjusted Trading Profit" %}</td>
+                            <td class="text-end acc-auto-field w-25 font-monospace">€0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3">{% trans "Corporation Tax @ 12.5%" %}</td>
+                            <td class="text-end acc-auto-field font-monospace">€0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr class="acc-highlight-row">
+                            <td class="ps-3 fw-bold">{% trans "NET CORPORATION TAX PAYABLE" %}</td>
+                            <td class="text-end fw-bold font-monospace">€0.00</td>
+                            <td class="fs-xs fw-normal opacity-75">{% trans "Pay to Revenue by due date" %}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-  <div class="d-flex justify-content-end gap-2 mb-5">
-    <button type="submit" class="btn btn-success px-4">{% trans "Finalize & Save" %}</button>
-    <button type="button" class="btn btn-outline-secondary px-4">{% trans "Save Draft" %}</button>
-  </div>
-</form>
+            <div class="d-flex justify-content-end gap-2 mb-4">
+                <button type="button" class="btn btn-sm btn-outline-secondary px-4">{% trans "Save Draft" %}</button>
+                <button type="submit" class="btn btn-sm btn-primary px-4">{% trans "Finalize & Save" %}</button>
+            </div>
+        </form>
 
-<div class='mt-3 p-3 acc-legal-note'>
-  {% trans "S.76 TCA 1997: Trading income taxed @ 12.5% | S.284 TCA 1997: Capital allowances 12.5% p.a. over 8 years | File CT1 with Revenue within 9 months of financial year-end." %}
-</div>
+        <div class="p-2 acc-legal-note fs-xs rounded">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "S.76 TCA 1997: Trading income taxed @ 12.5% | S.284 TCA 1997: Capital allowances 12.5% p.a. over 8 years | File CT1 with Revenue within 9 months of financial year-end." %}
+        </div>
+    </div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

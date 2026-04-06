@@ -187,7 +187,7 @@ class CostCentreListView(LoginRequiredMixin, ListView):
 
 class CostCentreCreateView(LoginRequiredMixin, CreateView):
     model = CostCentre
-    fields = ['code', 'name', 'parent', 'description']
+    fields = ['code', 'name', 'parent', 'description', 'is_active']
     template_name = 'finance/costcentre_form.html'
     success_url = reverse_lazy('finance:costcentre_list')
     
@@ -195,6 +195,33 @@ class CostCentreCreateView(LoginRequiredMixin, CreateView):
         form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Cost Centre created successfully')
         return super().form_valid(form)
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        company = get_user_company(self.request)
+        form.fields['parent'].queryset = CostCentre.objects.filter(company=company)
+        return form
+
+
+class CostCentreUpdateView(LoginRequiredMixin, UpdateView):
+    model = CostCentre
+    fields = ['code', 'name', 'parent', 'description', 'is_active']
+    template_name = 'finance/costcentre_form.html'
+    success_url = reverse_lazy('finance:costcentre_list')
+    
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return CostCentre.objects.filter(company=company)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Cost Centre updated successfully')
+        return super().form_valid(form)
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        company = get_user_company(self.request)
+        form.fields['parent'].queryset = CostCentre.objects.filter(company=company).exclude(pk=self.object.pk)
+        return form
 
 
 class BudgetListView(LoginRequiredMixin, ListView):

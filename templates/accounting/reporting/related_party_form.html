@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "New Related Party Transaction" %} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <div class="form-card shadow-sm">
+            <div class="form-header d-flex justify-content-between align-items-center">
+                <h2 class="page-title">
+                    <i class="bi bi-people me-2 text-primary"></i>
+                    {% trans "New Related Party Transaction" %}
+                </h2>
+                <a href="{% url 'accounting:related_party_list' %}" class="btn btn-xs btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+                </a>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-body">
+                    <!-- Party Identity Section -->
+                    <div class="form-section">
+                        <h6 class="form-section-title">{% trans "Party Information" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "Party Name" %}</label>
+                                {{ form.party_name }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Relationship" %}</label>
+                                {{ form.relationship }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Transaction Date" %}</label>
+                                {{ form.transaction_date }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Amount" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">€</span>
+                                    {{ form.amount }}
+                                </div>
+                            </div>
+                            <div class="form-full-width mt-2">
+                                <label class="form-label">{% trans "Nature of Transaction" %}</label>
+                                {{ form.transaction_nature }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disclosures Section -->
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Compliance Disclosures" %}</h6>
+                        <div class="form-grid">
+                            <div class="form-check form-switch ms-3">
+                                {{ form.is_arm_length }}
+                                <label class="form-check-label fw-600 ms-2" for="{{ form.is_arm_length.id_for_label }}">
+                                    {% trans "Arm's Length Transaction" %}
+                                </label>
+                                <div class="help-text">{% trans "Was this transaction conducted at market value?" %}</div>
+                            </div>
+                            <div class="form-check form-switch ms-3">
+                                {{ form.disclosure_required }}
+                                <label class="form-check-label fw-600 ms-2" for="{{ form.disclosure_required.id_for_label }}">
+                                    {% trans "Include in Statutory Report" %}
+                                </label>
+                                <div class="help-text">{% trans "Should this appear on the final statutory register?" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'accounting:related_party_list' %}" class="btn btn-sm btn-outline-secondary px-3">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-primary px-4">
+                        <i class="bi bi-check-lg me-2"></i>{% trans "Save Transaction" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

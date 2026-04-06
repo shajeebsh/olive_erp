@@ -6,169 +6,206 @@
 {% endblock %}
 
 {% block content %}
-<div class='d-flex justify-content-between align-items-center mb-4'>
-  <h2 class='fw-bold'>📖 {% trans "Statutory Registers" %}</h2>
-  <div class="btn-group">
-    <button class='btn btn-outline-secondary'>📥 {% trans "Export PDF" %}</button>
-    <button class='btn' style="background:var(--acc-dark-blue);color:#fff">+ {% trans "Add Entry" %}</button>
-  </div>
-</div>
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="fw-bold">📖 {% trans "Statutory Registers" %}</h2>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary">📥 {% trans "Export PDF" %}</button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        + {% trans "Add Entry" %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'accounting:director_create' %}"><i class="bi bi-person-plus me-2"></i>{% trans "Add Director" %}</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounting:secretary_create' %}"><i class="bi bi-person-plus me-2"></i>{% trans "Add Secretary" %}</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounting:shareholder_create' %}"><i class="bi bi-people me-2"></i>{% trans "Add Shareholder" %}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'accounting:beneficial_owner_create' %}"><i class="bi bi-shield-check me-2"></i>{% trans "Add Beneficial Owner" %}</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-{# Tab Navigation #}
-<ul class="nav nav-tabs mb-4" id="statutoryTabs" role="tablist">
-  <li class="nav-item">
-    <button class="nav-link active" id="directors-tab" data-bs-toggle="tab" data-bs-target="#directors" type="button">{% trans "Directors" %}</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" id="secretaries-tab" data-bs-toggle="tab" data-bs-target="#secretaries" type="button">{% trans "Secretaries" %}</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" id="shareholders-tab" data-bs-toggle="tab" data-bs-target="#shareholders" type="button">{% trans "Shareholders" %}</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" id="rbo-tab" data-bs-toggle="tab" data-bs-target="#rbo" type="button">{% trans "RBO (Beneficial Owners)" %}</button>
-  </li>
-</ul>
+        {# Tab Navigation #}
+        <ul class="nav nav-tabs mb-3 fs-sm" id="statutoryTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active py-2" id="directors-tab" data-bs-toggle="tab" data-bs-target="#directors" type="button">{% trans "Directors" %}</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link py-2" id="secretaries-tab" data-bs-toggle="tab" data-bs-target="#secretaries" type="button">{% trans "Secretaries" %}</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link py-2" id="shareholders-tab" data-bs-toggle="tab" data-bs-target="#shareholders" type="button">{% trans "Shareholders" %}</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link py-2" id="rbo-tab" data-bs-toggle="tab" data-bs-target="#rbo" type="button">{% trans "RBO (Beneficial Owners)" %}</button>
+            </li>
+        </ul>
 
-{# Tab Content #}
-<div class="tab-content" id="statutoryTabsContent">
-  
-  {# 1. Directors #}
-  <div class="tab-pane fade show active" id="directors" role="tabpanel">
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>{% trans "Name" %}</th>
-              <th>{% trans "Service Address" %}</th>
-              <th>{% trans "Appointed" %}</th>
-              <th>{% trans "Resigned" %}</th>
-              <th>{% trans "Status" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for d in directors %}
-            <tr>
-              <td class="fw-bold">{{ d.first_name }} {{ d.last_name }}</td>
-              <td>{{ d.service_address|default:"—" }}</td>
-              <td>{{ d.appointment_date }}</td>
-              <td>{{ d.resignation_date|default:"—" }}</td>
-              <td>
-                {% if d.is_active %}<span class='badge bg-success'>{% trans "Active" %}</span>
-                {% else %}<span class='badge bg-secondary'>{% trans "Resigned" %}</span>{% endif %}
-              </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No directors recorded." %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+        {# Tab Content #}
+        <div class="tab-content" id="statutoryTabsContent">
+            {# 1. Directors #}
+            <div class="tab-pane fade show active" id="directors" role="tabpanel">
+                <div class="report-card card shadow-sm">
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Service Address" %}</th>
+                                    <th>{% trans "Appointed" %}</th>
+                                    <th>{% trans "Resigned" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in directors %}
+                                <tr>
+                                    <td class="fw-bold">{{ d.first_name }} {{ d.last_name }}</td>
+                                    <td class="fs-xs">{{ d.address_line1|default:"—" }}{% if d.city %}, {{ d.city }}{% endif %}</td>
+                                    <td>{{ d.appointment_date }}</td>
+                                    <td>{{ d.resignation_date|default:"—" }}</td>
+                                    <td>
+                                        {% if d.is_active %}<span class="badge bg-success fs-xs">{% trans "Active" %}</span>
+                                        {% else %}<span class="badge bg-secondary fs-xs">{% trans "Resigned" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:director_update' d.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:director_delete' d.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No directors recorded." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-  {# 2. Secretaries #}
-  <div class="tab-pane fade" id="secretaries" role="tabpanel">
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>{% trans "Name" %}</th>
-              <th>{% trans "Address" %}</th>
-              <th>{% trans "Appointed" %}</th>
-              <th>{% trans "Status" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in secretaries %}
-            <tr>
-              <td class="fw-bold">{{ s.name }}</td>
-              <td>{{ s.address }}</td>
-              <td>{{ s.appointment_date }}</td>
-              <td><span class='badge bg-success'>{% trans "Active" %}</span></td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No secretaries recorded." %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+            {# 2. Secretaries #}
+            <div class="tab-pane fade" id="secretaries" role="tabpanel">
+                <div class="report-card card shadow-sm">
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Address" %}</th>
+                                    <th>{% trans "Appointed" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in secretaries %}
+                                <tr>
+                                    <td class="fw-bold">{{ s.name }}</td>
+                                    <td class="fs-xs">{{ s.address_line1|default:"—" }}{% if s.city %}, {{ s.city }}{% endif %}</td>
+                                    <td>{{ s.appointment_date }}</td>
+                                    <td>
+                                        {% if s.is_active %}<span class="badge bg-success fs-xs">{% trans "Active" %}</span>
+                                        {% else %}<span class="badge bg-secondary fs-xs">{% trans "Resigned" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:secretary_update' s.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:secretary_delete' s.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No secretaries recorded." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-  {# 3. Shareholders #}
-  <div class="tab-pane fade" id="shareholders" role="tabpanel">
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>{% trans "Shareholder" %}</th>
-              <th>{% trans "Share Class" %}</th>
-              <th class="text-end">{% trans "Shares Held" %}</th>
-              <th class="text-end">{% trans "% Ownership" %}</th>
-              <th>{% trans "Date Acquired" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for sh in shareholders %}
-            <tr>
-              <td class="fw-bold">{{ sh.name }}</td>
-              <td>{{ sh.share_class }}</td>
-              <td class="text-end">{{ sh.shares_held|intcomma }}</td>
-              <td class="text-end">{{ sh.ownership_percentage }}%</td>
-              <td>{{ sh.date_acquired }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No shareholders recorded." %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+            {# 3. Shareholders #}
+            <div class="tab-pane fade" id="shareholders" role="tabpanel">
+                <div class="report-card card shadow-sm">
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Shareholder" %}</th>
+                                    <th>{% trans "Share Class" %}</th>
+                                    <th class="text-end">{% trans "Shares Held" %}</th>
+                                    <th class="text-end">{% trans "% Ownership" %}</th>
+                                    <th>{% trans "Date Acquired" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sh in shareholders %}
+                                <tr>
+                                    <td class="fw-bold">{{ sh.name }}</td>
+                                    <td>{{ sh.share_class }}</td>
+                                    <td class="text-end font-monospace">{{ sh.ordinary_shares_held|add:sh.preference_shares_held|intcomma }}</td>
+                                    <td class="text-end font-monospace">{{ sh.percentage_held }}%</td>
+                                    <td>{{ sh.date_joined }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:shareholder_update' sh.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:shareholder_delete' sh.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No shareholders recorded." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-  {# 4. RBO #}
-  <div class="tab-pane fade" id="rbo" role="tabpanel">
-    <div class='alert' style='background:var(--acc-pale-blue);border-left:4px solid var(--acc-mid-blue)'>
-      ℹ️ {% trans "Register of Beneficial Owners (RBO): Mandatory filing for all Irish companies under AML regulations." %}
-    </div>
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>{% trans "Name" %}</th>
-              <th>{% trans "Nature of Control" %}</th>
-              <th class="text-end">{% trans "% Interest" %}</th>
-              <th>{% trans "PPSN Verified" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for bo in beneficial_owners %}
-            <tr>
-              <td class="fw-bold">{{ bo.name }}</td>
-              <td>{{ bo.control_nature }}</td>
-              <td class="text-end">{{ bo.interest_percentage }}%</td>
-              <td>
-                {% if bo.ppsn_verified %}<span class='text-success'>✅ {% trans "Verified" %}</span>
-                {% else %}<span class='text-danger'>❌ {% trans "Pending" %}</span>{% endif %}
-              </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No beneficial owners recorded." %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+            {# 4. RBO #}
+            <div class="tab-pane fade" id="rbo" role="tabpanel">
+                <div class="report-alert alert mb-3" style="background:var(--acc-pale-blue); border-left:4px solid var(--acc-mid-blue); color:var(--acc-dark-blue)">
+                    <i class="bi bi-info-circle me-1"></i> {% trans "Register of Beneficial Owners (RBO): Mandatory filing for Irish companies." %}
+                </div>
+                <div class="report-card card shadow-sm">
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Nature of Control" %}</th>
+                                    <th class="text-end">{% trans "% Interest" %}</th>
+                                    <th>{% trans "PPSN Verified" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bo in beneficial_owners %}
+                                <tr>
+                                    <td class="fw-bold">{{ bo.first_name }} {{ bo.last_name }}</td>
+                                    <td>{{ bo.get_interest_type_display }}</td>
+                                    <td class="text-end font-monospace">{{ bo.percentage_held|default:"—"|floatformat:2 }}%</td>
+                                    <td>
+                                        {% if bo.is_verified %}<span class="text-success fs-xs fw-bold">✅ {% trans "Verified" %}</span>
+                                        {% else %}<span class="text-danger fs-xs fw-bold">❌ {% trans "Pending" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:beneficial_owner_update' bo.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:beneficial_owner_delete' bo.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No beneficial owners recorded." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-</div>
-
-<div class='mt-4 p-3 acc-legal-note'>
-  {% trans "Companies Act 2014: All LTD companies must maintain these registers at their registered office or a Designated Alternative Inspection Location (SAIL)." %}
-</div>
+        <div class="mt-4 p-2 acc-legal-note fs-xs rounded">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Companies Act 2014: All LTD companies must maintain these registers at their registered office." %}
+        </div>
+    </div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

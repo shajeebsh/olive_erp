@@ -3,63 +3,90 @@
 {% block title %}CRM Dashboard | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">CRM Dashboard</h1>
+<section class="dashboard-page dashboard-page--compact">
+    <div class="mb-3">
+        <h1 class="page-title">CRM Dashboard</h1>
+        <p class="page-subtitle mb-0">Sales pipeline and customer metrics</p>
+    </div>
 
     <!-- Top Stats -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Active Leads</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">28</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-person-check-fill fs-2 text-gray-300"></i>
-                        </div>
-                    </div>
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-crm">
+                <div class="kpi-icon"><i class="bi bi-person-check"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Active Leads</span>
+                    <span class="kpi-value">28</span>
+                    <span class="kpi-meta">This month</span>
                 </div>
             </div>
         </div>
-        <!-- More cards here -->
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-green">
+                <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Won Deals</span>
+                    <span class="kpi-value">12</span>
+                    <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 4</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-blue">
+                <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Pipeline Value</span>
+                    <span class="kpi-value">€125K</span>
+                    <span class="kpi-meta">Total opportunities</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-pink">
+                <div class="kpi-icon"><i class="bi bi-people"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Customers</span>
+                    <span class="kpi-value">156</span>
+                    <span class="kpi-meta">Active</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Charts -->
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Sales Pipeline</h6>
+    <div class="row g-2 mb-2">
+        <div class="col-lg-6">
+            <div class="card chart-card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Sales Pipeline</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="salesPipelineChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="salesPipelineChart" height="132"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Monthly Deals</h6>
+        <div class="col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Monthly Deals</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="monthlyDealsChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="monthlyDealsChart" height="132"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Tables -->
-    <div class="row">
+    <div class="row g-2">
         <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Opportunities</h6>
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Recent Opportunities</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th>Opportunity</th>
@@ -73,7 +100,7 @@
                                     <td>Opp-001</td>
                                     <td>Customer D</td>
                                     <td>€15,000</td>
-                                    <td>75%</td>
+                                    <td><span class="badge bg-success">75%</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -82,21 +109,30 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     const salesPipelineCtx = document.getElementById('salesPipelineChart').getContext('2d');
     new Chart(salesPipelineCtx, {
-        type: 'funnel',
+        type: 'bar',
         data: {
             labels: ['Leads', 'Qualified', 'Proposal', 'Won'],
             datasets: [{
-                label: 'Sales Pipeline',
+                label: 'Deals',
                 data: [100, 75, 50, 25],
                 backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
         }
     });
 
@@ -109,8 +145,19 @@
                 label: 'Deals',
                 data: [5, 8, 12, 10, 15, 18],
                 borderColor: '#4e73df',
-                tension: 0.1
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                tension: 0.3,
+                fill: true
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
         }
     });
 </script>
