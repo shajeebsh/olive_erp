@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="form-page">
-    <div class="form-container">
+    <div class="form-container" style="max-width: 700px;">
         <div class="form-card shadow-sm">
             <div class="form-header d-flex justify-content-between align-items-center">
                 <h2 class="page-title">
@@ -21,53 +21,41 @@
                 {% csrf_token %}
                 <div class="form-body">
                     <div class="form-section">
-                        <h6 class="form-section-title">{% trans "Cost Centre Details" %}</h6>
-                        <div class="form-grid">
+                        <div class="form-grid" style="--col-width: 140px;">
                             <div>
-                                <label class="form-label">{% trans "Code" %}</label>
+                                <label class="form-label">{% trans "Code" %} *</label>
                                 {{ form.code }}
                                 {% if form.code.errors %}{% for error in form.code.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
-                                <div class="help-text">{% trans "Unique code (e.g., CC001)" %}</div>
                             </div>
-                            <div>
-                                <label class="form-label">{% trans "Name" %}</label>
+                            <div style="flex: 1;">
+                                <label class="form-label">{% trans "Name" %} *</label>
                                 {{ form.name }}
                                 {% if form.name.errors %}{% for error in form.name.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section mt-4">
-                        <h6 class="form-section-title">{% trans "Hierarchy" %}</h6>
-                        <div class="form-grid">
-                            <div class="form-full-width">
-                                <label class="form-label">{% trans "Parent Cost Centre" %}</label>
-                                {{ form.parent }}
-                                {% if form.parent.errors %}{% for error in form.parent.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
-                                <div class="help-text">{% trans "Optional: nest under another cost centre" %}</div>
-                            </div>
-                        </div>
+                    <div class="form-section mt-3">
+                        <label class="form-label">{% trans "Parent Cost Centre" %}</label>
+                        {{ form.parent }}
+                        {% if form.parent.errors %}{% for error in form.parent.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
+                        <div class="help-text">{% trans "Optional: nest under another cost centre" %}</div>
                     </div>
 
-                    <div class="form-section mt-4">
-                        <h6 class="form-section-title">{% trans "Status" %}</h6>
-                        <div class="form-grid">
-                            <div>
-                                <div class="form-check form-switch">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{% trans "Active" %}</label>
-                                </div>
-                                <div class="help-text">{% trans "Inactive cost centres won't appear in selections" %}</div>
+                    <div class="form-section mt-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{% trans "Active" %}</label>
                             </div>
                         </div>
+                        <div class="help-text">{% trans "Inactive cost centres won't appear in selections" %}</div>
                     </div>
 
-                    <div class="form-section mt-4">
-                        <h6 class="form-section-title">{% trans "Description" %}</h6>
-                        <div class="form-full-width">
-                            {{ form.description }}
-                            {% if form.description.errors %}{% for error in form.description.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
-                        </div>
+                    <div class="form-section mt-3">
+                        <label class="form-label">{% trans "Description" %}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}{% for error in form.description.errors %}<div class="error-text">{{ error }}</div>{% endfor %}{% endif %}
                     </div>
                 </div>
 

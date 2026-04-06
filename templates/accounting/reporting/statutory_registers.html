@@ -57,18 +57,22 @@
                                     <th>{% trans "Appointed" %}</th>
                                     <th>{% trans "Resigned" %}</th>
                                     <th>{% trans "Status" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for d in directors %}
                                 <tr>
                                     <td class="fw-bold">{{ d.first_name }} {{ d.last_name }}</td>
-                                    <td class="fs-xs">{{ d.service_address|default:"—" }}</td>
+                                    <td class="fs-xs">{{ d.address_line1|default:"—" }}{% if d.city %}, {{ d.city }}{% endif %}</td>
                                     <td>{{ d.appointment_date }}</td>
                                     <td>{{ d.resignation_date|default:"—" }}</td>
                                     <td>
                                         {% if d.is_active %}<span class="badge bg-success fs-xs">{% trans "Active" %}</span>
                                         {% else %}<span class="badge bg-secondary fs-xs">{% trans "Resigned" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:director_update' d.pk %}" class="btn btn-xs btn-outline-primary py-0">{% trans "Edit" %}</a>
                                     </td>
                                 </tr>
                                 {% empty %}

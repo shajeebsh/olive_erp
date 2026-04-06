@@ -18,7 +18,9 @@ urlpatterns = [
     # Statutory & Compliance
     path('reporting/statutory-registers/', reporting_views.StatutoryRegisterView.as_view(), name='statutory_registers'),
     path('reporting/statutory/director/create/', reporting_views.DirectorCreateView.as_view(), name='director_create'),
+    path('reporting/statutory/director/<int:pk>/update/', reporting_views.DirectorUpdateView.as_view(), name='director_update'),
     path('reporting/statutory/secretary/create/', reporting_views.SecretaryCreateView.as_view(), name='secretary_create'),
+    path('reporting/statutory/secretary/<int:pk>/update/', reporting_views.SecretaryUpdateView.as_view(), name='secretary_update'),
     path('reporting/statutory/shareholder/create/', reporting_views.ShareholderCreateView.as_view(), name='shareholder_create'),
     path('reporting/statutory/beneficial-owner/create/', reporting_views.BeneficialOwnerCreateView.as_view(), name='beneficial_owner_create'),
     path('reporting/dividends/', reporting_views.DividendListView.as_view(), name='dividend_list'),

@@ -1,4 +1,4 @@
-from django.views.generic import TemplateView, ListView, CreateView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum, Q
 from django.utils import timezone
@@ -415,3 +415,29 @@ class BeneficialOwnerCreateView(LoginRequiredMixin, CreateView):
         company = get_user_company(self.request)
         form.instance.company = company
         return super().form_valid(form)
+
+
+class DirectorUpdateView(LoginRequiredMixin, UpdateView):
+    from tax_engine.forms import DirectorEditForm
+    from tax_engine.countries.ie.models import Director
+    model = Director
+    form_class = DirectorEditForm
+    template_name = 'accounting/reporting/director_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Director.objects.filter(company=company)
+
+
+class SecretaryUpdateView(LoginRequiredMixin, UpdateView):
+    from tax_engine.forms import SecretaryEditForm
+    from tax_engine.countries.ie.models import Secretary
+    model = Secretary
+    form_class = SecretaryEditForm
+    template_name = 'accounting/reporting/secretary_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Secretary.objects.filter(company=company)

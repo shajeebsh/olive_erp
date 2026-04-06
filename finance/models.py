@@ -186,6 +186,15 @@ class CostCentre(models.Model):
         if self.parent:
             return f"{self.parent.get_hierarchy_path()}:{self.name}"
         return self.name
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.code and self.company:
+            existing = CostCentre.objects.filter(code=self.code, company=self.company)
+            if self.pk:
+                existing = existing.exclude(pk=self.pk)
+            if existing.exists():
+                raise ValidationError({'code': f'A cost centre with code "{self.code}" already exists for this company.'})
 
 
 class CostCentreAllocation(models.Model):

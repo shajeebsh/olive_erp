@@ -1014,3 +1014,93 @@ The form now displays fields in a 2-column grid on desktop:
 - ✅ Cost Centre create/edit follows same form layout as other modernized forms
 - ✅ `python manage.py check` passes
 - ✅ `python manage.py test` passes (29 tests)
+
+---
+
+## 27. Quality & CRUD Cleanup Pass (April 2026)
+
+### P1: Cost Centre Form Improvements
+
+**Form Compactness**:
+- Reduced container max-width to 700px for more compact layout
+- Removed section titles, using tighter spacing (`mt-3` instead of `mt-4`)
+- Used single form-grid with fixed 140px column for Code, flex:1 for Name
+- Removed unnecessary whitespace
+
+**IntegrityError Fix**:
+- Added `clean()` method to `CostCentre` model for validation
+- Raises `ValidationError` with user-friendly message when duplicate code/company
+- Added `CostCentreUpdateView` for editing existing cost centres
+- Added URL route: `finance:costcentre_update` → `/finance/cost-centres/<pk>/update/`
+- Added `is_active` field to form fields for both create and edit
+
+### P2: Country/Nationality Standardization
+
+**Implementation**:
+- Created shared constants in `tax_engine/forms.py`:
+  - `COUNTRY_CHOICES` - 28 common countries as dropdown options
+  - `NATIONALITY_CHOICES` - 28 nationalities as dropdown options
+- Updated all statutory forms to use dropdowns:
+  - `DirectorForm` - nationality and country are now selects
+  - `SecretaryForm` - country is now a select
+  - `ShareholderForm` - country is now a select
+  - `BeneficialOwnerForm` - nationality and country are now selects
+
+### P1: Statutory Status Behavior Fix
+
+**Problem**: New Directors showed incorrect status (Resigned).
+
+**Solution**:
+- Added `is_active` property to `Director` model:
+  ```python
+  @property
+  def is_active(self):
+      return self.resignation_date is None
+  ```
+- Template now uses `d.is_active` instead of `d.is_active` (model field doesn't exist)
+- Added same `is_active` property to `Secretary` model
+
+### P1: Edit Actions Added
+
+- Added Edit button column to Directors list in statutory_registers.html
+- Created `DirectorUpdateView` and `SecretaryUpdateView` in views.py
+- Added URLs:
+  - `accounting:director_update` → `/accounting/reporting/statutory/director/<pk>/update/`
+  - `accounting:secretary_update` → `/accounting/reporting/statutory/secretary/<pk>/update/`
+
+### P1: Resignation Date on Create Forms
+
+- Created separate `DirectorEditForm` (includes resignation_date)
+- Original `DirectorForm` no longer includes resignation_date field
+- Same pattern for Secretary: `SecretaryForm` (create) vs `SecretaryEditForm` (edit)
+- Resignation can only be set when editing an existing record
+
+### P1: CRUD Test Coverage Added
+
+**New tests in `apps/accounting/tests/test_models.py`**:
+- `CostCentreModelTest`:
+  - `test_cost_centre_creation` - basic creation
+  - `test_cost_centre_unique_code_per_company` - duplicate code rejection
+  - `test_cost_centre_validation_unique_together` - DB constraint
+- `DirectorModelTest`:
+  - `test_director_is_active_by_default` - new directors are active
+  - `test_director_becomes_inactive_on_resignation` - status changes with date
+- `SecretaryModelTest`:
+  - `test_secretary_is_active_by_default` - new secretaries active
+  - `test_secretary_name_property` - name property works
+- `ShareholderModelTest`:
+  - `test_shareholder_name_property` - name property for both individual/corporate
+  - `test_shareholder_default_share_class` - share class detection
+
+**Test Results**: 38 tests passing (was 29, added 9 new tests)
+
+### Validation
+- ✅ Cost Centre form is compact and uses space efficiently
+- ✅ Duplicate Cost Centre codes show validation error, not IntegrityError
+- ✅ Country/Nationality fields are dropdowns in statutory forms
+- ✅ New Directors show "Active" status by default
+- ✅ Edit buttons available in Directors list
+- ✅ Resignation date only available in edit forms, not create
+- ✅ CRUD tests cover CostCentre, Director, Secretary, Shareholder
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes (38 tests)

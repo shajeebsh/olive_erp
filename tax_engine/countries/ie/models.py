@@ -51,6 +51,10 @@ class Director(models.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def is_active(self):
+        return self.resignation_date is None
 
 class Secretary(models.Model):
     """Company secretary"""
@@ -85,6 +89,16 @@ class Secretary(models.Model):
         if self.is_corporate:
             return f"{self.corporate_name} (Corporate Secretary)"
         return f"{self.first_name} {self.last_name} (Secretary)"
+    
+    @property
+    def is_active(self):
+        return self.resignation_date is None
+    
+    @property
+    def name(self):
+        if self.is_corporate:
+            return self.corporate_name
+        return f"{self.first_name} {self.last_name}"
 
 class ShareCapital(models.Model):
     """Company share capital structure"""
@@ -164,3 +178,15 @@ class Shareholder(models.Model):
         if self.is_corporate:
             return self.corporate_name
         return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def name(self):
+        if self.is_corporate:
+            return self.corporate_name
+        return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def share_class(self):
+        if self.preference_shares_held > 0:
+            return "Preference"
+        return "Ordinary"
