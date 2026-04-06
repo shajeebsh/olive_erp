@@ -556,7 +556,6 @@
             padding: 0.4rem 0;
         }
 
-        .app-nav-submenu:hover .app-nav-submenu-menu,
         .app-nav-submenu.open .app-nav-submenu-menu { display: block; }
 
         .app-nav-submenu-menu a {
@@ -839,9 +838,6 @@
         });
 
         // ---- Module nav dropdowns ----
-        var dropdowns = document.querySelectorAll('[data-dropdown]');
-        var dropdownTimeouts = {}; // Per-dropdown timeouts to prevent flickering
-
         function closeAllNavDropdowns(exceptEl) {
             document.querySelectorAll('.app-nav-dropdown-menu.open').forEach(function(m) {
                 if (m === exceptEl) return;
@@ -856,51 +852,23 @@
             var menu    = dd.querySelector('.app-nav-dropdown-menu');
             if (!trigger || !menu) return;
 
-            // Toggle on click: Robust toggle even if already hovered open
+            // Toggle on click
             trigger.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 var isOpen = menu.classList.contains('open');
 
                 if (isOpen) {
-                    // If open, clicking should close it
                     menu.classList.remove('open');
                     trigger.setAttribute('aria-expanded', 'false');
                 } else {
-                    // If closed, close others and open this one
                     closeAllNavDropdowns(null);
                     menu.classList.add('open');
                     trigger.setAttribute('aria-expanded', 'true');
                 }
             });
-
-            // Desktop Hover Support (with grace period)
-            if (window.matchMedia('(hover: hover)').matches) {
-                dd.addEventListener('mouseenter', function() {
-                    if (window.innerWidth > 768) {
-                        // Cancel any pending close for this menu
-                        if (dropdownTimeouts[idx]) {
-                            clearTimeout(dropdownTimeouts[idx]);
-                            delete dropdownTimeouts[idx];
-                        }
-                        closeAllNavDropdowns(menu);
-                        menu.classList.add('open');
-                        trigger.setAttribute('aria-expanded', 'true');
-                    }
-                });
-
-                dd.addEventListener('mouseleave', function() {
-                    if (window.innerWidth > 768) {
-                        // Delay closing to allow moving between trigger/menu or over gaps
-                        dropdownTimeouts[idx] = setTimeout(function() {
-                            menu.classList.remove('open');
-                            trigger.setAttribute('aria-expanded', 'false');
-                            delete dropdownTimeouts[idx];
-                        }, 250); // 250ms grace period for stable interaction
-                    }
-                });
-            }
         });
+
 
         // Close all nav dropdowns when clicking outside any dropdown
         document.addEventListener('click', function(e) {

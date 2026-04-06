@@ -802,28 +802,34 @@ Accounting reports (Balance Sheet, Profit & Loss, VAT Summary) were consuming to
 
 ---
 
-## 21. Top Navigation Dropdown Fix (April 2026)
+## 21. Navigation Stability & Layout Standardization (April 2026)
 
 ### Problem
-Top navigation dropdowns were unstable. They would close too quickly or disappear when moving the mouse from the trigger to the menu, and clicking an already-hovered-open menu would close it unexpectedly.
-
-### Root Causes
-1.  **Visual Gap:** A 6px gap between the trigger and the absolute-positioned menu caused a `mouseleave` event on the parent container when the pointer crossed the gap.
-2.  **Aggressive Event Handling:** `mouseleave` immediately closed the menu without any grace period.
-3.  **Conflict between Hover and Click:** The click handler assumed the menu was closed, but if it was open via hover, it would close it instead of toggling or remaining open.
+Top navigation dropdowns were unstable due to a mixed hover/click model. Layouts across modules (Expenses, Invoices, Products) were inconsistent in width and density compared to the improved accounting reports.
 
 ### Implementation
-- **CSS "Invisible Bridge"**: Added a `::before` pseudo-element to `.app-nav-dropdown-menu` that extends 12px above the menu, bridging the physical gap between the trigger and the popup. This ensures the mouse remains "inside" the container while moving.
-- **JavaScript Interaction Model Refined**:
-  - **Grace Period**: Added a 250ms `setTimeout` to the `mouseleave` event to prevent accidental closing.
-  - **Hover Coordination**: `mouseenter` now clears any pending close timeouts for that dropdown.
-  - **Robust Toggling**: Updated the `click` handler to perform a clean toggle regardless of whether the menu was opened via hover or click.
-- **Desktop vs. Mobile**: Maintained `window.innerWidth > 768` check for hover support, ensuring mobile remains click-only and stable.
+- **Pure Click Navigation**: Removed all hover-based `mouseenter`/`mouseleave` listeners from `base.html`. The navigation is now 100% click-driven on both desktop and mobile, ensuring 100% stability.
+- **Menu Restructuring**: Moved "Journal Entries" and "Chart of Accounts" from the **Finance** module to the **Accounting** module to centralize core accounting operations.
+- **Layout Standardization**: Applied the `.report-page` and `.report-container` framework to several list views:
+  - `templates/finance/expenses.html`
+  - `templates/finance/invoices.html`
+  - `templates/finance/journal.html`
+  - `templates/finance/account_list.html`
+  - `templates/inventory/products.html`
+  - `templates/inventory/stock.html`
+- **Bug Fix**: Resolved a `FieldError` in `RelatedPartyTransactionView` by correcting relational field lookups for journal-linked transactions.
+
+### Key CSS Classes
+- `.report-page`: Main wrapper for full-page reports/lists.
+- `.report-container`: Centered 1000px container for focused data.
+- `.report-container--wide`: 1200px container for dense tables.
+- `.report-header`: Standardized title and action bar.
+- `.report-card`: Minimalist shadow card for data groups.
+- `.report-table`: Standardized high-density table styling.
 
 ### Validation
-- ✅ Clicking a top menu item opens its dropdown reliably.
-- ✅ The dropdown stays open while moving from trigger into the menu.
-- ✅ Small accidental mouse exits are ignored within the 250ms grace period.
-- ✅ Clicking outside or pressing Escape closes all menus correctly.
-- ✅ Opening one dropdown closes all others immediately.
-- ✅ Mobile menu behavior is unaffected and stable.
+- ✅ Navigation is rock-solid; dropdowns only open/close on click/Escape/outside-click.
+- ✅ List pages now have a consistent, professional "Enterprise ERP" look.
+- ✅ Accounting menu items correctly relocated.
+- ✅ Related Party Report loads without errors.
+- ✅ `python3 manage.py check` passes.

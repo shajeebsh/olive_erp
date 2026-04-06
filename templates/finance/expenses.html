@@ -1,50 +1,49 @@
 {% extends 'base.html' %}
+{% load i18n humanize %}
 
 {% block title %}Expenses | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0">Expenses</h2>
-    <a href="{% url 'finance:journal_create' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-2"></i>Record Expense
-    </a>
-</div>
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">💸 {% trans "Expenses" %}</h2>
+            <a href="{% url 'finance:journal_create' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "Record Expense" %}
+            </a>
+        </div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0">Expense Analysis by Category</h5>
+        <div class="report-card card shadow-sm">
+            <div class="card-header py-2 px-3">
+                <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Expense Analysis by Category" %}</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="bg-light">
-                            <tr>
-                                <th>Account Code</th>
-                                <th>Category Name</th>
-                                <th class="text-end">Balance</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for account in expense_accounts %}
-                            <tr>
-                                <td class="fw-bold">{{ account.code }}</td>
-                                <td>{{ account.name }}</td>
-                                <td class="text-end fw-bold">$0.00</td> <!-- Demo placeholder balance -->
-                                <td class="text-end">
-                                    <a href="#" class="btn btn-sm btn-outline-primary">View Ledger</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">No expense accounts configured.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <table class="report-table table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Account Code" %}</th>
+                            <th>{% trans "Category Name" %}</th>
+                            <th class="text-end">{% trans "Balance" %}</th>
+                            <th class="text-end">{% trans "Action" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in expense_accounts %}
+                        <tr>
+                            <td class="fw-bold">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="text-end fw-bold font-monospace">€0.00</td>
+                            <td class="text-end">
+                                <a href="#" class="btn btn-xs btn-outline-primary py-0">{% trans "View Ledger" %}</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">{% trans "No expense accounts configured." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

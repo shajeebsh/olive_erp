@@ -14,8 +14,6 @@ def navigation_menu(request):
             {'name': '📊 Dashboard', 'url': 'dashboard:finance_dashboard'},
             {'name': '🧾 Invoices', 'url': 'finance:invoices'},
             {'name': '💸 Expenses', 'url': 'finance:expenses'},
-            {'name': '📔 Journal', 'url': 'finance:journal'},
-            {'name': '🏦 Accounts', 'url': 'finance:account_list'},
             {'name': '📍 Cost Centres', 'url': 'finance:costcentre_list'},
             {'name': '💰 Budgets', 'url': 'finance:budget_list'},
         ]},
@@ -55,6 +53,8 @@ def navigation_menu(request):
         {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
             {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
             {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
+            {'name': '📔 Journal Entries', 'url': 'finance:journal'},
+            {'name': '🏦 Chart of Accounts', 'url': 'finance:account_list'},
             {'name': '📑 VAT Summary', 'url': 'accounting:vat_summary'},
             {'name': '🏦 Bank Reconciliation', 'url': 'accounting:bank_reconciliation'},
             {'name': '🚜 Fixed Assets', 'url': 'accounting:asset_list'},

@@ -266,19 +266,24 @@ class RelatedPartyTransactionView(LoginRequiredMixin, ListView):
         journal_rpts = JournalRPT.objects.filter(
             journal_entry_line__account__company=company
         ).values(
-            'company', 'party_name', 'relationship_type', 'journal_entry_line__journal_entry__date', 'amount'
+            'journal_entry_line__account__company', 
+            'journal_entry_line__account__name', 
+            'relationship_type', 
+            'journal_entry_line__journal_entry__date', 
+            'journal_entry_line__debit',
+            'journal_entry_line__credit'
         )
         
         # Combine and return as a list
         return list(compliance_rpts) + [
             {
-        'company': rpt['journal_entry_line__account__company'],
-        'party_name': rpt['journal_entry_line__account__name'],
-        'relationship': rpt['relationship_type'],
-        'transaction_date': rpt['journal_entry_line__journal_entry__date'],
-        'amount': rpt['amount'],
-        'is_arm_length': True
-    } for rpt in journal_rpts
+                'company': rpt['journal_entry_line__account__company'],
+                'party_name': rpt['journal_entry_line__account__name'],
+                'relationship': rpt['relationship_type'],
+                'transaction_date': rpt['journal_entry_line__journal_entry__date'],
+                'amount': rpt['journal_entry_line__debit'] or rpt['journal_entry_line__credit'],
+                'is_arm_length': True
+            } for rpt in journal_rpts
         ]
 
 
