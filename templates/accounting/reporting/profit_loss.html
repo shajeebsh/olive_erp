@@ -7,7 +7,8 @@
 
 {% block content %}
 <div class="report-page">
-    <div class="report-header">
+    <div class="report-container">
+        <div class="report-header">
         <h2 class="fw-bold">📊 {% trans "Profit & Loss Statement" %}</h2>
         <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">🖨️ {% trans "Print" %}</button>
     </div>
@@ -134,5 +135,6 @@
         </a>
     </div>
     {% endif %}
-</div>
+</div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

@@ -6,50 +6,55 @@
 {% endblock %}
 
 {% block content %}
-<div class='d-flex justify-content-between align-items-center mb-4'>
-  <h2 class='fw-bold'>🤝 {% trans "Related Party Transactions" %}</h2>
-  <a href="#" class="btn btn-outline-primary">+ {% trans "Add Transaction" %}</a>
-</div>
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="fw-bold">🤝 {% trans "Related Party Transactions" %}</h2>
+            <a href="#" class="btn btn-sm btn-primary">+ {% trans "Add Transaction" %}</a>
+        </div>
 
-<div class='alert' style="background:var(--acc-pale-blue);border-left:4px solid var(--acc-mid-blue)">
-  ℹ️ {% trans "Disclosures required under Section 307(1) Companies Act 2014 & FRS 102. Transactions with directors, key management, and related entities must be disclosed." %}
-</div>
+        <div class="report-alert alert mb-3" style="background:var(--acc-pale-blue); border-left:4px solid var(--acc-mid-blue); color:var(--acc-dark-blue)">
+            <i class="bi bi-info-circle me-1"></i> {% trans "Disclosures required under Section 307(1) Companies Act 2014 & FRS 102." %}
+        </div>
 
-<div class='card shadow'>
-  <div class='card-body p-0'>
-    <table class='table table-bordered table-hover mb-0'>
-      <thead>
-        <tr style='background:var(--acc-amber-dark);color:#fff'>
-          <th>{% trans "Party Name" %}</th>
-          <th>{% trans "Relationship" %}</th>
-          <th class='text-center'>{% trans "Date" %}</th>
-          <th>{% trans "Nature / Description" %}</th>
-          <th class='text-end'>{% trans "Amount (€)" %}</th>
-          <th class='text-center'>{% trans "Arm's Length?" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for tx in transactions %}
-        <tr>
-          <td class='fw-bold'>{{ tx.party_name }}</td>
-          <td>{{ tx.relationship }}</td>
-          <td class='text-center'>{{ tx.transaction_date }}</td>
-          <td>{{ tx.transaction_nature }}</td>
-          <td class='text-end acc-auto-field'>€{{ tx.amount|floatformat:2|intcomma }}</td>
-          <td class='text-center'>
-            {% if tx.is_arm_length %}<span class='text-success'>✅ {% trans "Yes" %}</span>
-            {% else %}<span class='text-danger'>❌ {% trans "No" %}</span>{% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="text-center py-5 text-muted">{% trans "No related party transactions found." %}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+        <div class="report-card card shadow">
+            <div class="card-body">
+                <table class="report-table table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr style="background:var(--acc-amber-dark); color:#fff">
+                            <th>{% trans "Party Name" %}</th>
+                            <th>{% trans "Relationship" %}</th>
+                            <th class="text-center">{% trans "Date" %}</th>
+                            <th>{% trans "Nature / Description" %}</th>
+                            <th class="text-end">{% trans "Amount (€)" %}</th>
+                            <th class="text-center">{% trans "Arm's Length?" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr>
+                            <td class="fw-bold">{{ tx.party_name }}</td>
+                            <td class="fs-xs">{{ tx.relationship }}</td>
+                            <td class="text-center">{{ tx.transaction_date }}</td>
+                            <td class="fs-xs">{{ tx.transaction_nature }}</td>
+                            <td class="text-end acc-auto-field font-monospace">€{{ tx.amount|floatformat:2|intcomma }}</td>
+                            <td class="text-center">
+                                {% if tx.is_arm_length %}<span class="text-success fs-xs fw-bold">✅ {% trans "Yes" %}</span>
+                                {% else %}<span class="text-danger fs-xs fw-bold">❌ {% trans "No" %}</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No related party transactions found." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<div class='mt-4 p-3 acc-legal-note'>
-  {% trans "Transparency in related-party dealings is critical for corporate governance. Non-market value transactions may have tax implications for directors (Benefit-in-Kind)." %}
-</div>
+        <div class="mt-4 p-2 acc-legal-note fs-xs rounded">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Transparency in related-party dealings is critical for corporate governance. Non-market value transactions may have tax implications." %}
+        </div>
+    </div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

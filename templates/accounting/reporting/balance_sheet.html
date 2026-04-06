@@ -7,7 +7,8 @@
 
 {% block content %}
 <div class="report-page">
-    <div class="report-header">
+    <div class="report-container">
+        <div class="report-header">
         <h2 class="fw-bold">⚖️ {% trans "Balance Sheet" %}</h2>
         <div class="d-flex gap-2 align-items-center">
             <form method="get" class="d-flex gap-2 align-items-center">
@@ -154,5 +155,6 @@
             </div>
         </div>
     </div>
-</div>
+</div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

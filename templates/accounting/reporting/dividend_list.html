@@ -6,46 +6,51 @@
 {% endblock %}
 
 {% block content %}
-<div class='d-flex justify-content-between align-items-center mb-4'>
-  <h2 class='fw-bold'>📃 {% trans "Dividend Register" %}</h2>
-  <a href="#" class="btn btn-primary">+ {% trans "Declare Dividend" %}</a>
-</div>
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="fw-bold">📃 {% trans "Dividend Register" %}</h2>
+            <a href="#" class="btn btn-sm btn-primary">+ {% trans "Declare Dividend" %}</a>
+        </div>
 
-<div class='card shadow'>
-  <div class='card-body p-0'>
-    <table class='table table-bordered table-hover mb-0'>
-      <thead>
-        <tr style='background:var(--acc-dark-blue);color:#fff'>
-          <th>{% trans "Voucher #" %}</th>
-          <th>{% trans "Shareholder" %}</th>
-          <th class='text-center'>{% trans "Date Paid" %}</th>
-          <th class='text-end'>{% trans "Net Amount (€)" %}</th>
-          <th class='text-end'>{% trans "Tax Credit (€)" %}</th>
-          <th class='text-center'>{% trans "Status" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for div in dividends %}
-        <tr>
-          <td class='fw-bold'>{{ div.voucher_number }}</td>
-          <td>{{ div.shareholder_name }}</td>
-          <td class='text-center'>{{ div.payment_date }}</td>
-          <td class='text-end acc-auto-field'>€{{ div.net_amount|floatformat:2|intcomma }}</td>
-          <td class='text-end'>€{{ div.tax_credit|floatformat:2|intcomma }}</td>
-          <td class='text-center'>
-            {% if div.is_paid %}<span class='badge bg-success'>{% trans "Paid" %}</span>
-            {% else %}<span class='badge bg-warning text-dark'>{% trans "Draft" %}</span>{% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="text-center py-5 text-muted">{% trans "No dividends declared yet." %}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+        <div class="report-card card shadow">
+            <div class="card-body">
+                <table class="report-table table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr style="background:var(--acc-dark-blue); color:#fff">
+                            <th>{% trans "Voucher #" %}</th>
+                            <th>{% trans "Shareholder" %}</th>
+                            <th class="text-center">{% trans "Date Paid" %}</th>
+                            <th class="text-end">{% trans "Net Amount (€)" %}</th>
+                            <th class="text-end">{% trans "Tax Credit (€)" %}</th>
+                            <th class="text-center">{% trans "Status" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for div in dividends %}
+                        <tr>
+                            <td class="fw-bold">{{ div.voucher_number }}</td>
+                            <td>{{ div.shareholder_name }}</td>
+                            <td class="text-center">{{ div.payment_date }}</td>
+                            <td class="text-end acc-auto-field font-monospace">€{{ div.net_amount|floatformat:2|intcomma }}</td>
+                            <td class="text-end font-monospace">€{{ div.tax_credit|floatformat:2|intcomma }}</td>
+                            <td class="text-center">
+                                {% if div.is_paid %}<span class="badge bg-success fs-xs">{% trans "Paid" %}</span>
+                                {% else %}<span class="badge bg-warning text-dark fs-xs">{% trans "Draft" %}</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No dividends declared yet." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<div class='mt-4 p-3 acc-legal-note'>
-  {% trans "Companies Act 2014, S.124: Dividends may only be paid from 'distributable profits'. Ensure a resolution is signed before payment." %}
-</div>
+        <div class="mt-4 p-2 acc-legal-note fs-xs rounded">
+            <i class="bi bi-info-circle me-1"></i>
+            {% trans "Companies Act 2014, S.124: Dividends may only be paid from 'distributable profits'. Ensure a resolution is signed before payment." %}
+        </div>
+    </div> <!-- .report-container -->
+</div> <!-- .report-page -->
 {% endblock %}

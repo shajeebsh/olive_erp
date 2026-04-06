@@ -781,6 +781,8 @@ Accounting reports (Balance Sheet, Profit & Loss, VAT Summary) were consuming to
 ### Implementation
 - **Unified Report Layout System**: Introduced shared compact classes in `olive-theme.css`:
   - `.report-page`: Main container with minimal padding (`0.25rem 0 1rem`).
+  - `.report-container`: Centered constrained-width wrapper (`max-width: 1000px`) for a more focused screen layout.
+  - `.report-container--wide`: Modifier for multi-column reports (`max-width: 1200px`) like Bank Reconciliation.
   - `.report-header`: Tightened title/action area with 1.25rem font and reduced margins.
   - `.report-card`: Compact card with zero body padding and 0.65rem bottom margin.
   - `.report-table`: Denser data table with 0.85rem font, reduced padding (`0.4rem 0.75rem`), and monospaced amounts for alignment.
