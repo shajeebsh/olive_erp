@@ -107,6 +107,7 @@ olive_erp/
 - Dividend register
 - **UI with two-row top navigation layout** - Fixed app shell with utility row (brand/search/user) and module navigation row
 - **Dashboard compaction pass** - Removed nested dashboard content wrappers, reduced top whitespace, tightened KPI/chart spacing, and improved above-the-fold visibility across dashboard pages
+- **Accounting report density pass** - Unified and compacted Balance Sheet, Profit & Loss, and VAT Summary reports using shared `.report-table`, `.report-card`, and `.report-header` classes to maximize above-the-fold information.
 
 ### 🔄 In-progress Features
 - **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback
@@ -769,3 +770,30 @@ KPIs rendered as plain inline icon/text stats instead of compact tiles in the br
 - ✅ KPI tiles now definitely render with visible card boundaries across all dashboards.
 - ✅ Caching issues bypassed permanently for critical layout elements.
 - ✅ Tests still pass, and UI exactly matches the expected compact enterprise format.
+
+---
+
+## 20. Accounting Report Density Pass (April 2026)
+
+### Problem
+Accounting reports (Balance Sheet, Profit & Loss, VAT Summary) were consuming too much vertical space, feeling more like print-oriented layouts than compact ERP tool views. Information density was low, requiring excessive scrolling.
+
+### Implementation
+- **Unified Report Layout System**: Introduced shared compact classes in `olive-theme.css`:
+  - `.report-page`: Main container with minimal padding (`0.25rem 0 1rem`).
+  - `.report-header`: Tightened title/action area with 1.25rem font and reduced margins.
+  - `.report-card`: Compact card with zero body padding and 0.65rem bottom margin.
+  - `.report-table`: Denser data table with 0.85rem font, reduced padding (`0.4rem 0.75rem`), and monospaced amounts for alignment.
+  - `.report-alert`: Thinner status banners for balance checks and thresholds.
+  - `.report-filter-bar`: Compact parameter bar with 0.75rem labels and reduced gutters.
+- **Accounting Style Refinement**: Updated `accounting.css` to ensure `.acc-section-header` and `.acc-total-row` inherit compact padding when used within `.report-table`.
+- **Template Refactoring**:
+  - `balance_sheet.html`: Removed legacy local styles; fully transitioned to shared report classes; tightened section spacing.
+  - `profit_loss.html`: Applied compact card/table structure; refactored filter bar for higher density.
+  - `vat_summary.html`: Compacted threshold monitor and summary table.
+
+### Validation
+- ✅ Balance Sheet shows significantly more rows above the fold.
+- ✅ All accounting reports share a unified, dense "ERP-first" visual style.
+- ✅ Print readability preserved while optimizing for on-screen daily use.
+- ✅ `python manage.py test apps.accounting` passes (7 tests).
