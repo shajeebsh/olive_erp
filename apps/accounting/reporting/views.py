@@ -1,4 +1,4 @@
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum, Q
 from django.utils import timezone
@@ -11,7 +11,9 @@ from reporting.engines import ReportEngine
 from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import CT1Computation, Dividend, RelatedPartyTransaction
 from apps.accounting.compliance.forms import DividendForm, RelatedPartyTransactionForm
-from tax_engine.countries.ie.models import Director
+from tax_engine.countries.ie.models import Director, Secretary, Shareholder
+from tax_engine.countries.ie.rbo import BeneficialOwner
+from tax_engine.forms import DirectorForm, DirectorEditForm, SecretaryForm, SecretaryEditForm, ShareholderForm, BeneficialOwnerForm
 
 def get_user_company(request):
     if hasattr(request.user, "company") and request.user.company:
@@ -355,7 +357,6 @@ class BankReconciliationUpdateView(LoginRequiredMixin, TemplateView):
 
 
 class DirectorCreateView(LoginRequiredMixin, CreateView):
-    from tax_engine.forms import DirectorForm
     model = Director
     form_class = DirectorForm
     template_name = 'accounting/reporting/director_form.html'
@@ -373,8 +374,6 @@ class DirectorCreateView(LoginRequiredMixin, CreateView):
 
 
 class SecretaryCreateView(LoginRequiredMixin, CreateView):
-    from tax_engine.forms import SecretaryForm
-    from tax_engine.countries.ie.models import Secretary
     model = Secretary
     form_class = SecretaryForm
     template_name = 'accounting/reporting/secretary_form.html'
@@ -388,8 +387,6 @@ class SecretaryCreateView(LoginRequiredMixin, CreateView):
 
 
 class ShareholderCreateView(LoginRequiredMixin, CreateView):
-    from tax_engine.forms import ShareholderForm
-    from tax_engine.countries.ie.models import Shareholder
     model = Shareholder
     form_class = ShareholderForm
     template_name = 'accounting/reporting/shareholder_form.html'
@@ -403,8 +400,6 @@ class ShareholderCreateView(LoginRequiredMixin, CreateView):
 
 
 class BeneficialOwnerCreateView(LoginRequiredMixin, CreateView):
-    from tax_engine.forms import BeneficialOwnerForm
-    from tax_engine.countries.ie.rbo import BeneficialOwner
     model = BeneficialOwner
     form_class = BeneficialOwnerForm
     template_name = 'accounting/reporting/beneficial_owner_form.html'
@@ -418,8 +413,6 @@ class BeneficialOwnerCreateView(LoginRequiredMixin, CreateView):
 
 
 class DirectorUpdateView(LoginRequiredMixin, UpdateView):
-    from tax_engine.forms import DirectorEditForm
-    from tax_engine.countries.ie.models import Director
     model = Director
     form_class = DirectorEditForm
     template_name = 'accounting/reporting/director_form.html'
@@ -430,9 +423,17 @@ class DirectorUpdateView(LoginRequiredMixin, UpdateView):
         return Director.objects.filter(company=company)
 
 
+class DirectorDeleteView(LoginRequiredMixin, DeleteView):
+    model = Director
+    template_name = 'accounting/reporting/confirm_delete.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Director.objects.filter(company=company)
+
+
 class SecretaryUpdateView(LoginRequiredMixin, UpdateView):
-    from tax_engine.forms import SecretaryEditForm
-    from tax_engine.countries.ie.models import Secretary
     model = Secretary
     form_class = SecretaryEditForm
     template_name = 'accounting/reporting/secretary_form.html'
@@ -441,3 +442,55 @@ class SecretaryUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         company = get_user_company(self.request)
         return Secretary.objects.filter(company=company)
+
+
+class ShareholderUpdateView(LoginRequiredMixin, UpdateView):
+    model = Shareholder
+    form_class = ShareholderForm
+    template_name = 'accounting/reporting/shareholder_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Shareholder.objects.filter(company=company)
+
+
+class BeneficialOwnerUpdateView(LoginRequiredMixin, UpdateView):
+    model = BeneficialOwner
+    form_class = BeneficialOwnerForm
+    template_name = 'accounting/reporting/beneficial_owner_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return BeneficialOwner.objects.filter(company=company)
+
+
+class SecretaryDeleteView(LoginRequiredMixin, DeleteView):
+    model = Secretary
+    template_name = 'accounting/reporting/confirm_delete.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Secretary.objects.filter(company=company)
+
+
+class ShareholderDeleteView(LoginRequiredMixin, DeleteView):
+    model = Shareholder
+    template_name = 'accounting/reporting/confirm_delete.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return Shareholder.objects.filter(company=company)
+
+
+class BeneficialOwnerDeleteView(LoginRequiredMixin, DeleteView):
+    model = BeneficialOwner
+    template_name = 'accounting/reporting/confirm_delete.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_queryset(self):
+        company = get_user_company(self.request)
+        return BeneficialOwner.objects.filter(company=company)

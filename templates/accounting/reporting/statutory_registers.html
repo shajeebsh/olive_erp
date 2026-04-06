@@ -72,11 +72,12 @@
                                         {% else %}<span class="badge bg-secondary fs-xs">{% trans "Resigned" %}</span>{% endif %}
                                     </td>
                                     <td class="text-end">
-                                        <a href="{% url 'accounting:director_update' d.pk %}" class="btn btn-xs btn-outline-primary py-0">{% trans "Edit" %}</a>
+                                        <a href="{% url 'accounting:director_update' d.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:director_delete' d.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No directors recorded." %}</td></tr>
+                                <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No directors recorded." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -95,18 +96,26 @@
                                     <th>{% trans "Address" %}</th>
                                     <th>{% trans "Appointed" %}</th>
                                     <th>{% trans "Status" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for s in secretaries %}
                                 <tr>
                                     <td class="fw-bold">{{ s.name }}</td>
-                                    <td class="fs-xs">{{ s.address }}</td>
+                                    <td class="fs-xs">{{ s.address_line1|default:"—" }}{% if s.city %}, {{ s.city }}{% endif %}</td>
                                     <td>{{ s.appointment_date }}</td>
-                                    <td><span class="badge bg-success fs-xs">{% trans "Active" %}</span></td>
+                                    <td>
+                                        {% if s.is_active %}<span class="badge bg-success fs-xs">{% trans "Active" %}</span>
+                                        {% else %}<span class="badge bg-secondary fs-xs">{% trans "Resigned" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:secretary_update' s.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:secretary_delete' s.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No secretaries recorded." %}</td></tr>
+                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No secretaries recorded." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -126,6 +135,7 @@
                                     <th class="text-end">{% trans "Shares Held" %}</th>
                                     <th class="text-end">{% trans "% Ownership" %}</th>
                                     <th>{% trans "Date Acquired" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -133,12 +143,16 @@
                                 <tr>
                                     <td class="fw-bold">{{ sh.name }}</td>
                                     <td>{{ sh.share_class }}</td>
-                                    <td class="text-end font-monospace">{{ sh.shares_held|intcomma }}</td>
-                                    <td class="text-end font-monospace">{{ sh.ownership_percentage }}%</td>
-                                    <td>{{ sh.date_acquired }}</td>
+                                    <td class="text-end font-monospace">{{ sh.ordinary_shares_held|add:sh.preference_shares_held|intcomma }}</td>
+                                    <td class="text-end font-monospace">{{ sh.percentage_held }}%</td>
+                                    <td>{{ sh.date_joined }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:shareholder_update' sh.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:shareholder_delete' sh.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No shareholders recorded." %}</td></tr>
+                                <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No shareholders recorded." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -160,21 +174,26 @@
                                     <th>{% trans "Nature of Control" %}</th>
                                     <th class="text-end">{% trans "% Interest" %}</th>
                                     <th>{% trans "PPSN Verified" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for bo in beneficial_owners %}
                                 <tr>
-                                    <td class="fw-bold">{{ bo.name }}</td>
-                                    <td>{{ bo.control_nature }}</td>
-                                    <td class="text-end font-monospace">{{ bo.interest_percentage }}%</td>
+                                    <td class="fw-bold">{{ bo.first_name }} {{ bo.last_name }}</td>
+                                    <td>{{ bo.get_interest_type_display }}</td>
+                                    <td class="text-end font-monospace">{{ bo.percentage_held|default:"—"|floatformat:2 }}%</td>
                                     <td>
-                                        {% if bo.ppsn_verified %}<span class="text-success fs-xs fw-bold">✅ {% trans "Verified" %}</span>
+                                        {% if bo.is_verified %}<span class="text-success fs-xs fw-bold">✅ {% trans "Verified" %}</span>
                                         {% else %}<span class="text-danger fs-xs fw-bold">❌ {% trans "Pending" %}</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'accounting:beneficial_owner_update' bo.pk %}" class="btn btn-xs btn-outline-primary py-0" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'accounting:beneficial_owner_delete' bo.pk %}" class="btn btn-xs btn-outline-danger py-0" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No beneficial owners recorded." %}</td></tr>
+                                <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No beneficial owners recorded." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>

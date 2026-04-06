@@ -189,8 +189,8 @@ class CostCentre(models.Model):
     
     def clean(self):
         from django.core.exceptions import ValidationError
-        if self.code and self.company:
-            existing = CostCentre.objects.filter(code=self.code, company=self.company)
+        if self.code and self.company_id:
+            existing = CostCentre.objects.filter(code=self.code, company_id=self.company_id)
             if self.pk:
                 existing = existing.exclude(pk=self.pk)
             if existing.exists():

@@ -1104,3 +1104,102 @@ The form now displays fields in a 2-column grid on desktop:
 - ✅ CRUD tests cover CostCentre, Director, Secretary, Shareholder
 - ✅ `python manage.py check` passes
 - ✅ `python manage.py test` passes (38 tests)
+
+---
+
+## 28. Final CRUD & Validation Fixes (April 2026)
+
+### P1: Full CRUD for All Statutory Sections
+
+**Problem**: Secretaries, Shareholders, and Beneficial Owners lacked Edit/Delete actions in list view.
+
+**Implementation**:
+- Added UpdateView classes for Shareholder and BeneficialOwner
+- Added DeleteView classes for Director, Secretary, Shareholder, BeneficialOwner
+- Created `templates/accounting/reporting/confirm_delete.html` for delete confirmation
+
+**New URLs**:
+- `accounting:director_delete` → `/accounting/reporting/statutory/director/<pk>/delete/`
+- `accounting:secretary_update` → already existed
+- `accounting:secretary_delete` → `/accounting/reporting/statutory/secretary/<pk>/delete/`
+- `accounting:shareholder_update` → `/accounting/reporting/statutory/shareholder/<pk>/update/`
+- `accounting:shareholder_delete` → `/accounting/reporting/statutory/shareholder/<pk>/delete/`
+- `accounting:beneficial_owner_update` → `/accounting/reporting/statutory/beneficial-owner/<pk>/update/`
+- `accounting:beneficial_owner_delete` → `/accounting/reporting/statutory/beneficial-owner/<pk>/delete/`
+
+**Template Updates**:
+- Directors: Added Delete button alongside Edit
+- Secretaries: Added Actions column with Edit and Delete buttons, updated address to use `address_line1`
+- Shareholders: Added Actions column, fixed template references (`shares_held` → `ordinary_shares_held`)
+- Beneficial Owners: Added Actions column, fixed template references (`name` → `first_name/last_name`, `is_verified`)
+
+### P2: CostCentre RelatedObjectDoesNotExist Fix
+
+**Problem**: `CostCentre.clean()` accessed `self.company` which could raise RelatedObjectDoesNotExist before company was assigned.
+
+**Fix**: Changed to use `self.company_id` which is the FK ID (integer), available even if the related object isn't loaded:
+```python
+def clean(self):
+    if self.code and self.company_id:  # Use FK ID instead of object
+        existing = CostCentre.objects.filter(code=self.code, company_id=self.company_id)
+        ...
+```
+
+### Validation
+- ✅ All four statutory sections (Director, Secretary, Shareholder, BeneficialOwner) have full CRUD
+- ✅ Edit and Delete buttons work for all types
+- ✅ CostCentre create no longer crashes with RelatedObjectDoesNotExist
+- ✅ Duplicate cost centre codes show proper validation error
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes (38 tests)
+
+---
+
+## 29. Statutory View Import Fix & Icon Actions (April 2026)
+
+### P1: Secretary Update NameError Fix
+
+**Problem**: `SecretaryUpdateView` and other statutory views raised `NameError` at runtime due to brittle class-body imports.
+
+**Root Cause**: Class-level imports like `from tax_engine.countries.ie.models import Secretary` inside class bodies aren't reliable - they create new import scopes that may not resolve correctly in all inheritance patterns.
+
+**Fix Applied**: Moved all statutory model and form imports to the top of the module (`apps/accounting/reporting/views.py`):
+```python
+from tax_engine.countries.ie.models import Director, Secretary, Shareholder
+from tax_engine.countries.ie.rbo import BeneficialOwner
+from tax_engine.forms import DirectorForm, DirectorEditForm, SecretaryForm, SecretaryEditForm, ShareholderForm, BeneficialOwnerForm
+```
+
+Removed all class-body imports from:
+- DirectorCreateView
+- SecretaryCreateView
+- ShareholderCreateView
+- BeneficialOwnerCreateView
+- DirectorUpdateView
+- DirectorDeleteView
+- SecretaryUpdateView
+- ShareholderUpdateView
+- BeneficialOwnerUpdateView
+- SecretaryDeleteView
+- ShareholderDeleteView
+- BeneficialOwnerDeleteView
+
+### P2: Icon Action Buttons
+
+**Problem**: Row-level Edit/Delete actions showed text buttons instead of icons.
+
+**Fix Applied**: Updated `templates/accounting/reporting/statutory_registers.html` for all four sections:
+- Directors: `<i class="bi bi-pencil"></i>` / `<i class="bi bi-trash"></i>`
+- Secretaries: Same pattern
+- Shareholders: Same pattern
+- Beneficial Owners: Same pattern
+
+All icons include `title` attributes for accessibility.
+
+### Validation
+- ✅ Secretary update route works without NameError
+- ✅ All statutory update/delete views work consistently
+- ✅ Add Entry still works for all four record types
+- ✅ Edit/Delete actions now display as icons
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes (38 tests)
