@@ -133,39 +133,74 @@
 }
 
 /* ============================================
-   KPI / STAT CARDS
-   ============================================ */
-.kpi-card {
-    background: #fff;
+    DASHBOARD LAYOUT
+    ============================================ */
+.app-main-content {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.dashboard-page--compact {
+    display: block;
+}
+
+.dashboard-page .page-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    margin-bottom: 0.1rem;
+    letter-spacing: -0.02em;
+}
+
+.dashboard-page .page-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-page .dashboard-header,
+.dashboard-page > .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+.dashboard-page .row.g-2 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+.dashboard-page .card {
     border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid rgba(0,0,0,0.06);
-    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
 }
 
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+.dashboard-page .card-header {
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
 }
 
-.kpi-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6c757d;
+.dashboard-page .chart-card .card-body,
+.dashboard-page .card .card-body.p-2 {
+    padding: 0.65rem !important;
 }
 
-.kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--dark-gray);
-    line-height: 1.2;
+.dashboard-page canvas {
+    max-height: 180px;
 }
 
-.kpi-change-up   { color: var(--success-green); font-size: 0.82rem; }
-.kpi-change-down { color: var(--danger-red);    font-size: 0.82rem; }
+.dashboard-page .table-sm th,
+.dashboard-page .table-sm td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    vertical-align: middle;
+}
+
+.dashboard-page .list-group-item {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+
+
+/* Chart card */
+.chart-card .card-body {
+    padding: 1rem;
+}
 
 /* ============================================
    SIDEBAR / LEGACY (for any older templates)
@@ -215,6 +250,55 @@
 .bg-olive-light { background-color: #f0f6f0 !important; }
 
 .border-olive   { border-color: var(--primary-olive) !important; }
+
+@media (max-width: 992px) {
+    .app-main-content {
+        padding: 0.9rem 1rem 1.25rem;
+    }
+
+    .dashboard-page .page-title {
+        font-size: clamp(1.1rem, 4vw, 1.35rem);
+    }
+
+    .kpi-card {
+        min-height: 68px;
+        padding: 0.65rem 0.75rem;
+    }
+
+    .kpi-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .kpi-value {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .app-main-content {
+        padding: 0.8rem 0.85rem 1rem;
+    }
+
+    .dashboard-page .dashboard-header .d-flex.gap-2 {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .dashboard-page .dashboard-header .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .dashboard-page .page-subtitle {
+        font-size: 0.88rem;
+    }
+
+    .dashboard-page canvas {
+        max-height: 160px;
+    }
+}
 
 .fs-xs  { font-size: 0.75rem; }
 .fs-sm  { font-size: 0.875rem; }
