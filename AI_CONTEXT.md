@@ -836,3 +836,49 @@ The system uses a dual-model approach for Related Party Transactions (RPTs):
 - ✅ New "Add" actions for dividends and related parties are functional.
 - ✅ Forms use efficient side-by-side grids on Desktop.
 - ✅ `python3 manage.py test apps/accounting/tests/test_related_party.py` passes.
+
+---
+
+## 23. Dead Action Button Cleanup Pass (April 2026)
+
+### Problem
+OliveERP had several "Add/New" buttons that appeared as active controls but did nothing when clicked. This created a poor user experience by presenting broken functionality.
+
+### Implementation
+
+#### P1: Statutory Registers "Add Entry" Dead Button
+**Issue:** The Statutory Registers screen (`templates/accounting/reporting/statutory_registers.html`) had a "+ Add Entry" button that was a plain `<button>` with no navigation target or form action.
+
+**Fix:** Converted the dead button to a Bootstrap dropdown that links to the actual Wagtail snippet admin pages for adding:
+- Directors → `/admin/snippets/tax_engine.countries.ie/models/director/add/`
+- Secretaries → `/admin/snippets/tax_engine.countries.ie/models/secretary/add/`
+- Shareholders → `/admin/snippets/tax_engine.countries.ie/models/shareholder/add/`
+- Beneficial Owners → `/admin/snippets/tax_engine.countries.ie/models/beneficialowner/add/`
+
+The data model uses Wagtail snippets (registered in `apps/accounting/statutory/wagtail_hooks.py`), so the correct entry point for adding records is the Wagtail admin interface.
+
+#### P2: Stale "Add Account" in Legacy Finance Template
+**Issue:** `templates/finance/accounts.html` was an old template containing a dead "Add Account" button with no `href` or working action. This template was obsolete - the current account list uses `templates/finance/account_list.html`.
+
+**Fix:** Deleted the stale `templates/finance/accounts.html` file. The correct location for adding accounts is `finance:account_create` which is properly linked in `account_list.html`.
+
+#### Additional Dead Actions Fixed
+- **Purchasing Suppliers**: Removed dead "Edit" button in action column (no supplier edit URL exists)
+- **Purchasing Purchase Orders**: Removed dead "View" button in action column (no PO detail URL exists)
+- Note: These are not broken features - just actions that were never implemented. The buttons were replaced with "-" placeholder to clearly indicate no action available.
+
+### Known Unimplemented Actions (Dashboard Placeholders)
+The following are placeholder/demo buttons in dashboard templates that are intentionally non-functional (sample data placeholders):
+- `compliance_dashboard.html`: "Generate" buttons for CRO B1 and VAT Return (rows 123, 130)
+- `hr_dashboard.html`: "Approve"/"Reject" buttons for leave requests (rows 105-106)
+- `reporting_dashboard.html`: "Run"/"View" buttons for report tasks (rows 78-79, 88-89)
+
+These are in dashboard "At a Glance" sections and would need proper view/url implementations to become functional. They are low priority since dashboards are overview pages.
+
+### Validation
+- ✅ Statutory Registers "Add Entry" now opens a dropdown with links to actual Wagtail admin pages
+- ✅ Legacy `accounts.html` template removed
+- ✅ Purchasing templates no longer have dead action buttons
+- ✅ All list views in Finance, Inventory, CRM, HR, Projects, Purchasing have working Add buttons
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes

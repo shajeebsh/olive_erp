@@ -12,7 +12,18 @@
             <h2 class="fw-bold">📖 {% trans "Statutory Registers" %}</h2>
             <div class="btn-group">
                 <button class="btn btn-sm btn-outline-secondary">📥 {% trans "Export PDF" %}</button>
-                <button class="btn btn-sm btn-primary">+ {% trans "Add Entry" %}</button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        + {% trans "Add Entry" %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/admin/snippets/tax_engine.countries.ie/models/director/add/"><i class="bi bi-person-plus me-2"></i>{% trans "Add Director" %}</a></li>
+                        <li><a class="dropdown-item" href="/admin/snippets/tax_engine.countries.ie/models/secretary/add/"><i class="bi bi-person-plus me-2"></i>{% trans "Add Secretary" %}</a></li>
+                        <li><a class="dropdown-item" href="/admin/snippets/tax_engine.countries.ie/models/shareholder/add/"><i class="bi bi-people me-2"></i>{% trans "Add Shareholder" %}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/admin/snippets/tax_engine.countries.ie/models/beneficialowner/add/"><i class="bi bi-shield-check me-2"></i>{% trans "Add Beneficial Owner" %}</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
 
