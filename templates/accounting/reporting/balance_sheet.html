@@ -3,12 +3,34 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/accounting.css">
+<style>
+  .report-page { padding: 0.5rem 0 1rem; }
+  .report-header { margin-bottom: 0.5rem; }
+  .report-header h2 { font-size: 1.25rem; margin: 0; }
+  .report-header .btn { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+  .report-header .form-control { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+  .report-alert { padding: 0.5rem 0.75rem; font-size: 0.85rem; margin-bottom: 0.5rem; }
+  .report-card { margin-bottom: 0.5rem; }
+  .report-card .card-body { padding: 0; }
+  .report-table { font-size: 0.85rem; margin: 0; }
+  .report-table th { padding: 0.4rem 0.5rem; font-size: 0.8rem; }
+  .report-table td { padding: 0.35rem 0.5rem; }
+  .report-table .ps-4 { padding-left: 1rem !important; }
+  .acc-total-row td { padding: 0.4rem 0.5rem; }
+  @media print {
+    .report-page { padding: 0; }
+    .report-card { page-break-inside: avoid; margin-bottom: 0.25rem; }
+    .report-table { font-size: 9pt; }
+    .report-table th, .report-table td { padding: 2px 4px; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class='d-flex justify-content-between align-items-center mb-3'>
+<div class="report-page">
+<div class='report-header d-flex justify-content-between align-items-center'>
   <h2 class='fw-bold'>⚖️ {% trans "Balance Sheet" %}</h2>
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 align-items-center">
     <form method='get' class='d-flex gap-2 align-items-center'>
       <input type='date' name='as_of_date' class='form-control form-control-sm' value='{{ as_of_date|default:'' }}'>
       <button type='submit' class='btn btn-sm btn-primary'>{% trans "Go" %}</button>
@@ -19,26 +41,24 @@
 
 {# Balance Check Banner #}
 {% if balance_check %}
-<div class='alert mb-3 fw-bold' style='background:var(--acc-green);
-     border-left:4px solid var(--acc-dark-green);color:var(--acc-dark-green)'>
+<div class='report-alert alert mb-0 fw-bold' style='background:var(--acc-green);border-left:3px solid var(--acc-dark-green);color:var(--acc-dark-green)'>
   ✅ {% trans "Balance Sheet balances correctly — Assets = Liabilities + Equity" %}
 </div>
 {% else %}
-<div class='alert mb-3 fw-bold' style='background:var(--acc-red);
-     border-left:4px solid var(--acc-dark-red);color:var(--acc-dark-red)'>
+<div class='report-alert alert mb-0 fw-bold' style='background:var(--acc-red);border-left:3px solid var(--acc-dark-red);color:var(--acc-dark-red)'>
   ⚠️ {% trans "Balance Sheet does not balance — check your transaction entries" %}
 </div>
 {% endif %}
 
 {# Assets Section #}
-<div class='card mb-3 shadow-sm'>
+<div class='report-card card shadow-sm'>
   <div class='card-body p-0'>
-    <table class='table table-bordered mb-0'>
+    <table class='report-table table table-bordered mb-0'>
       <thead>
         <tr style='background:var(--acc-mid-blue);color:#fff'>
           <th style='width:70%'>{% trans "ASSETS" %}</th>
           <th class='text-end'>{% trans "Balance (€)" %}</th>
-          <th class='text-end text-muted' style='font-size:.85rem'>{% trans "Notes" %}</th>
+          <th class='text-end text-muted' style='font-size:.75rem'>{% trans "Notes" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -70,9 +90,9 @@
 </div>
 
 {# Liabilities Section #}
-<div class='card mb-3 shadow-sm'>
+<div class='report-card card shadow-sm'>
   <div class='card-body p-0'>
-    <table class='table table-bordered mb-0'>
+    <table class='report-table table table-bordered mb-0'>
       <thead>
         <tr style='background:var(--acc-amber-dark);color:#fff'>
           <th style='width:70%'>{% trans "LIABILITIES" %}</th>
@@ -97,9 +117,9 @@
 </div>
 
 {# Equity Section #}
-<div class='card mb-3 shadow-sm'>
+<div class='report-card card shadow-sm'>
   <div class='card-body p-0'>
-    <table class='table table-bordered mb-0'>
+    <table class='report-table table table-bordered mb-0'>
       <thead>
         <tr style='background:var(--acc-dark-blue);color:#fff'>
           <th style='width:70%'>{% trans "EQUITY" %}</th>
@@ -134,15 +154,16 @@
 </div>
 
 {# Final Row #}
-<div class="card shadow">
+<div class="report-card card shadow">
   <div class="card-body p-0">
-    <table class="table table-bordered mb-0">
-      <tr style='background:var(--acc-dark-blue);color:#fff;font-weight:bold;font-size:1.05rem'>
-        <td style='width:70%; padding: 12px;'>{% trans "TOTAL LIABILITIES + EQUITY" %}</td>
-        <td class='text-end' style='padding: 12px;'>€{{ total_liabilities|add:total_equity|floatformat:2|intcomma }}</td>
+    <table class="report-table table table-bordered mb-0">
+      <tr style='background:var(--acc-dark-blue);color:#fff;font-weight:bold'>
+        <td style='width:70%; padding: 0.5rem;'>{% trans "TOTAL LIABILITIES + EQUITY" %}</td>
+        <td class='text-end' style='padding: 0.5rem;'>€{{ total_liabilities|add:total_equity|floatformat:2|intcomma }}</td>
         <td></td>
       </tr>
     </table>
   </div>
+</div>
 </div>
 {% endblock %}

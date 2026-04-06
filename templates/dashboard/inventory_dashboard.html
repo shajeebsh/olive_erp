@@ -3,63 +3,91 @@
 {% block title %}Inventory Dashboard | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Inventory Dashboard</h1>
+<section class="dashboard-page dashboard-page--compact">
+    <div class="mb-3">
+        <h1 class="page-title">Inventory Dashboard</h1>
+        <p class="page-subtitle mb-0">Stock levels and inventory metrics</p>
+    </div>
 
     <!-- Top Stats -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total SKUs</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">1,234</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-box fs-2 text-gray-300"></i>
-                        </div>
-                    </div>
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-inventory">
+                <div class="kpi-icon"><i class="bi bi-box"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Total SKUs</span>
+                    <span class="kpi-value">1,234</span>
+                    <span class="kpi-meta">Products</span>
                 </div>
             </div>
         </div>
-        <!-- More cards here -->
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-green">
+                <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">In Stock</span>
+                    <span class="kpi-value">1,089</span>
+                    <span class="kpi-meta">88% of total</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-orange">
+                <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Low Stock</span>
+                    <span class="kpi-value">42</span>
+                    <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-up"></i> 8</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Reorder</span>
+                    <span class="kpi-value">12</span>
+                    <span class="kpi-meta">Items due</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Charts -->
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Stock by Category</h6>
+    <div class="row g-2 mb-2">
+        <div class="col-lg-6">
+            <div class="card chart-card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Stock by Category</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="stockByCategoryChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="stockByCategoryChart" height="132"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+        <div class="col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Top Selling Products</span>
                 </div>
-                <div class="card-body">
-                    <canvas id="topSellingProductsChart"></canvas>
+                <div class="card-body p-2">
+                    <canvas id="topSellingProductsChart" height="132"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Tables -->
-    <div class="row">
+    <div class="row g-2">
         <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Low Stock Alerts</h6>
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Low Stock Alerts</span>
+                    <span class="badge bg-warning text-dark">5</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th>Product</th>
@@ -88,7 +116,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
@@ -102,6 +130,11 @@
                 data: [300, 50, 100],
                 backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
         }
     });
 
@@ -117,7 +150,14 @@
             }]
         },
         options: {
-            indexAxis: 'y'
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { grid: { display: false } }
+            }
         }
     });
 </script>

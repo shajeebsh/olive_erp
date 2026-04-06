@@ -56,7 +56,8 @@ class AccountingModelTest(TestCase):
             account=self.account,
             period_date=date.today(),
             statement_balance=500,
-            book_balance=500
+            book_balance=500,
+            actual_closing_balance=0
         )
         self.assertEqual(recon.difference, 0)
 

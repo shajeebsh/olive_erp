@@ -31,6 +31,11 @@
     .table-responsive {
         border: 0;
     }
+    
+    /* Dashboard adjustments */
+    .dashboard-page .row [class*="col-"] {
+        margin-bottom: 0.5rem;
+    }
 }
 
 /* Touch-friendly buttons for all devices */
