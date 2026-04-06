@@ -808,28 +808,31 @@ Accounting reports (Balance Sheet, Profit & Loss, VAT Summary) were consuming to
 Top navigation dropdowns were unstable due to a mixed hover/click model. Layouts across modules (Expenses, Invoices, Products) were inconsistent in width and density compared to the improved accounting reports.
 
 ### Implementation
-- **Pure Click Navigation**: Removed all hover-based `mouseenter`/`mouseleave` listeners from `base.html`. The navigation is now 100% click-driven on both desktop and mobile, ensuring 100% stability.
-- **Menu Restructuring**: Moved "Journal Entries" and "Chart of Accounts" from the **Finance** module to the **Accounting** module to centralize core accounting operations.
-- **Layout Standardization**: Applied the `.report-page` and `.report-container` framework to several list views:
-  - `templates/finance/expenses.html`
-  - `templates/finance/invoices.html`
-  - `templates/finance/journal.html`
-  - `templates/finance/account_list.html`
-  - `templates/inventory/products.html`
-  - `templates/inventory/stock.html`
-- **Bug Fix**: Resolved a `FieldError` in `RelatedPartyTransactionView` by correcting relational field lookups for journal-linked transactions.
+- **Pure Click Navigation**: The navigation is now 100% click-driven on both desktop and mobile. Fixed a `ReferenceError` where the `dropdowns` variable was missing from the local scope.
+- **Menu Restructuring**: Moved "Journal Entries" and "Chart of Accounts" to the **Accounting** module to centralize core accounting operations.
+- **Layout Standardization**: Applied `.report-page` and `.report-container` framework to list views in Finance and Inventory modules.
 
 ### Key CSS Classes
-- `.report-page`: Main wrapper for full-page reports/lists.
-- `.report-container`: Centered 1000px container for focused data.
-- `.report-container--wide`: 1200px container for dense tables.
-- `.report-header`: Standardized title and action bar.
-- `.report-card`: Minimalist shadow card for data groups.
-- `.report-table`: Standardized high-density table styling.
+- `.report-page` / `.report-container`: For high-density, focused list views.
+- `.form-page` / `.form-container`: For data entry forms with standardized padding.
+- `.form-grid`: A 2-column or 3-column responsive grid for side-by-side form controls.
+
+## 22. Related-Party Architecture & Form Cleanup (April 2026)
+
+### Related-Party Transaction Models
+The system uses a dual-model approach for Related Party Transactions (RPTs):
+1.  **Statutory Disclosure (`apps.accounting.compliance.models.RelatedPartyTransaction`)**: A manual entry model for disclosures required under the Companies Act (e.g., Director loans). These are reported directly in the statutory registers.
+2.  **Ledger Tagging (`apps.accounting.related_party.models.RelatedPartyTransaction`)**: A model linked directly to `JournalEntryLine`. This allows specific ledger transactions to be flagged as RPTs for audit purposes.
+- **The Adapter**: `RelatedPartyTransactionView.get_queryset` aggregates data from both sources into a unified dictionary format for the report.
+
+### Stabilization Refinements
+- **Regression Testing**: Added `apps/accounting/tests/test_related_party.py` to ensure the adapter logic doesn't break due to model field changes and respects company scoping.
+- **Action Buttons**: Audited and fixed "Add/New" buttons on list pages. Created missing `CreateView` entries and URLs for statutory reports (Dividends, Related Parties).
+- **Form Layouts**: Upgraded `invoice_form.html`, `product_form.html`, `account_form.html`, and newcomers like `dividend_form.html` to a standardized grid-based layout.
 
 ### Validation
-- ✅ Navigation is rock-solid; dropdowns only open/close on click/Escape/outside-click.
-- ✅ List pages now have a consistent, professional "Enterprise ERP" look.
-- ✅ Accounting menu items correctly relocated.
-- ✅ Related Party Report loads without errors.
-- ✅ `python3 manage.py check` passes.
+- ✅ Navigation clicks work reliably (no JS errors).
+- ✅ Related-party report aggregates manual and journal-linked entries correctly.
+- ✅ New "Add" actions for dividends and related parties are functional.
+- ✅ Forms use efficient side-by-side grids on Desktop.
+- ✅ `python3 manage.py test apps/accounting/tests/test_related_party.py` passes.

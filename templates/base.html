@@ -838,6 +838,7 @@
         });
 
         // ---- Module nav dropdowns ----
+        var dropdowns = document.querySelectorAll('[data-dropdown]');
         function closeAllNavDropdowns(exceptEl) {
             document.querySelectorAll('.app-nav-dropdown-menu.open').forEach(function(m) {
                 if (m === exceptEl) return;

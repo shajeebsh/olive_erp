@@ -10,7 +10,9 @@
     <div class="report-container">
         <div class="report-header">
             <h2 class="fw-bold">🤝 {% trans "Related Party Transactions" %}</h2>
-            <a href="#" class="btn btn-sm btn-primary">+ {% trans "Add Transaction" %}</a>
+            <a href="{% url 'accounting:related_party_create' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "Add Transaction" %}
+            </a>
         </div>
 
         <div class="report-alert alert mb-3" style="background:var(--acc-pale-blue); border-left:4px solid var(--acc-mid-blue); color:var(--acc-dark-blue)">

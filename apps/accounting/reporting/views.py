@@ -9,7 +9,8 @@ from company.models import CompanyProfile
 from finance.models import Account, JournalEntryLine
 from reporting.engines import ReportEngine
 from apps.accounting.reconciliation.models import BankReconciliation
-from apps.accounting.compliance.models import CT1Computation
+from apps.accounting.compliance.models import CT1Computation, Dividend, RelatedPartyTransaction
+from apps.accounting.compliance.forms import DividendForm, RelatedPartyTransactionForm
 
 def get_user_company(request):
     if hasattr(request.user, "company") and request.user.company:
@@ -248,21 +249,37 @@ class DividendListView(LoginRequiredMixin, ListView):
         from apps.accounting.compliance.models import Dividend
         return Dividend.objects.filter(company=get_user_company(self.request))
 
+class DividendCreateView(LoginRequiredMixin, CreateView):
+    model = Dividend
+    form_class = DividendForm
+    template_name = 'accounting/reporting/dividend_form.html'
+    success_url = reverse_lazy('accounting:dividend_list')
+    
+    def form_valid(self, form):
+        form.instance.company = get_user_company(self.request)
+        return super().form_valid(form)
+
 class RelatedPartyTransactionView(LoginRequiredMixin, ListView):
     template_name = 'accounting/reporting/related_party_list.html'
     context_object_name = 'transactions'
 
     def get_queryset(self):
+        """
+        Adapter that aggregates Related Party Transactions (RPTs) from two sources:
+        1. Compliance Module (ComplianceRPT): Direct manual entries for statutory disclosures.
+        2. Journal Module (JournalRPT): Direct tags on accounting entries in the General Ledger.
+        """
         from apps.accounting.compliance.models import RelatedPartyTransaction as ComplianceRPT
         from apps.accounting.related_party.models import RelatedPartyTransaction as JournalRPT
         company = get_user_company(self.request)
         
-        # Get standalone RPTs from compliance
+        # 1. Fetch manual statutory disclosures
         compliance_rpts = ComplianceRPT.objects.filter(company=company).values(
             'company', 'party_name', 'relationship', 'transaction_date', 'amount', 'is_arm_length'
         )
         
-        # Get journal-linked RPTs
+        # 2. Fetch ledger-level tagged transactions
+        # We look up through the journal line to the company
         journal_rpts = JournalRPT.objects.filter(
             journal_entry_line__account__company=company
         ).values(
@@ -274,17 +291,31 @@ class RelatedPartyTransactionView(LoginRequiredMixin, ListView):
             'journal_entry_line__credit'
         )
         
-        # Combine and return as a list
-        return list(compliance_rpts) + [
+        # 3. Transform Ledger RPTs into the standardized RPT dictionary format
+        transformed_journal_rpts = [
             {
                 'company': rpt['journal_entry_line__account__company'],
                 'party_name': rpt['journal_entry_line__account__name'],
                 'relationship': rpt['relationship_type'],
                 'transaction_date': rpt['journal_entry_line__journal_entry__date'],
+                # Take the non-zero value, or credit if both non-zero (unlikely on single line)
                 'amount': rpt['journal_entry_line__debit'] or rpt['journal_entry_line__credit'],
-                'is_arm_length': True
+                'is_arm_length': True # Tagged ledger entries assumed arm-length unless noted
             } for rpt in journal_rpts
         ]
+
+        # Combine results — Compliance RPTs are already in a compatible format
+        return list(compliance_rpts) + transformed_journal_rpts
+
+class RelatedPartyTransactionCreateView(LoginRequiredMixin, CreateView):
+    model = RelatedPartyTransaction
+    form_class = RelatedPartyTransactionForm
+    template_name = 'accounting/reporting/related_party_form.html'
+    success_url = reverse_lazy('accounting:related_party_list')
+    
+    def form_valid(self, form):
+        form.instance.company = get_user_company(self.request)
+        return super().form_valid(form)
 
 
 class BankReconciliationUpdateView(LoginRequiredMixin, TemplateView):

@@ -10,7 +10,9 @@
     <div class="report-container">
         <div class="report-header">
             <h2 class="fw-bold">📃 {% trans "Dividend Register" %}</h2>
-            <a href="#" class="btn btn-sm btn-primary">+ {% trans "Declare Dividend" %}</a>
+            <a href="{% url 'accounting:dividend_create' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "Declare Dividend" %}
+            </a>
         </div>
 
         <div class="report-card card shadow">
