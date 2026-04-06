@@ -474,6 +474,17 @@
             animation: menuFadeIn 0.15s ease;
         }
 
+        /* Invisible bridge to prevent menu from closing when moving mouse from trigger to menu */
+        .app-nav-dropdown-menu::before {
+            content: "";
+            position: absolute;
+            top: -12px;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: transparent;
+        }
+
         @keyframes menuFadeIn {
             from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
             to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -829,6 +840,7 @@
 
         // ---- Module nav dropdowns ----
         var dropdowns = document.querySelectorAll('[data-dropdown]');
+        var dropdownTimeouts = {}; // Per-dropdown timeouts to prevent flickering
 
         function closeAllNavDropdowns(exceptEl) {
             document.querySelectorAll('.app-nav-dropdown-menu.open').forEach(function(m) {
@@ -839,35 +851,52 @@
             });
         }
 
-        dropdowns.forEach(function(dd) {
+        dropdowns.forEach(function(dd, idx) {
             var trigger = dd.querySelector('[data-dropdown-trigger]');
             var menu    = dd.querySelector('.app-nav-dropdown-menu');
             if (!trigger || !menu) return;
 
-            // Toggle on click
+            // Toggle on click: Robust toggle even if already hovered open
             trigger.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 var isOpen = menu.classList.contains('open');
-                closeAllNavDropdowns(null);
-                if (!isOpen) {
+
+                if (isOpen) {
+                    // If open, clicking should close it
+                    menu.classList.remove('open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                } else {
+                    // If closed, close others and open this one
+                    closeAllNavDropdowns(null);
                     menu.classList.add('open');
                     trigger.setAttribute('aria-expanded', 'true');
                 }
             });
 
-            // Also open on hover (desktop UX enhancement)
+            // Desktop Hover Support (with grace period)
             if (window.matchMedia('(hover: hover)').matches) {
                 dd.addEventListener('mouseenter', function() {
                     if (window.innerWidth > 768) {
+                        // Cancel any pending close for this menu
+                        if (dropdownTimeouts[idx]) {
+                            clearTimeout(dropdownTimeouts[idx]);
+                            delete dropdownTimeouts[idx];
+                        }
                         closeAllNavDropdowns(menu);
                         menu.classList.add('open');
                         trigger.setAttribute('aria-expanded', 'true');
                     }
                 });
+
                 dd.addEventListener('mouseleave', function() {
                     if (window.innerWidth > 768) {
-                        menu.classList.remove('open');
-                        trigger.setAttribute('aria-expanded', 'false');
+                        // Delay closing to allow moving between trigger/menu or over gaps
+                        dropdownTimeouts[idx] = setTimeout(function() {
+                            menu.classList.remove('open');
+                            trigger.setAttribute('aria-expanded', 'false');
+                            delete dropdownTimeouts[idx];
+                        }, 250); // 250ms grace period for stable interaction
                     }
                 });
             }

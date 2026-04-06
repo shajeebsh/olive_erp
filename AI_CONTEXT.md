@@ -799,3 +799,31 @@ Accounting reports (Balance Sheet, Profit & Loss, VAT Summary) were consuming to
 - ✅ All accounting reports share a unified, dense "ERP-first" visual style.
 - ✅ Print readability preserved while optimizing for on-screen daily use.
 - ✅ `python manage.py test apps.accounting` passes (7 tests).
+
+---
+
+## 21. Top Navigation Dropdown Fix (April 2026)
+
+### Problem
+Top navigation dropdowns were unstable. They would close too quickly or disappear when moving the mouse from the trigger to the menu, and clicking an already-hovered-open menu would close it unexpectedly.
+
+### Root Causes
+1.  **Visual Gap:** A 6px gap between the trigger and the absolute-positioned menu caused a `mouseleave` event on the parent container when the pointer crossed the gap.
+2.  **Aggressive Event Handling:** `mouseleave` immediately closed the menu without any grace period.
+3.  **Conflict between Hover and Click:** The click handler assumed the menu was closed, but if it was open via hover, it would close it instead of toggling or remaining open.
+
+### Implementation
+- **CSS "Invisible Bridge"**: Added a `::before` pseudo-element to `.app-nav-dropdown-menu` that extends 12px above the menu, bridging the physical gap between the trigger and the popup. This ensures the mouse remains "inside" the container while moving.
+- **JavaScript Interaction Model Refined**:
+  - **Grace Period**: Added a 250ms `setTimeout` to the `mouseleave` event to prevent accidental closing.
+  - **Hover Coordination**: `mouseenter` now clears any pending close timeouts for that dropdown.
+  - **Robust Toggling**: Updated the `click` handler to perform a clean toggle regardless of whether the menu was opened via hover or click.
+- **Desktop vs. Mobile**: Maintained `window.innerWidth > 768` check for hover support, ensuring mobile remains click-only and stable.
+
+### Validation
+- ✅ Clicking a top menu item opens its dropdown reliably.
+- ✅ The dropdown stays open while moving from trigger into the menu.
+- ✅ Small accidental mouse exits are ignored within the 250ms grace period.
+- ✅ Clicking outside or pressing Escape closes all menus correctly.
+- ✅ Opening one dropdown closes all others immediately.
+- ✅ Mobile menu behavior is unaffected and stable.
