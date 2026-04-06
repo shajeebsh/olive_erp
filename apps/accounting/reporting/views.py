@@ -11,6 +11,7 @@ from reporting.engines import ReportEngine
 from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import CT1Computation, Dividend, RelatedPartyTransaction
 from apps.accounting.compliance.forms import DividendForm, RelatedPartyTransactionForm
+from tax_engine.countries.ie.models import Director
 
 def get_user_company(request):
     if hasattr(request.user, "company") and request.user.company:
@@ -351,3 +352,66 @@ class BankReconciliationUpdateView(LoginRequiredMixin, TemplateView):
         context = self.get_context_data()
         context['recon'] = recon
         return self.render_to_response(context)
+
+
+class DirectorCreateView(LoginRequiredMixin, CreateView):
+    from tax_engine.forms import DirectorForm
+    model = Director
+    form_class = DirectorForm
+    template_name = 'accounting/reporting/director_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        return form
+
+    def form_valid(self, form):
+        from company.models import CompanyProfile
+        company = get_user_company(self.request)
+        form.instance.company = company
+        return super().form_valid(form)
+
+
+class SecretaryCreateView(LoginRequiredMixin, CreateView):
+    from tax_engine.forms import SecretaryForm
+    from tax_engine.countries.ie.models import Secretary
+    model = Secretary
+    form_class = SecretaryForm
+    template_name = 'accounting/reporting/secretary_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def form_valid(self, form):
+        from company.models import CompanyProfile
+        company = get_user_company(self.request)
+        form.instance.company = company
+        return super().form_valid(form)
+
+
+class ShareholderCreateView(LoginRequiredMixin, CreateView):
+    from tax_engine.forms import ShareholderForm
+    from tax_engine.countries.ie.models import Shareholder
+    model = Shareholder
+    form_class = ShareholderForm
+    template_name = 'accounting/reporting/shareholder_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def form_valid(self, form):
+        from company.models import CompanyProfile
+        company = get_user_company(self.request)
+        form.instance.company = company
+        return super().form_valid(form)
+
+
+class BeneficialOwnerCreateView(LoginRequiredMixin, CreateView):
+    from tax_engine.forms import BeneficialOwnerForm
+    from tax_engine.countries.ie.rbo import BeneficialOwner
+    model = BeneficialOwner
+    form_class = BeneficialOwnerForm
+    template_name = 'accounting/reporting/beneficial_owner_form.html'
+    success_url = reverse_lazy('accounting:statutory_registers')
+
+    def form_valid(self, form):
+        from company.models import CompanyProfile
+        company = get_user_company(self.request)
+        form.instance.company = company
+        return super().form_valid(form)

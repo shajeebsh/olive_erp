@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "New Beneficial Owner" %} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <div class="form-card shadow-sm">
+            <div class="form-header d-flex justify-content-between align-items-center">
+                <h2 class="page-title">
+                    <i class="bi bi-shield-plus me-2 text-primary"></i>
+                    {% trans "New Beneficial Owner" %}
+                </h2>
+                <a href="{% url 'accounting:statutory_registers' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+                </a>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-body">
+                    <div class="form-section">
+                        <h6 class="form-section-title">{% trans "Personal Details" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "First Name" %} *</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Last Name" %} *</label>
+                                {{ form.last_name }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Former Names" %}</label>
+                                {{ form.former_names }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Date of Birth" %} *</label>
+                                {{ form.date_of_birth }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Nationality" %} *</label>
+                                {{ form.nationality }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "PPS Number" %}</label>
+                                {{ form.pps_number }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Residential Address" %}</h6>
+                        <div class="form-grid">
+                            <div class="form-full-width">
+                                <label class="form-label">{% trans "Address Line 1" %} *</label>
+                                {{ form.address_line1 }}
+                            </div>
+                            <div class="form-full-width">
+                                <label class="form-label">{% trans "Address Line 2" %}</label>
+                                {{ form.address_line2 }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "City" %} *</label>
+                                {{ form.city }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "County" %} *</label>
+                                {{ form.county }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Country" %}</label>
+                                {{ form.country }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Country Code" %}</label>
+                                {{ form.country_code }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Nature of Interest" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "Interest Type" %} *</label>
+                                {{ form.interest_type }}
+                            </div>
+                            <div class="form-full-width">
+                                <label class="form-label">{% trans "Interest Details" %} *</label>
+                                {{ form.interest_details }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Ownership Details" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "Shares Held" %}</label>
+                                {{ form.shares_held }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "% Held" %}</label>
+                                {{ form.percentage_held }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Voting Rights %" %}</label>
+                                {{ form.voting_rights_percentage }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section mt-4">
+                        <h6 class="form-section-title">{% trans "Dates" %}</h6>
+                        <div class="form-grid">
+                            <div>
+                                <label class="form-label">{% trans "Became Owner" %} *</label>
+                                {{ form.became_owner_date }}
+                            </div>
+                            <div>
+                                <label class="form-label">{% trans "Ceased Owner" %}</label>
+                                {{ form.ceased_owner_date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'accounting:statutory_registers' %}" class="btn btn-sm btn-outline-secondary px-3">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-primary px-4">
+                        <i class="bi bi-check-lg me-2"></i>{% trans "Save Beneficial Owner" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

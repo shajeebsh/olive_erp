@@ -882,3 +882,135 @@ These are in dashboard "At a Glance" sections and would need proper view/url imp
 - ✅ All list views in Finance, Inventory, CRM, HR, Projects, Purchasing have working Add buttons
 - ✅ `python manage.py check` passes
 - ✅ `python manage.py test` passes
+
+---
+
+## 24. Statutory Registers Submenu Fix & Button Standardization (April 2026)
+
+### P1: Statutory Registers Submenu Actions Fixed
+
+**Issue:** The "Add Entry" dropdown in Statutory Registers had incorrect hardcoded URLs pointing to non-existent paths:
+- `/admin/snippets/tax_engine.countries.ie/models/director/add/` (wrong)
+- `/admin/snippets/tax_engine.countries.ie/models/secretary/add/` (wrong)
+- etc.
+
+**Root Cause:** The URL pattern was incorrect. Wagtail snippet URLs follow the pattern:
+`/admin/snippets/<app_label>/<model_name>/add/`
+
+The correct URLs are:
+- `/admin/snippets/tax_engine/director/add/`
+- `/admin/snippets/tax_engine/secretary/add/`
+- `/admin/snippets/tax_engine/shareholder/add/`
+- `/admin/snippets/tax_engine/beneficialowner/add/`
+
+**Fix Applied:**
+- Updated `templates/accounting/reporting/statutory_registers.html` with correct URL paths
+- The models are registered as Wagtail snippets via `apps/accounting/statutory/wagtail_hooks.py`
+
+### P2: Button Styling Standardization
+
+**Issue:** Buttons across the application had inconsistent styling - varying sizes, padding, border radius, and lacked unified hover/focus states.
+
+**Implementation:**
+Added comprehensive button styling rules to `static/css/olive-theme.css`:
+
+| Button Class | Styling |
+|--------------|---------|
+| `.btn-primary` | Olive gradient, 8px radius, 0.5rem/1.25rem padding, hover lift effect |
+| `.btn-outline-primary` | Olive border/color, 8px radius |
+| `.btn-secondary` | Gray (#6b7280), 8px radius, white text |
+| `.btn-success` | Emerald (#10b981), 8px radius |
+| `.btn-danger` | Red (#ef4444), 8px radius |
+| `.btn-warning` | Amber (#f59e0b), 8px radius |
+| `.btn-info` | Blue (#3b82f6), 8px radius |
+| `.btn-sm` | 6px radius, smaller padding (0.35rem/0.75rem) |
+| `.btn-lg` | 10px radius, larger padding (0.75rem/1.5rem) |
+| `.btn-group .btn` | 6px radius for button groups |
+| `.dropdown-toggle::after` | Aligned vertically with text |
+
+All buttons now have:
+- Consistent 8px border radius (6px for small, 10px for large)
+- Consistent padding (0.5rem 1.25rem for standard)
+- Font weight 500
+- Proper hover states
+- Icon spacing (margin-right on icons)
+
+### Validation
+- ✅ Statutory Registers "Add Entry" dropdown items now use correct URLs
+- ✅ All button classes (primary, secondary, success, danger, warning, info, outline-primary) have unified styling
+- ✅ Button sizes (sm, lg) are consistent
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes (29 tests)
+
+---
+
+## 25. Statutory Register App-Facing Create Flows (April 2026)
+
+### Problem
+The "Add Entry" dropdown in Statutory Registers was linking to raw Wagtail admin/snippet pages which felt like an "escape hatch" from the main OliveERP UI rather than an integrated experience.
+
+### Implementation
+
+**New Forms Created** (`tax_engine/forms.py`):
+- `DirectorForm` - ModelForm for Director model
+- `SecretaryForm` - ModelForm for Secretary model  
+- `ShareholderForm` - ModelForm for Shareholder model
+- `BeneficialOwnerForm` - ModelForm for BeneficialOwner model
+All forms use Bootstrap `form-control` and `form-select` classes for consistent styling.
+
+**New Views Added** (`apps/accounting/reporting/views.py`):
+- `DirectorCreateView` - CreateView for Director
+- `SecretaryCreateView` - CreateView for Secretary
+- `ShareholderCreateView` - CreateView for Shareholder
+- `BeneficialOwnerCreateView` - CreateView for BeneficialOwner
+
+**New URL Routes** (`apps/accounting/urls.py`):
+- `accounting:director_create` → `/accounting/reporting/statutory/director/create/`
+- `accounting:secretary_create` → `/accounting/reporting/statutory/secretary/create/`
+- `accounting:shareholder_create` → `/accounting/reporting/statutory/shareholder/create/`
+- `accounting:beneficial_owner_create` → `/accounting/reporting/statutory/beneficial-owner/create/`
+
+**New Templates Created**:
+- `templates/accounting/reporting/director_form.html` - Uses form-page/form-container/form-card pattern
+- `templates/accounting/reporting/secretary_form.html` - Same pattern
+- `templates/accounting/reporting/shareholder_form.html` - Same pattern
+- `templates/accounting/reporting/beneficial_owner_form.html` - Same pattern
+
+**Updated Template**:
+- `templates/accounting/reporting/statutory_registers.html` - Changed hardcoded Wagtail URLs to Django URL template tags
+
+### Architecture Notes
+- Wagtail snippets remain available at `/admin/snippets/tax_engine/...` for admin/back-office use
+- Main UI now uses app-facing create flows styled consistently with the rest of OliveERP
+- All forms auto-assign the current user's company on save
+- After successful save, user is redirected back to Statutory Registers list
+
+---
+
+## 26. Cost Centre Form Modernization (April 2026)
+
+### Problem
+The Cost Centre create/edit page (`/finance/cost-centres/create/`) used an outdated one-column card layout that didn't match the improved form system used elsewhere.
+
+### Implementation
+Redesigned `templates/finance/costcentre_form.html` to use the shared add-form pattern:
+- `form-page` container
+- `form-container` wrapper
+- `form-card` with shadow
+- `form-header` with title and back button
+- `form-body` with sections
+- `form-grid` for side-by-side field layout
+- `form-actions` for submit/cancel buttons
+
+The form now displays fields in a 2-column grid on desktop:
+- Row 1: Code + Name
+- Row 2: Parent (full width)
+- Row 3: Active switch
+- Row 4: Description (full width)
+
+### Validation
+- ✅ All statutory register "Add Entry" actions open OliveERP-styled forms
+- ✅ No raw Wagtail admin pages from main UI
+- ✅ Cost Centre create/edit follows same form layout as other modernized forms
+- ✅ `python manage.py check` passes
+- ✅ `python manage.py test` passes (29 tests)
