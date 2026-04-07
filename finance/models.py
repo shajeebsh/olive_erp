@@ -81,6 +81,14 @@ class JournalEntry(models.Model):
     def __str__(self):
         return self.entry_number
 
+    @property
+    def total_debit(self):
+        return sum(line.debit for line in self.lines.all())
+
+    @property
+    def total_credit(self):
+        return sum(line.credit for line in self.lines.all())
+
 class JournalEntryLine(models.Model):
     journal_entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='lines')
     account = models.ForeignKey(Account, on_delete=models.PROTECT)

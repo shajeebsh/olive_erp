@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Journal Entries screen at `/finance/journal/` provides a compact, ledger-style view of all double-entry accounting transactions for the active company.
+The Journal Entries screen at `/finance/journal/` provides a compact, card-grid view of all double-entry accounting transactions for the active company.
 
 **Template:** `templates/finance/journal.html`  
 **View:** `finance.views.JournalEntryListView`  
@@ -10,61 +10,79 @@ The Journal Entries screen at `/finance/journal/` provides a compact, ledger-sty
 
 ---
 
-## Layout Architecture
+## Layout Architecture (April 2026 — Card Grid)
 
-The screen uses a CSS-only compact ledger layout with no external JS dependencies.
+The screen uses a CSS-only compact card-grid layout with no external JS dependencies.
 
-### Entry Structure
+### Card Structure
 
-Each journal entry renders as a self-contained card with three sections:
+Each journal entry renders as a self-contained card:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  JE-001  │  07 Apr 2026  │  POSTED  │              admin   │  ← .je-header
-├──────────┬────────────────┬──────────┬──────────┤
-│  Code    │  Account       │  Debit   │  Credit  │  ← .je-col-headers
-├──────────┼────────────────┼──────────┼──────────┤
-│  1100    │  Cash          │  1,000   │          │  ← .je-line
-│  4000    │  Sales Revenue │          │  1,000   │  ← .je-line
-├──────────┴────────────────┴──────────┴──────────┤
-│  Optional memo text                                │  ← .je-memo
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│ JE-001                    [POSTED]                      │  ← .je-card-header
+│ 07 Apr 2026                                         │
+├──────────────────────────────────────────────────────────┤
+│ 📝 Payment from Acme Corp                             │  ← .je-card-summary (optional)
+├────────────────────┬─────────────┬──────────┬───────────┤
+│ Code  │ Account    │ Debit      │ Credit   │           │  ← .je-ledger-table
+├───────┼────────────┼────────────┼──────────┤
+│ 1100  │ Cash       │ 1,000.00   │          │
+│ 4000  │ Sales Rev. │            │ 1,000.00 │
+├────────────────────┴─────────────┴──────────┴───────────┤
+│                              Total: €1,000.00          │  ← .je-card-footer
+└──────────────────────────────────────────────────────────┘
 ```
 
-### CSS Grid Layout
+### Grid Layout
 
-The `.je-col-headers` and `.je-line` elements use an identical 4-column CSS Grid:
+The `.je-grid` container uses CSS Grid for responsive layout:
 
 ```css
-grid-template-columns: 48px 1fr 64px 64px;
-                        code  name debit credit
+.je-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  /* 2 columns on desktop */
+    gap: 0.75rem;
+}
+@media (max-width: 900px) {
+    .je-grid { grid-template-columns: 1fr; }  /* 1 column on tablet/mobile */
+}
 ```
 
-**Page container:** Uses `.report-page` with max-width 900px (not --wide) for a tighter, more account-wise side-by-side layout.
+### Key Features
 
-**Key change (April 2026):** The description column was removed from the main ledger lines. Line-level descriptions are now secondary metadata rendered in `.je-memo` (entry-level memo) rather than driving horizontal width. The layout is now compact and efficient, not stretched.
+- **2-column card grid** on desktop (where space allows)
+- **Responsive collapse** to 1 column on smaller screens
+- **Card header** with entry number, date, and status badge
+- **Optional summary line** for memo/description (muted, truncated)
+- **Mini ledger table** inside each card with aligned columns
+- **Footer total row** showing total debit amount
+- **Color coding**: 
+  - Posted badge: green background (`#dcfce7`), green text (`#15803d`)
+  - Draft badge: yellow background (`#fef3c7`), amber text (`#92400e`)
+  - Debit amounts: red text (`#b91c1c`)
+  - Credit amounts: green text (`#15803d`)
 
 ### CSS Classes
 
 | Class              | Element         | Purpose                                   |
 |--------------------|-----------------|-------------------------------------------|
-| `.je-page`         | page wrapper    | Outer container (max-width: 900px)       |
+| `.je-page`         | page wrapper    | Outer container (max-width 1200px)       |
 | `.je-filter-bar`   | form wrapper    | Filter controls bar                      |
-| `.je-entry`        | entry card      | Single journal entry card                |
-| `.je-header`       | flex row        | Entry metadata (number, date, status, user)|
-| `.je-number`       | span            | Bold entry reference number               |
-| `.je-date`         | span            | Entry date                                |
-| `.je-badge`        | span            | Status badge (`.posted` / `.draft`)       |
-| `.je-user`         | span            | Created-by username (right-aligned)      |
-| `.je-col-headers` | grid row        | Column header labels inside each entry    |
-| `.je-lines`        | lines container | Wrapper for all line rows                |
-| `.je-line`         | grid row        | Single debit/credit line (4 columns)     |
-| `.je-code`         | grid cell 1     | Account code (monospace, 48px)           |
-| `.je-name`         | grid cell 2     | Account name (1fr, truncated)            |
-| `.je-debit`        | grid cell 3     | Debit amount (64px, right-aligned, red)  |
-| `.je-credit`       | grid cell 4     | Credit amount (64px, right-aligned, green)|
-| `.je-memo`         | footer div      | Entry-level memo/description              |
-| `.je-empty`        | empty state     | Shown when no entries match filters       |
+| `.je-grid`         | grid container  | 2-column card grid wrapper              |
+| `.je-card`         | entry card      | Single journal entry card                |
+| `.je-card-header`  | flex row        | Entry number, date, badge                |
+| `.je-number`       | span            | Bold entry reference number              |
+| `.je-date`         | span            | Entry date (muted)                      |
+| `.je-badge`        | span            | Status badge (`.posted` / `.draft`)    |
+| `.je-card-summary` | div             | Memo/description line (optional)        |
+| `.je-ledger-table` | table           | Mini ledger inside card                 |
+| `.je-account-code` | td             | Account code (monospace)               |
+| `.je-account-name` | td             | Account name (truncated)               |
+| `.je-debit`        | td              | Debit amount (red, right-aligned)       |
+| `.je-credit`       | td              | Credit amount (green, right-aligned)   |
+| `.je-card-footer`  | div             | Total row at bottom of card             |
+| `.je-empty`        | empty state     | Shown when no entries match filters     |
 
 ---
 
@@ -87,12 +105,29 @@ Context variables passed to template:
 
 ---
 
+## Model Properties
+
+The `JournalEntry` model has computed properties for totals:
+
+```python
+@property
+def total_debit(self):
+    return sum(line.debit for line in self.lines.all())
+
+@property
+def total_credit(self):
+    return sum(line.credit for line in self.lines.all())
+```
+
+---
+
 ## Responsiveness
 
 | Breakpoint  | Layout change                                     |
 |-------------|--------------------------------------------------|
-| `> 600px`   | Full 4-column grid (48px 1fr 64px 64px)         |
-| `≤ 600px`   | Compact 4-column (42px 1fr 52px 52px)          |
+| `> 900px`   | 2-column card grid                               |
+| `≤ 900px`   | Single column card grid                         |
+| `≤ 600px`   | Compact card padding, smaller fonts              |
 
 ---
 
@@ -120,4 +155,5 @@ When no entries match the current filters, the template renders:
 ## Known Constraints
 
 - Line prefetch: `entry.lines.all` triggers N+1 queries for large entry sets. Add `prefetch_related('lines__account')` to the view queryset for production performance.
-- Account names are truncated at 28 characters in the template. Adjust `truncatechars:28` in the template if more space is needed.
+- Account names are truncated at 25 characters in the ledger table. Adjust `truncatechars:25` in the template if more space is needed.
+- The card footer total shows `total_debit`. In balanced entries, this equals `total_credit`.

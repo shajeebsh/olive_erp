@@ -73,7 +73,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | KPI / Widget         | Model                     | Query                                     | Status     |
 |----------------------|---------------------------|-------------------------------------------|------------|
 | Customer Count       | `crm.Customer`            | `filter(company).count()`                 | ✅ Live    |
-| Active Leads         | `crm.Lead`                | `exclude(status='CONVERTED')`             | ✅ Live    |
+| Active Leads         | `crm.Lead`                | `exclude(status__in=['WON','LOST'])`      | ✅ Live    |
 | Open Orders          | `crm.SalesOrder`          | `filter(status='CONFIRMED')`              | ✅ Live    |
 | Recent Customers     | `crm.Customer`            | `order_by('-id')[:5]`                     | ✅ Live    |
 | Lead Pipeline        | Lead                      | Count by status (doughnut)                | ✅ Live (Chart.js doughnut) |
@@ -131,7 +131,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 |-------------------|------------------|------------------------------|
 | `crm.Customer`    | `created_at`     | `id` (use `order_by('-id')`) |
 | `hr.Employee`     | `status`         | No status — count directly   |
-| `crm.Lead`        | status `'ACTIVE'`| Exclude `CONVERTED` instead  |
+| `crm.Lead`        | status `'ACTIVE'`| Use `exclude(status__in=['WON','LOST'])` |
 
 ---
 

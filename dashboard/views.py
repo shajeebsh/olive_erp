@@ -210,7 +210,7 @@ def crm_dashboard(request):
 
     if company:
         customer_count = Customer.objects.filter(company=company).count()
-        active_leads = Lead.objects.filter(company=company).exclude(status='CONVERTED').count()
+        active_leads = Lead.objects.filter(company=company).exclude(status__in=['WON', 'LOST']).count()
         open_orders = SalesOrder.objects.filter(company=company, status='CONFIRMED').count()
         
         # Recent customers
