@@ -277,9 +277,10 @@ olive_erp/
 - **Phase 3 Advanced Features** - Enhanced sample data with ApprovalWorkflow records, AuditLog entries, and DocumentAttachment mocks. Built complete bulk import UI workflow: template download, CSV upload, preview, and result pages for Accounts and Products. Advanced Approval Workflow UI: list view with filters, approve/reject actions, Journal Entry integration (high-value JE >=€10k triggers approval). Added generic DocumentAttachment model for Journal Entries and Invoices with upload UI. See `docs/ai_task.md`.
 - **Related Party Transactions** - Identified dual-model design: compliance model (manual statutory disclosures) and journal-linked model (direct tags on GL entries). The view already combines both via adapter pattern, so no consolidation needed - design serves both use cases. See Known Issues section.
 - **Full Audit Trail Activation** - Wired up Django signals in `core/signals.py` for automatic AuditLog creation on CRUD operations. Signals fire on post_save and pre_delete for: JournalEntry, Invoice, PurchaseOrder, CompanyProfile, Product. Auto-loads via `core/apps.py` ready() method. See `docs/ai_task.md`.
+- **Sample Data Company Association** - Fixed sample data generation to properly associate all records with the company. Previously Customers, Leads, Products, Employees, Projects, Invoices, etc. had null company field causing views to filter them out. Now all data is scoped to "Olive Tech Solutions Ltd" and visible in UI.
 
 ### 🔄 In-progress Features
-- **Top navigation UI polish**: Two-row enterprise header in place with visual polish verified - hover/focus states, mobile responsiveness, proper overflow behavior. CSS is inline in base.html for load-order reliability.
+(None - all features complete)
 
 ### ❌ Not Yet Started
 - Multi-company support (current design is single-company per installation)
