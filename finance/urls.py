@@ -16,6 +16,7 @@ urlpatterns = [
     path("expenses/", views.ExpenseListView.as_view(), name="expenses"),
     path("journal/", views.JournalEntryListView.as_view(), name="journal"),
     path("journal/create/", views.JournalEntryCreateView.as_view(), name="journal_create"),
+    path("journal/<int:pk>/", views.JournalEntryDetailView.as_view(), name="journal_detail"),
     
     # Accounts (CBVs)
     path("accounts/", views.AccountListView.as_view(), name="account_list"),
@@ -57,4 +58,10 @@ urlpatterns = [
 
     # System Configuration
     path("config/", views.SystemConfigUpdateView.as_view(), name="system_config"),
+    
+    # Bulk Import
+    path("import/", views.BulkImportView.as_view(), name="bulk_import"),
+    path("import/template/<str:import_type>/", views.ImportTemplateView.as_view(), name="import_template"),
+    path("import/preview/<str:import_type>/", views.ImportPreviewView.as_view(), name="import_preview"),
+    path("import/process/<str:import_type>/", views.ImportProcessView.as_view(), name="import_process"),
 ]

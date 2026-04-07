@@ -16,6 +16,7 @@ def navigation_menu(request):
             {'name': '💸 Expenses', 'url': 'finance:expenses'},
             {'name': '📍 Cost Centres', 'url': 'finance:costcentre_list'},
             {'name': '💰 Budgets', 'url': 'finance:budget_list'},
+            {'name': '📥 Bulk Import', 'url': 'finance:bulk_import'},
         ]},
         {'name': 'Inventory', 'url': 'dashboard:inventory_dashboard', 'icon': 'bi-box-seam', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:inventory_dashboard'},
@@ -63,6 +64,15 @@ def navigation_menu(request):
             {'name': '🤝 Related Party TX', 'url': 'accounting:related_party_list'},
             {'name': '💰 CT1 Computation', 'url': 'accounting:ct1_list'},
         ]},
+        {
+            'name': 'Approvals',
+            'url': 'core:approval_list',
+            'icon': 'bi-check2-square',
+            'submenu': [
+                {'name': '📋 All Approvals', 'url': 'core:approval_list'},
+                {'name': '📊 Dashboard', 'url': 'dashboard:index'},
+            ]
+        },
     ]
     
     if company and company.country_code:

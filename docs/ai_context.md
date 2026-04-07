@@ -274,15 +274,14 @@ olive_erp/
 - **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
 - **Template humanize fix** - Added `{% load humanize %}` to templates using `|intcomma` filter
 - **Phase 1-3 improvements** - Stabilization: Added company FK to JournalEntry, improved exception handling in reporting, created CompanyScopedMixin. Refactoring: Verified consistent CRUD patterns across modules. Features: AuditLog and ApprovalWorkflow already exist, dashboard drill-downs added (KPI clickable), bulk import foundation added at `core/import_utils.py`. See `docs/ai_task.md`.
+- **Phase 3 Advanced Features** - Enhanced sample data with ApprovalWorkflow records, AuditLog entries, and DocumentAttachment mocks. Built complete bulk import UI workflow: template download, CSV upload, preview, and result pages for Accounts and Products. Advanced Approval Workflow UI: list view with filters, approve/reject actions, Journal Entry integration (high-value JE >=€10k triggers approval). Added generic DocumentAttachment model for Journal Entries and Invoices with upload UI. See `docs/ai_task.md`.
+- **Related Party Transactions** - Identified dual-model design: compliance model (manual statutory disclosures) and journal-linked model (direct tags on GL entries). The view already combines both via adapter pattern, so no consolidation needed - design serves both use cases. See Known Issues section.
+- **Full Audit Trail Activation** - Wired up Django signals in `core/signals.py` for automatic AuditLog creation on CRUD operations. Signals fire on post_save and pre_delete for: JournalEntry, Invoice, PurchaseOrder, CompanyProfile, Product. Auto-loads via `core/apps.py` ready() method. See `docs/ai_task.md`.
 
 ### 🔄 In-progress Features
-- **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback
-- **Accounting module**: Enhanced reporting, seed data, compliance features
-- **Test coverage**: Test discovery for `apps.accounting` module
-- **Related party transactions**: Consolidation between two models in progress
+- **Top navigation UI polish**: Two-row enterprise header in place with visual polish verified - hover/focus states, mobile responsiveness, proper overflow behavior. CSS is inline in base.html for load-order reliability.
 
 ### ❌ Not Yet Started
-- Full audit trail implementation
 - Multi-company support (current design is single-company per installation)
 - Advanced workflow automation beyond signals
 - API documentation
@@ -333,10 +332,13 @@ qs = Model.objects.filter(company=company)
 2. **Duplicate `get_user_company()` helper**: The helper has been centralized in `core/utils.py`. The HR module now uses this shared version.
    - **Status**: ✅ Centralized.
 
-3. **Duplicate RelatedPartyTransaction**: Two models exist:
-   - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (standalone)
-   - `apps/accounting/related_party/models.py::RelatedPartyTransaction` (journal-linked)
-   - Views query both but data should be consolidated
+ 3. **Related Party Transactions** (RESOLVED - dual-model by design):
+    - Two models exist:
+      - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (manual statutory disclosures)
+      - `apps/accounting/related_party/models.py::RelatedPartyTransaction` (journal-linked via JournalEntryLine)
+    - This is intentional: compliance model for manual statutory entries, journal-linked for direct GL tagging
+    - View `RelatedPartyTransactionView` in `apps/accounting/reporting/views.py` already combines both via adapter pattern
+    - No action needed - design serves both use cases
 
 4. **Sample data company mismatch**: Old seed data creates "Olive Tech Solutions Ltd" but current user may be linked to "Nimra tech"
    - Use `manage.py reset_demo_data` to get clean dataset

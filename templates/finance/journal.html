@@ -236,7 +236,7 @@
                 <!-- Card Header -->
                 <div class="je-card-header">
                     <div class="je-card-title">
-                        <span class="je-number">{{ entry.entry_number }}</span>
+                        <a href="{% url 'finance:journal_detail' entry.pk %}" class="je-number">{{ entry.entry_number }}</a>
                         <span class="je-date">{{ entry.date|date:"d M Y" }}</span>
                     </div>
                     {% if entry.is_posted %}

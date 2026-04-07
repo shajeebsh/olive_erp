@@ -1,4 +1,6 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -143,3 +145,49 @@ class ApprovalWorkflow(models.Model):
         from django.utils import timezone
         self.decided_at = timezone.now()
         self.save()
+
+
+class DocumentAttachment(models.Model):
+    """
+    Generic document attachment for ERP entities.
+    Supports Journal Entries, Invoices, Purchase Orders, etc.
+    """
+    FILE_TYPE_CHOICES = [
+        ('PDF', 'PDF Document'),
+        ('IMAGE', 'Image'),
+        ('SPREADSHEET', 'Spreadsheet'),
+        ('DOCUMENT', 'Word/Text Document'),
+        ('OTHER', 'Other'),
+    ]
+    
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
+    
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    file = models.FileField(upload_to='documents/%Y/%m/')
+    filename = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=20, choices=FILE_TYPE_CHOICES, default='OTHER')
+    file_size = models.PositiveIntegerField(null=True, blank=True, help_text="Size in bytes")
+    
+    description = models.TextField(blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_attachments')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = _("document attachment")
+        verbose_name_plural = _("document attachments")
+    
+    def __str__(self):
+        return f"{self.filename} ({self.content_object})"
+    
+    def save(self, *args, **kwargs):
+        if self.file and not self.file_size:
+            self.file_size = self.file.size
+        if self.filename and not self.filename:
+            self.filename = self.file.name
+        super().save(*args, **kwargs)

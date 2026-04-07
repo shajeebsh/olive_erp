@@ -1,8 +1,13 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Q, Sum
+from django.http import HttpResponse, Http404
+from django.shortcuts import render, redirect
+from django.views import View
+import csv
+import io
 from .forms import (
     InvoiceForm, JournalEntryForm, AccountForm, PriceListForm, 
     DiscountRuleForm, RecurringInvoiceForm, CreditDebitNoteForm
@@ -88,6 +93,18 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return Invoice.objects.filter(company=get_user_company(self.request))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.contrib.contenttypes.models import ContentType
+        from core.models import DocumentAttachment
+        
+        inv_ct = ContentType.objects.get_for_model(Invoice)
+        context['attachments'] = DocumentAttachment.objects.filter(
+            content_type=inv_ct,
+            object_id=self.object.pk
+        )
+        return context
 
 class InvoiceDeleteView(LoginRequiredMixin, DeleteView):
     model = Invoice
@@ -157,8 +174,29 @@ class JournalEntryListView(LoginRequiredMixin, ListView):
         User = get_user_model()
         context['users'] = User.objects.filter(is_active=True).order_by('username')
         context['accounts'] = Account.objects.filter(company=company).order_by('code')
-        
         return context
+
+
+class JournalEntryDetailView(LoginRequiredMixin, DetailView):
+    model = JournalEntry
+    template_name = 'finance/journal_detail.html'
+    context_object_name = 'entry'
+
+    def get_queryset(self):
+        return JournalEntry.objects.filter(company=get_user_company(self.request)).prefetch_related('lines__account')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.contrib.contenttypes.models import ContentType
+        from core.models import DocumentAttachment
+        
+        je_ct = ContentType.objects.get_for_model(JournalEntry)
+        context['attachments'] = DocumentAttachment.objects.filter(
+            content_type=je_ct,
+            object_id=self.object.pk
+        )
+        return context
+
 
 class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     model = JournalEntry
@@ -172,6 +210,32 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Journal Entry created successfully')
         return super().form_valid(form)
+    
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 302 and request.POST.get('action') == 'post':
+            je = self.object
+            if je:
+                total_amount = je.total_debit
+                if total_amount >= 10000:
+                    from core.models import ApprovalWorkflow
+                    ApprovalWorkflow.objects.create(
+                        company=je.company,
+                        workflow_type='JOURNAL_POST',
+                        reference_id=str(je.id),
+                        reference_model='JournalEntry',
+                        status='PE',
+                        requested_by=request.user,
+                        request_notes=f'High-value journal entry €{total_amount} requires approval'
+                    )
+                    messages.info(request, f'Journal entry created but requires approval due to amount €{total_amount}')
+                else:
+                    je.is_posted = True
+                    je.save()
+                    messages.success(request, 'Journal entry posted successfully')
+        
+        return response
 
 class ExpenseListView(LoginRequiredMixin, ListView):
     model = Account
@@ -537,3 +601,119 @@ class SystemConfigUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'System configuration updated successfully.')
         return super().form_valid(form)
+
+
+class BulkImportView(LoginRequiredMixin, TemplateView):
+    template_name = 'finance/bulk_import.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        company = get_user_company(self.request)
+        context['import_types'] = [
+            {'id': 'accounts', 'name': 'Chart of Accounts', 'description': 'Import account codes, names, types', 'icon': 'bi-diagram-3'},
+            {'id': 'products', 'name': 'Products', 'description': 'Import product SKUs, prices, categories', 'icon': 'bi-box-seam'},
+        ]
+        return context
+
+
+class ImportTemplateView(LoginRequiredMixin, View):
+    """Download CSV template for import"""
+    
+    def get(self, request, import_type):
+        import csv
+        import io
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="{}_template.csv"'.format(import_type)
+        
+        if import_type == 'accounts':
+            headers = ['Code', 'Name', 'Type', 'Parent', 'Description', 'Active']
+            writer = csv.writer(response)
+            writer.writerow(headers)
+            writer.writerow(['2000', 'Liabilities', 'Liability', '2000', 'Liability accounts', 'true'])
+            writer.writerow(['2100', 'Current Liabilities', 'Liability', '2000', 'Current liabilities', 'true'])
+        elif import_type == 'products':
+            headers = ['Name', 'SKU', 'Category', 'Description', 'Unit Price', 'Cost Price', 'Reorder Level', 'Active']
+            writer = csv.writer(response)
+            writer.writerow(headers)
+            writer.writerow(['Laptop Computer', 'SKU-ELE-1001', 'Electronics', 'High-end laptop', '1200.00', '800.00', '10', 'true'])
+        else:
+            raise Http404("Unknown import type")
+        
+        return response
+
+
+class ImportPreviewView(LoginRequiredMixin, TemplateView):
+    template_name = 'finance/import_preview.html'
+    
+    def post(self, request, import_type):
+        company = get_user_company(request)
+        csv_file = request.FILES.get('csv_file')
+        
+        if not csv_file:
+            messages.error(request, 'Please select a CSV file')
+            return redirect('finance:bulk_import')
+        
+        # Preview first 10 rows
+        decoded = csv_file.read().decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded))
+        rows = []
+        for i, row in enumerate(reader):
+            if i >= 10:
+                break
+            rows.append(row)
+        
+        context = self.get_context_data(**kwargs)
+        context['import_type'] = import_type
+        context['csv_file'] = csv_file.name
+        context['rows'] = rows
+        context['headers'] = reader.fieldnames if reader.fieldnames else []
+        context['total_rows'] = sum(1 for _ in reader) + len(rows)
+        
+        # Store the CSV in session for processing
+        request.session['import_csv_data'] = decoded
+        request.session['import_type'] = import_type
+        
+        return render(request, self.template_name, context)
+
+
+class ImportProcessView(LoginRequiredMixin, View):
+    """Process the CSV import"""
+    
+    def post(self, request, import_type):
+        from core.import_utils import AccountBulkImport, ProductBulkImport
+        
+        company = get_user_company(request)
+        csv_data = request.session.get('import_csv_data')
+        
+        if not csv_data:
+            messages.error(request, 'Session expired. Please upload again.')
+            return redirect('finance:bulk_import')
+        
+        csv_file = io.StringIO(csv_data)
+        
+        if import_type == 'accounts':
+            importer = AccountBulkImport(company=company, user=request.user)
+        elif import_type == 'products':
+            importer = ProductBulkImport(company=company, user=request.user)
+        else:
+            messages.error(request, 'Unknown import type')
+            return redirect('finance:bulk_import')
+        
+        result = importer.import_data(csv_file)
+        
+        # Clear session
+        del request.session['import_csv_data']
+        del request.session['import_type']
+        
+        context = {
+            'result': result,
+            'import_type': import_type,
+        }
+        
+        if result.error_count > 0:
+            messages.warning(request, f'Import completed with {result.error_count} errors')
+        else:
+            messages.success(request, f'Successfully imported {result.success_count} records')
+        
+        return render(request, 'finance/import_result.html', context)
