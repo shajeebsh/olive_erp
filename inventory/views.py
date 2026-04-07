@@ -76,8 +76,8 @@ def product_delete(request, pk):
 
 @login_required
 def stock(request):
-    # Overall stock levels across warehouses
-    qs = StockLevel.objects.select_related('product', 'warehouse').all()
+    company = get_user_company(request)
+    qs = StockLevel.objects.filter(product__company=company).select_related('product', 'warehouse')
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(product__name__icontains=query) | Q(product__sku__icontains=query))
@@ -95,42 +95,46 @@ def stock(request):
 
 @login_required
 def warehouses(request):
-    qs = Warehouse.objects.all()
+    company = get_user_company(request)
+    qs = Warehouse.objects.filter(company=company)
     context = {'warehouses': qs}
     return render(request, 'inventory/warehouses.html', context)
 
 
 @login_required
 def warehouse_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
         form = WarehouseForm(request.POST)
         if form.is_valid():
-            form.save()
+            warehouse = form.save(commit=False)
+            warehouse.company = company
+            warehouse.save()
             return redirect('inventory:warehouses')
     else:
-        form = WarehouseForm()
+        form = WarehouseForm(company=company)
     return render(request, 'inventory/warehouse_form.html', {'form': form, 'action': 'Create'})
 
 
 @login_required
 def movements(request):
-    qs = StockMovement.objects.select_related('product', 'warehouse', 'created_by').order_by('-date')
+    company = get_user_company(request)
+    qs = StockMovement.objects.filter(product__company=company).select_related('product', 'warehouse', 'created_by').order_by('-date')
     context = {'movements': qs}
     return render(request, 'inventory/movements.html', context)
 
 
 @login_required
 def movement_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
-        form = StockMovementForm(request.POST)
+        form = StockMovementForm(request.POST, company=company)
         if form.is_valid():
             movement = form.save(commit=False)
             movement.created_by = request.user
             movement.save()
             
-            # Note: Ideally signal handles stockLevel update, but for MVP demo we can keep it simple.
-            # Assuming signals exist based on earlier knowledge of this patterns.
             return redirect('inventory:movements')
     else:
-        form = StockMovementForm()
+        form = StockMovementForm(company=company)
     return render(request, 'inventory/movement_form.html', {'form': form})

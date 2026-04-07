@@ -28,6 +28,7 @@ class Product(models.Model):
         return f"{self.sku} - {self.name}"
 
 class Warehouse(models.Model):
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='warehouses', null=True, blank=True)
     name = models.CharField(max_length=100)
     location = models.TextField()
     is_active = models.BooleanField(default=True)

@@ -11,7 +11,7 @@ All core business modules in OliveERP scope data by `CompanyProfile` via Foreign
 | **hr** | Employee, Department, LeaveRequest, Attendance, PayrollPeriod | `company` FK |
 | **projects** | Project | `company` FK |
 | **purchasing** | Supplier, PurchaseOrder | `company` FK |
-| **inventory** | Product | `company` FK |
+| **inventory** | Product, Warehouse | `company` FK |
 | **apps.accounting** | FixedAsset, BankReconciliation, Dividend, CT1Computation | `company` FK |
 
 ## Scoping Pattern
@@ -47,6 +47,7 @@ obj = get_object_or_404(Model, pk=pk, company=company)
 - `projects/migrations/0002_project_company.py`
 - `purchasing/migrations/0003_purchaseorder_company_supplier_company.py`
 - `inventory/migrations/0002_product_company.py`
+- `inventory/migrations/0003_add_company_to_warehouse.py`
 
 ## End-to-End Flows
 
@@ -68,3 +69,8 @@ obj = get_object_or_404(Model, pk=pk, company=company)
 1. **Products List** (`/inventory/products/`) - Shows products for user's company, searchable by name or SKU
 2. **Product Create** - Sets company automatically, newly created products appear in list
 3. **Product Detail/Edit/Delete** - Standard CRUD flow
+4. **Stock List** (`/inventory/stock/`) - Shows stock levels for products owned by user's company
+5. **Warehouses List** (`/inventory/warehouses/`) - Shows warehouses owned by user's company
+6. **Warehouse Create** - Sets company automatically
+7. **Movements List** (`/inventory/movements/`) - Shows stock movements for products owned by user's company
+8. **Movement Create** - Product and warehouse dropdowns filtered to user's company
