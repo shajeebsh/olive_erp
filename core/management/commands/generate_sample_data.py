@@ -220,7 +220,13 @@ class Command(BaseCommand):
         self.stdout.write("Generating Warehouses...")
         warehouses = []
         for loc in ['Dublin', 'Cork', 'Galway']:
-            w, _ = Warehouse.objects.get_or_create(name=f"{loc} Warehouse", defaults={'location': f"{loc}, Ireland"})
+            w, _ = Warehouse.objects.get_or_create(
+                name=f"{loc} Warehouse", 
+                defaults={
+                    'company': self.company,
+                    'location': f"{loc}, Ireland"
+                }
+            )
             warehouses.append(w)
         return warehouses
 
@@ -241,6 +247,7 @@ class Command(BaseCommand):
             p, _ = Product.objects.get_or_create(
                 sku=f"SKU-{cat.name[:3].upper()}-{1000+i}",
                 defaults={
+                    'company': self.company,
                     'name': f"{self.fake.word().title()} {cat.name[:-1]}",
                     'description': self.fake.text(max_nb_chars=100),
                     'category': cat,
@@ -269,6 +276,7 @@ class Command(BaseCommand):
             l, _ = Lead.objects.get_or_create(
                 lead_name=self.fake.catch_phrase(),
                 defaults={
+                    'company': self.company,
                     'company_name': self.fake.company(),
                     'contact_person': self.fake.name(),
                     'email': self.fake.company_email(),
@@ -290,6 +298,7 @@ class Command(BaseCommand):
             c, _ = Customer.objects.get_or_create(
                 user=user,
                 defaults={
+                    'company': self.company,
                     'company_name': self.fake.company() if is_company else "",
                     'contact_person': self.fake.name(),
                     'email': user.email,
@@ -313,7 +322,13 @@ class Command(BaseCommand):
         dept_names = ['Executive', 'Sales', 'Engineering', 'Marketing', 'HR', 'Finance', 'Operations', 'IT']
         departments = []
         for name in dept_names:
-            d, _ = Department.objects.get_or_create(name=name, defaults={'description': f"{name} Department"})
+            d, _ = Department.objects.get_or_create(
+                name=name, 
+                defaults={
+                    'company': self.company,
+                    'description': f"{name} Department"
+                }
+            )
             departments.append(d)
 
         employees = []
@@ -327,6 +342,7 @@ class Command(BaseCommand):
             emp, _ = Employee.objects.get_or_create(
                 user=user,
                 defaults={
+                    'company': self.company,
                     'employee_id': f"EMP-{1000+i}",
                     'department': random.choice(departments),
                     'job_title': self.fake.job(),
@@ -352,6 +368,7 @@ class Command(BaseCommand):
             p, _ = Project.objects.get_or_create(
                 name=f"Project {self.fake.bs().title()}",
                 defaults={
+                    'company': self.company,
                     'description': self.fake.text(),
                     'customer': random.choice(self.customers),
                     'start_date': p_start,
@@ -383,6 +400,7 @@ class Command(BaseCommand):
             s, _ = Supplier.objects.get_or_create(
                 company_name=self.fake.company(),
                 defaults={
+                    'company': self.company,
                     'contact_person': self.fake.name(),
                     'email': self.fake.company_email(),
                     'phone': self.fake.phone_number()[:20],
@@ -410,6 +428,7 @@ class Command(BaseCommand):
                     start_date=l_start,
                     end_date=l_start + timedelta(days=random.randint(1, 5)),
                     defaults={
+                        'company': self.company,
                         'status': random.choice(['PENDING', 'APPROVED', 'REJECTED']),
                         'reason': self.fake.sentence()
                     }
@@ -426,6 +445,7 @@ class Command(BaseCommand):
                         employee=emp,
                         date=att_date,
                         defaults={
+                            'company': self.company,
                             'check_in_time': check_in,
                             'check_out_time': check_out,
                             'hours_worked': Decimal(random.uniform(7.5, 9.0)).quantize(Decimal('0.01'))
@@ -441,6 +461,7 @@ class Command(BaseCommand):
             so, _ = SalesOrder.objects.get_or_create(
                 order_number=f"SO-{order_date.year}-{1000+i}",
                 defaults={
+                    'company': self.company,
                     'customer': cust,
                     'order_date': order_date,
                     'expected_delivery_date': order_date + timedelta(days=random.randint(5, 15)),
@@ -476,6 +497,7 @@ class Command(BaseCommand):
                 inv, created = Invoice.objects.get_or_create(
                     invoice_number=f"INV-{inv_date.year}-{1000+i}",
                     defaults={
+                        'company': self.company,
                         'customer': cust,
                         'issue_date': inv_date,
                         'due_date': inv_date + timedelta(days=30),
@@ -492,6 +514,7 @@ class Command(BaseCommand):
                         date=inv_date,
                         description=f"Invoice {inv.invoice_number} to {cust.company_name or cust.contact_person}",
                         created_by=self.admin_user,
+                        company=self.company,
                         is_posted=True
                     )
                     # Debit AR
@@ -520,6 +543,7 @@ class Command(BaseCommand):
             po, created = PurchaseOrder.objects.get_or_create(
                 po_number=f"PO-{order_date.year}-{1000+i}",
                 defaults={
+                    'company': self.company,
                     'supplier': sup,
                     'order_date': order_date,
                     'expected_delivery_date': order_date + timedelta(days=random.randint(7, 21)),
