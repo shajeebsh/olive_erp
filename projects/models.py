@@ -9,6 +9,7 @@ class Project(models.Model):
         ('ON_HOLD', 'On Hold'),
         ('COMPLETED', 'Completed'),
     )
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)

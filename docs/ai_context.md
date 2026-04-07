@@ -1,4 +1,161 @@
-# docs/ai_context.md
+# docs/ai_context.md — Project Context & Conventions
+
+## AI Session Workflow
+
+### Primary Files
+- **`docs/ai_context.md`** — This file. The canonical project context file containing architecture, tech stack, decisions, conventions, and what must not be changed.
+- **`docs/ai_task.md`** — The active task-state / interrupted-session handoff file. Contains the current task in progress, status, plan, and stopping point.
+
+### How Sessions Work
+1. **Read `docs/ai_context.md` first** — This gives you the full picture of the project
+2. **Check if `docs/ai_task.md` exists** — If it exists, a previous session was interrupted mid-task
+3. **If `docs/ai_task.md` exists:**
+   - Read it carefully
+   - Do NOT start fresh or re-interpret the task
+   - Resume from where the previous session stopped
+   - Confirm your understanding before writing any code
+4. **If `docs/ai_task.md` does NOT exist:**
+   - We are starting a new task
+   - Ask the user what to work on
+   - Once agreed, create `docs/ai_task.md` with the task description
+
+### Master Prompt — Paste at Start of Every Session
+```
+## AI Coding Session Setup
+
+Before writing any code, follow these steps in order:
+
+### Step 1 — Load Project Context
+Read docs/ai_context.md from the project.
+This gives you the full picture of the project — architecture, tech stack,
+decisions, conventions, and what must not be changed.
+Confirm you have read it before proceeding.
+
+### Step 2 — Check for Active Task
+Check if docs/ai_task.md exists in the project.
+
+IF IT EXISTS:
+- Read it carefully
+- This means a previous session was interrupted mid-task
+- Do NOT start fresh or re-interpret the task
+- Confirm your understanding of exactly where the previous session stopped
+- List the next 2-3 steps you will take to continue from that point
+- Ask the user to confirm before writing any code
+
+IF IT DOES NOT EXIST:
+- We are starting a new task
+- Ask the user what we are working on today
+- Once the user describes the task:
+1. Create docs/ai_task.md with the structure below
+2. Check if .gitignore exists in the project root
+- IF it exists: add "docs/ai_task.md" to it if not already present
+- IF it does not exist: create .gitignore and add "docs/ai_task.md" to it
+This ensures ai_task.md is never accidentally committed to the repository.
+
+---
+# docs/ai_task.md — Active Task State
+
+## Task
+[description of what we are building]
+
+## Status
+🟡 IN PROGRESS
+
+## Plan (Step by Step)
+- [ ] Step 1
+- [ ] Step 2
+- [ ] Step 3
+...
+
+## Files To Be Touched
+(fill as we go)
+
+## Decisions Made
+(fill as we go)
+
+## Warnings / Gotchas
+(fill as we go)
+
+## Exact Stopping Point
+(fill if session ends incomplete)
+---
+
+### Step 3 — Work Incrementally with Checkpoints
+As we work through the task:
+- After completing each step in the plan, mark it ✅ in docs/ai_task.md
+- After every 2-3 steps, write a checkpoint update to docs/ai_task.md
+- If you are about to do something risky or irreversible, tell the user first
+- Do not attempt multiple major changes in one go — go step by step
+
+### Step 4 — Handoff Protocol (if session ends incomplete)
+If we need to stop before the task is complete, before stopping you MUST
+update docs/ai_task.md with:
+
+## Status
+🔴 INCOMPLETE
+
+## What Was Completed
+- ✅ [list every step that is fully done]
+
+## What Is Incomplete
+- 🔴 [file name, line number, what was being done, why it stopped]
+
+## Exact Stopping Point
+File: [filename]
+Line: [line number if applicable]
+Next action: [precise description of what needs to happen next]
+
+## Decisions Made This Session
+[any choices made that the next tool must respect]
+
+## Warnings for Next Tool
+[anything the next AI tool must know before continuing]
+
+### Step 5 — Session Complete Protocol
+If the task is fully completed:
+- Mark all steps ✅ in docs/ai_task.md
+- Set Status to ✅ COMPLETE
+- Update docs/ai_context.md to reflect:
+- Any newly completed features
+- Any new decisions or patterns introduced
+- Updated "Current State" section
+- Updated "Next Logical Steps" section
+- Clear docs/ai_task.md contents for the next task
+
+---
+## Ground Rules
+- Never assume context — always read the files first
+- Never make architectural changes not agreed in this session
+- Always respect decisions documented in docs/ai_context.md
+- docs/ai_task.md must always be present in .gitignore — verify this at the start of every session
+- When in doubt, ask before building
+- Keep docs/ai_task.md updated — it is the safety net if you crash
+
+🔴 Emergency Recovery Prompt
+The previous AI coding session crashed or was interrupted.
+Read docs/ai_task.md carefully.
+Do not start fresh.
+Tell the user:
+1. What was completed before the crash
+2. What is incomplete and which files are affected
+3. Exactly where we need to resume
+4. Any risks or broken state the user should be aware of
+
+Also verify that docs/ai_task.md is listed in .gitignore.
+If it is missing, add it before we continue.
+
+Wait for user confirmation before touching any code.
+
+🔵 Checkpoint Prompt
+Pause and do a checkpoint update.
+Update docs/ai_task.md right now:
+- Mark completed steps as ✅
+- Note current file and line you are working on
+- Write the next 2 steps clearly
+Do this before continuing with any code.
+```
+
+---
 
 ## 1. Project Overview
 
@@ -59,7 +216,7 @@ olive_erp/
 ```
 
 ### Key Design Decisions
-- **Company Scoping**: Most modules scope data by `CompanyProfile` via ForeignKey
+- **Company Scoping**: All core business modules scope data by `CompanyProfile` via ForeignKey. Modules with company field: `finance`, `crm`, `hr`, `projects`, `purchasing`, `inventory`, `apps.accounting`. See "Company Scoping Architecture" section for details.
 - **Custom User**: Uses `core.User` (extends AbstractUser) with optional company link
 - **Navigation**: Generated via `core.context_processors.navigation_menu`
 - **Accounting**: Uses `finance.Account`, `JournalEntry`, `JournalEntryLine` as source of truth
@@ -108,6 +265,8 @@ olive_erp/
 - **UI with two-row top navigation layout** - Fixed app shell with utility row (brand/search/user) and module navigation row
 - **Dashboard compaction pass** - Removed nested dashboard content wrappers, reduced top whitespace, tightened KPI/chart spacing, and improved above-the-fold visibility across dashboard pages
 - **Accounting report density pass** - Unified and compacted Balance Sheet, Profit & Loss, and VAT Summary reports using shared `.report-table`, `.report-card`, and `.report-header` classes to maximize above-the-fold information.
+- **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions
+- **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
 
 ### 🔄 In-progress Features
 - **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback
@@ -124,6 +283,37 @@ olive_erp/
 ### Optional / Workarounds
 - **Accounting seed data**: Use `python manage.py generate_sample_data` to populate accounting tables (required after migrations on fresh DB)
 - **Multi-country tax**: The `tax_engine` uses registry pattern (`BaseTaxEngine`) - each country implements the abstract base class
+
+---
+
+## 5b. Company Scoping Architecture
+
+### Overview
+All core business modules scope data by `CompanyProfile` via ForeignKey. This enables multi-tenant design and ensures users only see data for their company.
+
+### Modules with Company Field
+| Module | Model | Company Field |
+|--------|-------|---------------|
+| **finance** | Account, Invoice, JournalEntry, Budget, CostCentre | `company` FK |
+| **crm** | Customer, Lead, SalesOrder | `company` FK |
+| **hr** | Employee, Department, LeaveRequest, Attendance, PayrollPeriod | `company` FK |
+| **projects** | Project | `company` FK |
+| **purchasing** | Supplier, PurchaseOrder | `company` FK |
+| **inventory** | Product | `company` FK |
+| **apps.accounting** | FixedAsset, BankReconciliation, Dividend, CT1Computation | `company` FK |
+
+### Scoping Pattern
+Views use `get_user_company(request)` to get the current user's company and filter queries:
+```python
+company = get_user_company(request)
+qs = Model.objects.filter(company=company)
+```
+
+### Adding Company to a Module
+1. Add `company` FK to model: `company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='...', null=True, blank=True)`
+2. Run `makemigrations` and `migrate`
+3. Update views to filter by company
+4. Update forms to handle company (usually set in view on save)
 
 ---
 
@@ -180,6 +370,10 @@ olive_erp/
 ---
 
 ## 8. External Integrations & Environment
+
+### Feature Documentation
+- **[Attendance Tracking](feature-attendance.md)** - Automatic attendance recording on login, duplicate prevention, end-to-end scenarios
+- **[Company Scoping](architecture-company-scoping.md)** - How company scoping works across modules
 
 ### Required Environment Variables
 - `SECRET_KEY` - Django secret key

@@ -112,3 +112,6 @@ media/
 
 # macOS files
 .DS_Store
+
+# AI Session Task State (never commit)
+docs/ai_task.md

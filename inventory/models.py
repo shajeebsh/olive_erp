@@ -11,6 +11,7 @@ class Category(models.Model):
         return self.name
 
 class Product(models.Model):
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     sku = models.CharField(max_length=50, unique=True)
     barcode = models.CharField(max_length=100, blank=True)
     name = models.CharField(max_length=255)
