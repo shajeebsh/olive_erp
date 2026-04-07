@@ -131,10 +131,24 @@ def inventory_dashboard(request):
             quantity_on_hand__gt=0,
             quantity_on_hand__lte=F('reorder_level')
         ).select_related('product', 'warehouse')[:5]
+
+        # Chart data - stock by category
+        from inventory.models import Category
+        stock_by_category = list(
+            Category.objects.filter(
+                product__company=company
+            ).annotate(
+                total_stock=Sum('product__stock_levels__quantity_on_hand')
+            ).values('name', 'total_stock')[:6]
+        )
+        category_labels = [c['name'] or 'Uncategorized' for c in stock_by_category]
+        category_data = [float(c['total_stock'] or 0) for c in stock_by_category]
     else:
         total_products = in_stock_count = 0
         low_stock_items = []
         low_stock_warning = []
+        category_labels = []
+        category_data = []
 
     context = {
         'company': company,
@@ -142,6 +156,8 @@ def inventory_dashboard(request):
         'in_stock_count': in_stock_count,
         'low_stock_items': low_stock_items,
         'low_stock_warning': low_stock_warning,
+        'category_labels': category_labels,
+        'category_data': category_data,
     }
     return render(request, 'dashboard/inventory_dashboard.html', context)
 
@@ -158,15 +174,30 @@ def hr_dashboard(request):
         
         # Get departments (distinct count)
         department_count = Employee.objects.filter(company=company).exclude(department__isnull=True).values('department').distinct().count()
+
+        # Chart data - employees by department
+        from hr.models import Department
+        dept_employees = list(
+            Employee.objects.filter(company=company)
+            .exclude(department__isnull=True)
+            .values('department__name')
+            .annotate(count=Count('id'))
+        )
+        dept_labels = [e['department__name'] or 'No Dept' for e in dept_employees]
+        dept_data = [e['count'] for e in dept_employees]
     else:
         employee_count = department_count = 0
         employees_with_user = 0
+        dept_labels = []
+        dept_data = []
 
     context = {
         'company': company,
         'employee_count': employee_count,
         'employees_with_user': employees_with_user,
         'department_count': department_count,
+        'dept_labels': dept_labels,
+        'dept_data': dept_data,
     }
     return render(request, 'dashboard/hr_dashboard.html', context)
 
@@ -184,9 +215,20 @@ def crm_dashboard(request):
         
         # Recent customers
         recent_customers = Customer.objects.filter(company=company).order_by('-id')[:5]
+
+        # Chart data - leads by status
+        lead_status_counts = list(
+            Lead.objects.filter(company=company)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        status_labels = [l['status'] or 'Unknown' for l in lead_status_counts]
+        status_data = [l['count'] for l in lead_status_counts]
     else:
         customer_count = active_leads = open_orders = 0
         recent_customers = []
+        status_labels = []
+        status_data = []
 
     context = {
         'company': company,
@@ -194,6 +236,8 @@ def crm_dashboard(request):
         'active_leads': active_leads,
         'open_orders': open_orders,
         'recent_customers': recent_customers,
+        'lead_status_labels': status_labels,
+        'lead_status_data': status_data,
     }
     return render(request, 'dashboard/crm_dashboard.html', context)
 
@@ -217,10 +261,21 @@ def projects_dashboard(request):
         
         # Recent projects
         recent_projects = Project.objects.filter(company=company).order_by('-start_date')[:5]
+
+        # Chart data - projects by status
+        project_status_counts = list(
+            Project.objects.filter(company=company)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        proj_status_labels = [p['status'] or 'Unknown' for p in project_status_counts]
+        proj_status_data = [p['count'] for p in project_status_counts]
     else:
         active_projects = open_tasks = 0
         overdue_tasks = []
         recent_projects = []
+        proj_status_labels = []
+        proj_status_data = []
 
     context = {
         'company': company,
@@ -228,6 +283,8 @@ def projects_dashboard(request):
         'open_tasks': open_tasks,
         'overdue_tasks': overdue_tasks,
         'recent_projects': recent_projects,
+        'proj_status_labels': proj_status_labels,
+        'proj_status_data': proj_status_data,
     }
     return render(request, 'dashboard/projects_dashboard.html', context)
 

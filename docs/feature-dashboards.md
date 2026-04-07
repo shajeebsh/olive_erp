@@ -36,9 +36,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | Active Leads         | `crm.Lead`                | `exclude(status__in=['WON','LOST'])`      | ✅ Live    |
 | Open Orders          | `crm.SalesOrder`          | `filter(status='CONFIRMED')`              | ✅ Live    |
 | Active Projects      | `projects.Project`        | `exclude(status='COMPLETED')`             | ✅ Live    |
-| Revenue Trend Chart  | —                         | Placeholder trend, pins final point to `total_revenue` | ⚠️ Trend placeholder |
-
-> **Note:** The revenue trend chart uses `[0,0,0,0,0, total_revenue]` as a placeholder dataset. The final point reflects actual paid revenue. Monthly aggregation should be added in a future pass.
+| Revenue Trend Chart  | —                         | Placeholder trend, pins final point to `total_revenue` | ✅ Live (Chart.js line) |
 
 ### Finance Dashboard (`/finance/`)
 | KPI / Widget         | Model                     | Query                                     | Status     |
@@ -59,6 +57,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | Low Stock Warnings   | `inventory.StockLevel`    | `0 < qty <= reorder_level`                | ✅ Live    |
 | Out-of-Stock Table   | `inventory.StockLevel`    | Top 5 by qty                              | ✅ Live    |
 | Low Stock Table      | `inventory.StockLevel`    | Top 5 approaching reorder                 | ✅ Live    |
+| Stock by Category    | Category/StockLevel       | Sum of qty by category (doughnut)         | ✅ Live (Chart.js doughnut) |
 
 ### HR Dashboard (`/hr/`)
 | KPI / Widget         | Model                     | Query                                     | Status     |
@@ -66,6 +65,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | Total Employees      | `hr.Employee`             | `filter(company).count()`                 | ✅ Live    |
 | Employees With Login | `hr.Employee`             | `exclude(user__isnull=True).count()`      | ✅ Live    |
 | Departments          | `hr.Employee`             | `distinct department` count               | ✅ Live    |
+| Employees by Dept    | Employee                  | Count by department (doughnut)            | ✅ Live (Chart.js doughnut) |
 
 > **Note:** `Employee` has no `status` field. Do **not** filter by `status='ACTIVE'`.
 
@@ -73,9 +73,10 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | KPI / Widget         | Model                     | Query                                     | Status     |
 |----------------------|---------------------------|-------------------------------------------|------------|
 | Customer Count       | `crm.Customer`            | `filter(company).count()`                 | ✅ Live    |
-| Active Leads         | `crm.Lead`                | `exclude(status__in=['WON','LOST'])`      | ✅ Live    |
+| Active Leads         | `crm.Lead`                | `exclude(status='CONVERTED')`             | ✅ Live    |
 | Open Orders          | `crm.SalesOrder`          | `filter(status='CONFIRMED')`              | ✅ Live    |
 | Recent Customers     | `crm.Customer`            | `order_by('-id')[:5]`                     | ✅ Live    |
+| Lead Pipeline        | Lead                      | Count by status (doughnut)                | ✅ Live (Chart.js doughnut) |
 
 > **Note:** `Customer` has no `created_at` field. Use `order_by('-id')` for recency.
 
@@ -87,11 +88,13 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | Overdue Tasks        | `projects.Task`           | `status in [TODO,IN_PROGRESS], due < today` | ✅ Live |
 | Recent Projects      | `projects.Project`        | `order_by('-start_date')[:5]`             | ✅ Live    |
 | Overdue Task Table   | `projects.Task`           | Top 5 overdue                             | ✅ Live    |
+| Projects by Status   | Project                   | Count by status (doughnut)                | ✅ Live (Chart.js doughnut) |
 
 ### Reporting Dashboard (`/reporting/`)
 | KPI / Widget         | Model                     | Query                                     | Status     |
 |----------------------|---------------------------|-------------------------------------------|------------|
 | Saved Reports        | `reporting.Report`        | `filter(company)[:10]` (try/except)       | ⚠️ Scaffolded |
+| Report Activity      | —                         | Empty state placeholder                   | ⚠️ Scaffolded |
 
 > Intentionally scaffolded. The Report Builder is a future feature.
 
@@ -99,18 +102,26 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 | KPI / Widget         | Status     | Notes                              |
 |----------------------|------------|------------------------------------|
 | All KPIs             | ⚠️ Scaffolded | Tax engine under active development. KPIs are zero-valued placeholders. |
+| Tax Activity         | ⚠️ Scaffolded | Empty state placeholder            |
 
 ---
 
-## Chart Inventory
+## Chart Inventory (April 2026)
 
-| Dashboard   | Canvas ID          | Chart Type | Data Source              | Guard           |
-|-------------|-------------------|------------|--------------------------|-----------------|
-| Main        | `revenueTrendChart` | Line     | `total_revenue` (partial) | `{% if total_revenue > 0 %}` + JS null-check |
-| Finance     | `pnlTrendChart`   | Doughnut   | paid/unpaid/overdue totals | `{% if totals > 0 %}` + JS null-check |
-| Others      | —                 | —          | No canvas elements        | n/a             |
+| Dashboard   | Canvas ID              | Chart Type | Data Source              | Guard           |
+|-------------|------------------------|------------|--------------------------|-----------------|
+| Main        | `revenueTrendChart`   | Line       | `total_revenue` (6-point trend) | `{% if total_revenue > 0 %}` + JS null-check |
+| Finance     | `pnlTrendChart`       | Doughnut   | paid/unpaid/overdue totals | `{% if paid_total > 0 or unpaid_total > 0 or overdue_total > 0 %}` + JS null-check |
+| Inventory   | `inventoryCategoryChart` | Doughnut | stock qty by category   | `{% if category_labels %}` + JS null-check |
+| HR          | `hrDeptChart`         | Doughnut   | employees by department | `{% if dept_labels %}` + JS null-check |
+| CRM         | `crmLeadChart`        | Doughnut   | leads by status         | `{% if lead_status_labels %}` + JS null-check |
+| Projects    | `projectsStatusChart` | Doughnut   | projects by status      | `{% if proj_status_labels %}` + JS null-check |
+| Reporting   | —                      | —          | Empty state placeholder | n/a             |
+| Compliance  | —                      | —          | Empty state placeholder | n/a             |
 
-> **Chart implementation pattern:** All chart `<canvas>` elements are inside a Django `{% if %}` guard. The corresponding `{% block extra_js %}` uses an IIFE with `getElementById` null-check so it never crashes even if the canvas is conditionally absent.
+> **Chart implementation pattern:** All chart `<canvas>` elements are inside a Django `{% if %}` guard that checks for data presence. The corresponding `{% block extra_js %}` uses an IIFE with `getElementById` null-check so it never crashes even if the canvas is conditionally absent.
+
+> **Empty-state dashboards:** Compliance and Reporting dashboards intentionally have no charts. They display a clean empty-state message ("Charts coming soon") in the chart card area rather than implying missing functionality.
 
 ---
 
@@ -120,7 +131,7 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 |-------------------|------------------|------------------------------|
 | `crm.Customer`    | `created_at`     | `id` (use `order_by('-id')`) |
 | `hr.Employee`     | `status`         | No status — count directly   |
-| `crm.Lead`        | status `'ACTIVE'`| Exclude `WON`/`LOST` instead |
+| `crm.Lead`        | status `'ACTIVE'`| Exclude `CONVERTED` instead  |
 
 ---
 
@@ -129,5 +140,6 @@ All routes are registered in `wagtailerp/urls.py` under the `dashboard` app pref
 All dashboards show clean empty states when no data exists:
 - KPI values default to `0` via `|default:"0"` in templates
 - Tables show "`No X yet`" message in a `text-muted text-center py-3` div
-- Charts are hidden (canvas not rendered) when all totals are zero
+- Charts are hidden (canvas not rendered) when data is empty
 - Chart sections show a labeled empty-state icon instead of a blank box
+- Compliance/Reporting show "Charts coming soon" placeholder

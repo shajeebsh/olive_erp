@@ -63,7 +63,7 @@
 
     <!-- Quick Actions -->
     <div class="row g-2 mb-2">
-        <div class="col-12">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
                     <span class="fw-semibold">Quick Actions</span>
@@ -80,6 +80,20 @@
                             <i class="bi bi-building me-2"></i>Add Warehouse
                         </a>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Stock by Category</span>
+                </div>
+                <div class="card-body p-2">
+                    {% if category_labels %}
+                    <canvas id="inventoryCategoryChart" height="140"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No stock data</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -157,4 +171,33 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const el = document.getElementById('inventoryCategoryChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                data: {{ category_data }},
+                backgroundColor: ['#4a6b3a', '#16a34a', '#2563eb', '#ea580c', '#9333ea', '#ec4899'],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 10 }, padding: 8 } }
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

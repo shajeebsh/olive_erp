@@ -46,7 +46,7 @@
 
     <!-- Quick Actions -->
     <div class="row g-2 mb-2">
-        <div class="col-12">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
                     <span class="fw-semibold">Quick Actions</span>
@@ -63,6 +63,20 @@
                             <i class="bi bi-clock me-2"></i>Attendance
                         </a>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Employees by Department</span>
+                </div>
+                <div class="card-body p-2">
+                    {% if dept_labels %}
+                    <canvas id="hrDeptChart" height="140"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No department data</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -86,4 +100,33 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const el = document.getElementById('hrDeptChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ dept_labels|safe }},
+            datasets: [{
+                data: {{ dept_data }},
+                backgroundColor: ['#2563eb', '#16a34a', '#ea580c', '#9333ea', '#ec4899', '#0d9488'],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 10 }, padding: 8 } }
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

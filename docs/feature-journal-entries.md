@@ -19,49 +19,50 @@ The screen uses a CSS-only compact ledger layout with no external JS dependencie
 Each journal entry renders as a self-contained card with three sections:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  JE-001  │  07 Apr 2026  │  POSTED  │              admin user   │  ← .je-header
-├──────────┬───────────────────┬─────────────┬─────────┬──────────┤
-│  Code    │  Account          │ Description │  Debit  │  Credit  │  ← .je-col-headers
-├──────────┼───────────────────┼─────────────┼─────────┼──────────┤
-│  1100    │  Cash             │ Receipt     │ 1,000   │          │  ← .je-line
-│  4000    │  Sales Revenue    │             │         │ 1,000    │  ← .je-line
-├──────────┴───────────────────┴─────────────┴─────────┴──────────┤
-│  Optional memo text                                              │  ← .je-memo
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  JE-001  │  07 Apr 2026  │  POSTED  │              admin   │  ← .je-header
+├──────────┬────────────────┬──────────┬──────────┤
+│  Code    │  Account       │  Debit   │  Credit  │  ← .je-col-headers
+├──────────┼────────────────┼──────────┼──────────┤
+│  1100    │  Cash          │  1,000   │          │  ← .je-line
+│  4000    │  Sales Revenue │          │  1,000   │  ← .je-line
+├──────────┴────────────────┴──────────┴──────────┤
+│  Optional memo text                                │  ← .je-memo
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### CSS Grid Layout
 
-The `.je-col-headers` and `.je-line` elements use an identical 5-column CSS Grid:
+The `.je-col-headers` and `.je-line` elements use an identical 4-column CSS Grid:
 
 ```css
-grid-template-columns: 52px 1fr 100px 72px 72px;
-                        code  name  desc debit credit
+grid-template-columns: 48px 1fr 64px 64px;
+                        code  name debit credit
 ```
 
-**Critical rule:** Every `.je-line` must always render exactly 5 child spans — `code`, `name`, `desc`, `debit`, `credit` — even if some are empty. The description span is always present (renders as empty string `""` when `line.description` is blank). This prevents columns from shifting when description is absent.
+**Page container:** Uses `.report-page` with max-width 900px (not --wide) for a tighter, more account-wise side-by-side layout.
+
+**Key change (April 2026):** The description column was removed from the main ledger lines. Line-level descriptions are now secondary metadata rendered in `.je-memo` (entry-level memo) rather than driving horizontal width. The layout is now compact and efficient, not stretched.
 
 ### CSS Classes
 
 | Class              | Element         | Purpose                                   |
 |--------------------|-----------------|-------------------------------------------|
-| `.je-page`         | page wrapper    | Outer container                           |
-| `.je-filter-bar`   | form wrapper    | Filter controls bar                       |
-| `.je-entry`        | entry card      | Single journal entry card                 |
+| `.je-page`         | page wrapper    | Outer container (max-width: 900px)       |
+| `.je-filter-bar`   | form wrapper    | Filter controls bar                      |
+| `.je-entry`        | entry card      | Single journal entry card                |
 | `.je-header`       | flex row        | Entry metadata (number, date, status, user)|
 | `.je-number`       | span            | Bold entry reference number               |
 | `.je-date`         | span            | Entry date                                |
 | `.je-badge`        | span            | Status badge (`.posted` / `.draft`)       |
-| `.je-user`         | span            | Created-by username (right-aligned)       |
-| `.je-col-headers`  | grid row        | Column header labels inside each entry    |
-| `.je-lines`        | lines container | Wrapper for all line rows                 |
-| `.je-line`         | grid row        | Single debit/credit line                  |
-| `.je-code`         | grid cell 1     | Account code (monospace, 52px)            |
-| `.je-name`         | grid cell 2     | Account name (1fr, truncated)             |
-| `.je-desc`         | grid cell 3     | Line description (100px, muted, hidden mobile) |
-| `.je-debit`        | grid cell 4     | Debit amount (72px, right-aligned, red)   |
-| `.je-credit`       | grid cell 5     | Credit amount (72px, right-aligned, green)|
+| `.je-user`         | span            | Created-by username (right-aligned)      |
+| `.je-col-headers` | grid row        | Column header labels inside each entry    |
+| `.je-lines`        | lines container | Wrapper for all line rows                |
+| `.je-line`         | grid row        | Single debit/credit line (4 columns)     |
+| `.je-code`         | grid cell 1     | Account code (monospace, 48px)           |
+| `.je-name`         | grid cell 2     | Account name (1fr, truncated)            |
+| `.je-debit`        | grid cell 3     | Debit amount (64px, right-aligned, red)  |
+| `.je-credit`       | grid cell 4     | Credit amount (64px, right-aligned, green)|
 | `.je-memo`         | footer div      | Entry-level memo/description              |
 | `.je-empty`        | empty state     | Shown when no entries match filters       |
 
@@ -90,10 +91,8 @@ Context variables passed to template:
 
 | Breakpoint  | Layout change                                     |
 |-------------|--------------------------------------------------|
-| `> 600px`   | Full 5-column grid                               |
-| `≤ 600px`   | 4-column grid — description column hidden        |
-
-Mobile grid: `48px 1fr 60px 60px` (code | name | debit | credit).
+| `> 600px`   | Full 4-column grid (48px 1fr 64px 64px)         |
+| `≤ 600px`   | Compact 4-column (42px 1fr 52px 52px)          |
 
 ---
 
@@ -121,5 +120,4 @@ When no entries match the current filters, the template renders:
 ## Known Constraints
 
 - Line prefetch: `entry.lines.all` triggers N+1 queries for large entry sets. Add `prefetch_related('lines__account')` to the view queryset for production performance.
-- The description column (`je-desc`) renders `line.description` — this is the **line-level** description. The **entry-level** description renders in `.je-memo` at the bottom of each card.
-- Account names are truncated at 30 characters in the template. Adjust `truncatechars:30` in the template if more space is needed.
+- Account names are truncated at 28 characters in the template. Adjust `truncatechars:28` in the template if more space is needed.
