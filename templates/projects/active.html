@@ -46,9 +46,13 @@
                                     {{ project.get_status_display }}
                                 </span>
                             </td>
-                            <td>${{ project.budget }}</td>
+                            <td>${{ project.budget|floatformat:2|intcomma }}</td>
                             <td>
-                                <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-outline-primary py-0 px-1" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-outline-primary py-0 px-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'projects:project_delete' project.pk %}" class="btn btn-outline-danger py-0 px-1" title="Delete"><i class="bi bi-trash"></i></a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}

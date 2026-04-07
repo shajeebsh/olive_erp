@@ -17,16 +17,54 @@
 
         <!-- Search & Filter Bar -->
         <div class="report-filter-bar shadow-sm mb-3">
-            <form method="get" class="row gx-2 gy-2 align-items-end">
-                <div class="col-md-10">
-                    <label class="form-label">{% trans "Search Journal" %}</label>
+            <form method="get" class="row gx-2 gy-2">
+                <div class="col-md-4">
+                    <label class="form-label fs-xs mb-1">{% trans "Account" %}</label>
+                    <select name="account" class="form-select form-select-sm">
+                        <option value="">{% trans "All Accounts" %}</option>
+                        {% for acc in accounts %}
+                        <option value="{{ acc.id }}" {% if account_filter == acc.id|stringformat:"i" %}selected{% endif %}>{{ acc.code }} - {{ acc.name|truncatechars:25 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-xs mb-1">{% trans "Status" %}</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">{% trans "All Status" %}</option>
+                        <option value="posted" {% if status_filter == 'posted' %}selected{% endif %}>{% trans "Posted" %}</option>
+                        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-xs mb-1">{% trans "Created By" %}</label>
+                    <select name="created_by" class="form-select form-select-sm">
+                        <option value="">{% trans "All Users" %}</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if created_by_filter == u.id|stringformat:"i" %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-xs mb-1">{% trans "Date From" %}</label>
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-xs mb-1">{% trans "Date To" %}</label>
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+                </div>
+                <div class="col-md-10 mt-2">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
                         <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="{% trans 'Search by entry number or description...' %}" value="{{ query }}">
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1 mt-2">
                     <button type="submit" class="btn btn-sm btn-outline-primary w-100">{% trans "Filter" %}</button>
+                </div>
+                <div class="col-md-1 mt-2">
+                    <a href="{% url 'finance:journal' %}" class="btn btn-sm btn-outline-secondary w-100" title="{% trans 'Clear Filters' %}">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
                 </div>
             </form>
         </div>

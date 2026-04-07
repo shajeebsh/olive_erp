@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Payroll Detail" %}: {{ period.name }} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container report-container--wide">
+        <div class="report-header">
+            <h2 class="page-title">💰 {% trans "Payroll" %}: {{ period.name }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'hr:payroll' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-12">
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Employee Payslips" %}</h5>
+                        <span class="badge {% if period.status == 'PAID' %}bg-success{% else %}bg-secondary{% endif %}">{{ period.get_status_display }}</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Employee ID" %}</th>
+                                    <th>{% trans "Employee Name" %}</th>
+                                    <th class="text-end">{% trans "Basic" %}</th>
+                                    <th class="text-end">{% trans "Allowances" %}</th>
+                                    <th class="text-end">{% trans "Deductions" %}</th>
+                                    <th class="text-end">{% trans "Net Salary" %}</th>
+                                    <th class="text-center">{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payslip in payslips %}
+                                <tr>
+                                    <td>{{ payslip.employee.employee_id }}</td>
+                                    <td class="fw-bold">{{ payslip.employee.user.get_full_name }}</td>
+                                    <td class="text-end font-monospace">€{{ payslip.basic_salary|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace">€{{ payslip.allowances|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace">€{{ payslip.deductions|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace fw-bold">€{{ payslip.net_salary|floatformat:2|intcomma }}</td>
+                                    <td class="text-center">
+                                        {% if payslip.is_paid %}
+                                            <span class="text-success"><i class="bi bi-check-circle"></i></span>
+                                        {% else %}
+                                            <span class="text-muted"><i class="bi bi-clock"></i></span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+ drug

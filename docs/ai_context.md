@@ -1,4 +1,4 @@
-# AI_CONTEXT.md
+# docs/ai_context.md
 
 ## 1. Project Overview
 
@@ -133,10 +133,8 @@ olive_erp/
    - Tables: `apps_accounting_fixedasset`, `apps_accounting_bankreconciliation`, etc.
    - Migrations exist but table creation may fail on SQLite
 
-2. **Duplicate `get_user_company()` helper**: The helper is currently duplicated in:
-   - `apps/accounting/reporting/views.py`
-   - `apps/accounting/assets/views.py`
-   - **TODO**: Centralize in `core/utils.py`
+2. **Duplicate `get_user_company()` helper**: The helper has been centralized in `core/utils.py`. The HR module now uses this shared version.
+   - **Status**: ✅ Centralized.
 
 3. **Duplicate RelatedPartyTransaction**: Two models exist:
    - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (standalone)

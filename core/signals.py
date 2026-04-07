@@ -1,9 +1,45 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 from django.core.cache import cache
+from django.contrib.auth.signals import user_logged_in
+from django.utils import timezone
+from datetime import date
 from finance.models import JournalEntry, JournalEntryLine
 from apps.accounting.reconciliation.models import BankReconciliation
 from company.models import CompanyProfile
+
+
+@receiver(user_logged_in)
+def record_attendance_on_login(sender, request, user, **kwargs):
+    """
+    Record attendance when a user logs in.
+    Replaces the brittle implementation in the auth backend.
+    """
+    try:
+        from hr.models import Employee, Attendance
+        # We need to handle the case where the user might not be an employee
+        # or doesn't have an associated company in their profile yet.
+        employee = Employee.objects.filter(user=user).select_related('company').first()
+        if not employee:
+            return
+
+        today = date.today()
+        # Ensure we don't create multiple attendance records for the same day
+        # If the employee is already checked in, do nothing.
+        if not Attendance.objects.filter(employee=employee, date=today).exists():
+            Attendance.objects.create(
+                company=employee.company,
+                employee=employee,
+                date=today,
+                check_in_time=timezone.now().time()
+            )
+    except Exception as e:
+        # We log the error instead of swallowing it silently,
+        # but we don't block the login process if attendance fails.
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to record attendance for user {user.email}: {str(e)}")
+
 
 # Custom signal for journal entry posted
 journal_entry_posted = Signal()

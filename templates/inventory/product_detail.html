@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Product Detail" %}: {{ product.name }} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">📦 {% trans "Product" %}: {{ product.name }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+                <a href="{% url 'inventory:products' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Overview" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "SKU" %}</label>
+                            <p class="fs-5 fw-bold mb-0">{{ product.sku }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Status" %}</label>
+                            {% if product.is_active %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Selling Price" %}</label>
+                            <p class="fs-5 fw-bold text-success mb-0">€{{ product.selling_price|floatformat:2|intcomma }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted fs-xs d-block">{% trans "Cost Price" %}</label>
+                            <p class="fs-5 fw-bold text-muted mb-0">€{{ product.cost_price|floatformat:2|intcomma }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Classification" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted small">{% trans "Category" %}</span>
+                            <span>{{ product.category.name|default:"—" }}</span>
+                        </div>
+                        <div class="mb-0 d-flex justify-content-between">
+                            <span class="text-muted small">{% trans "UoM" %}</span>
+                            <span>{{ product.uom|default:"unit" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Stock Levels" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th class="text-end">{% trans "Qty on Hand" %}</th>
+                                    <th class="text-end">{% trans "Reorder Level" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for level in stock_levels %}
+                                <tr>
+                                    <td>{{ level.warehouse.name }}</td>
+                                    <td class="text-end fw-bold">{{ level.quantity_on_hand }}</td>
+                                    <td class="text-end">{{ level.reorder_level }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-3 text-muted">{% trans "No stock records found." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Recent Movements" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th class="text-end">{% trans "Qty" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for move in recent_movements %}
+                                <tr>
+                                    <td>{{ move.date|date:"d M Y" }}</td>
+                                    <td>
+                                        {% if move.movement_type == 'IN' %}
+                                            <span class="text-success fw-bold">{% trans "In" %}</span>
+                                        {% elif move.movement_type == 'OUT' %}
+                                            <span class="text-danger fw-bold">{% trans "Out" %}</span>
+                                        {% else %}
+                                            <span class="text-primary fw-bold">{% trans "Adjust" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ move.warehouse.name }}</td>
+                                    <td class="text-end fw-bold">{{ move.quantity }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">{% trans "No recent movements." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,108 +1,110 @@
 {% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Account" %}: {{ object.name }} | Olive ERP{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Account Detail: {{ object.name }}</h1>
-        <div>
-            <a href="{% url 'finance:account_update' object.pk %}" class="btn btn-sm btn-warning shadow-sm">
-                <i class="fas fa-edit fa-sm text-white-50"></i> Edit
-            </a>
-            <a href="{% url 'finance:account_list' %}" class="btn btn-sm btn-secondary shadow-sm ml-2">
-                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back
-            </a>
+<div class="report-page">
+    <div class="report-container report-container--wide">
+        <div class="report-header">
+            <h2 class="page-title">📁 {% trans "Account" %}: {{ object.name }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'finance:account_update' object.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+                <a href="{% url 'finance:account_list' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
         </div>
-    </div>
 
-    <div class="row">
-        <!-- Account Info Card -->
-        <div class="col-xl-4 col-md-5 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <div class="h2 font-weight-bold text-gray-800">{{ current_balance|floatformat:2 }}</div>
-                        <div class="text-xs font-weight-bold text-uppercase mb-1 text-secondary">Current Balance</div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Overview" %}</h5>
                     </div>
-                    <hr>
-                    <div class="mb-2">
-                        <span class="font-weight-bold text-dark">Code:</span>
-                        <span class="float-right">{{ object.code }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="font-weight-bold text-dark">Type:</span>
-                        <span class="float-right badge bg-primary">{{ object.account_type }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="font-weight-bold text-dark">Group Type:</span>
-                        <span class="float-right">{{ object.group_type }}</span>
-                    </div>
-                    {% if object.parent %}
-                    <div class="mb-2">
-                        <span class="font-weight-bold text-dark">Parent:</span>
-                        <span class="float-right"><a href="{% url 'finance:account_detail' object.parent.pk %}">{{ object.parent.name }}</a></span>
-                    </div>
-                    {% endif %}
-                    <div class="mb-2">
-                        <span class="font-weight-bold text-dark">Status:</span>
-                        <span class="float-right">
+                    <div class="card-body">
+                        <div class="text-center py-3">
+                            <h2 class="fw-bold mb-0">€{{ current_balance|floatformat:2|intcomma }}</h2>
+                            <p class="text-muted small text-uppercase mb-0">{% trans "Current Balance" %}</p>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">{% trans "Code" %}</span>
+                            <span class="fw-bold">{{ object.code }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">{% trans "Type" %}</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1">{{ object.account_type }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">{% trans "Group Type" %}</span>
+                            <span>{{ object.group_type }}</span>
+                        </div>
+                        {% if object.parent %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">{% trans "Parent" %}</span>
+                            <a href="{% url 'finance:account_detail' object.parent.pk %}">{{ object.parent.name }}</a>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">{% trans "Status" %}</span>
                             {% if object.is_active %}
-                            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                                <span class="text-success small"><i class="bi bi-check-circle me-1"></i> {% trans "Active" %}</span>
                             {% else %}
-                            <span class="text-danger"><i class="fas fa-times-circle mr-1"></i> Inactive</span>
+                                <span class="text-danger small"><i class="bi bi-x-circle me-1"></i> {% trans "Inactive" %}</span>
                             {% endif %}
-                        </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            {% if object.notes %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Notes</h6>
-                </div>
-                <div class="card-body small">
-                    {{ object.notes|linebreaks }}
-                </div>
-            </div>
-            {% endif %}
-        </div>
 
-        <!-- Transactions Card -->
-        <div class="col-xl-8 col-md-7 mb-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Transactions</h6>
+                {% if object.notes %}
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Notes" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-0">{{ object.notes }}</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Ref No.</th>
-                                    <th>Description</th>
-                                    <th class="text-right">Debit</th>
-                                    <th class="text-right">Credit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for line in recent_transactions %}
-                                <tr>
-                                    <td>{{ line.journal_entry.date|date:"d M Y" }}</td>
-                                    <td><a href="#">{{ line.journal_entry.entry_number }}</a></td>
-                                    <td>{{ line.description|truncatechars:30 }}</td>
-                                    <td class="text-right">{% if line.debit > 0 %}{{ line.debit|floatformat:2 }}{% else %}-{% endif %}</td>
-                                    <td class="text-right">{% if line.credit > 0 %}{{ line.credit|floatformat:2 }}{% else %}-{% endif %}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">No transactions found for this account.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                {% endif %}
+            </div>
+
+            <div class="col-md-8">
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Recent Transactions" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="report-table table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Ref No." %}</th>
+                                        <th>{% trans "Description" %}</th>
+                                        <th class="text-end">{% trans "Debit" %}</th>
+                                        <th class="text-end">{% trans "Credit" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for line in recent_transactions %}
+                                    <tr>
+                                        <td>{{ line.journal_entry.date|date:"d M Y" }}</td>
+                                        <td><span class="font-monospace text-primary">{{ line.journal_entry.entry_number }}</span></td>
+                                        <td>{{ line.description|truncatechars:35 }}</td>
+                                        <td class="text-end font-monospace">{% if line.debit > 0 %}€{{ line.debit|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
+                                        <td class="text-end font-monospace">{% if line.credit > 0 %}€{{ line.credit|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">{% trans "No transactions found for this account." %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

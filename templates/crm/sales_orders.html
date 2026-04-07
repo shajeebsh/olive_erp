@@ -60,7 +60,11 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-icon"><i class="bi bi-pencil"></i></button>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'crm:sales_order_detail' order.pk %}" class="btn btn-outline-primary py-0 px-1" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'crm:sales_order_edit' order.pk %}" class="btn btn-outline-primary py-0 px-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'crm:sales_order_delete' order.pk %}" class="btn btn-outline-danger py-0 px-1" title="Delete"><i class="bi bi-trash"></i></a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

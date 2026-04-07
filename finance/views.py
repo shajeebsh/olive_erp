@@ -81,6 +81,14 @@ class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
+class InvoiceDetailView(LoginRequiredMixin, DetailView):
+    model = Invoice
+    template_name = 'finance/invoice_detail.html'
+    context_object_name = 'invoice'
+
+    def get_queryset(self):
+        return Invoice.objects.filter(company=get_user_company(self.request))
+
 class InvoiceDeleteView(LoginRequiredMixin, DeleteView):
     model = Invoice
     template_name = 'finance/invoice_confirm_delete.html'
@@ -88,6 +96,10 @@ class InvoiceDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Invoice.objects.filter(company=get_user_company(self.request))
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Invoice deleted successfully')
+        return super().delete(request, *args, **kwargs)
 
 class JournalEntryListView(LoginRequiredMixin, ListView):
     model = JournalEntry
@@ -98,15 +110,54 @@ class JournalEntryListView(LoginRequiredMixin, ListView):
         company = get_user_company(self.request)
         entries = JournalEntry.objects.filter(
             lines__account__company=company
-        ).prefetch_related('lines__account').distinct().order_by('-date')
+        ).prefetch_related('lines__account', 'created_by').distinct().order_by('-date')
+        
+        # Filters
         query = self.request.GET.get('q', '')
+        date_from = self.request.GET.get('date_from', '')
+        date_to = self.request.GET.get('date_to', '')
+        status = self.request.GET.get('status', '')
+        created_by = self.request.GET.get('created_by', '')
+        account_id = self.request.GET.get('account', '')
+
         if query:
             entries = entries.filter(Q(entry_number__icontains=query) | Q(description__icontains=query))
+        
+        if date_from:
+            entries = entries.filter(date__gte=date_from)
+        if date_to:
+            entries = entries.filter(date__lte=date_to)
+        
+        if status:
+            is_posted = True if status == 'posted' else False
+            entries = entries.filter(is_posted=is_posted)
+            
+        if created_by:
+            entries = entries.filter(created_by_id=created_by)
+            
+        if account_id:
+            entries = entries.filter(lines__account_id=account_id).distinct()
+
         return entries
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        company = get_user_company(self.request)
+        
+        # Current filter values
         context['query'] = self.request.GET.get('q', '')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        context['status_filter'] = self.request.GET.get('status', '')
+        context['created_by_filter'] = self.request.GET.get('created_by', '')
+        context['account_filter'] = self.request.GET.get('account', '')
+        
+        # Lookup data for filters
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        context['users'] = User.objects.filter(is_active=True).order_by('username')
+        context['accounts'] = Account.objects.filter(company=company).order_by('code')
+        
         return context
 
 class JournalEntryCreateView(LoginRequiredMixin, CreateView):
@@ -188,6 +239,18 @@ class AccountUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Account updated successfully')
         return super().form_valid(form)
 
+class AccountDeleteView(LoginRequiredMixin, DeleteView):
+    model = Account
+    template_name = 'finance/account_confirm_delete.html'
+    success_url = reverse_lazy('finance:account_list')
+    
+    def get_queryset(self):
+        return Account.objects.filter(company=get_user_company(self.request))
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Account deleted successfully')
+        return super().delete(request, *args, **kwargs)
+
 class AccountDetailView(LoginRequiredMixin, DetailView):
     model = Account
     template_name = 'finance/account_detail.html'
@@ -251,6 +314,26 @@ class CostCentreUpdateView(LoginRequiredMixin, UpdateView):
         form.fields['parent'].queryset = CostCentre.objects.filter(company=company).exclude(pk=self.object.pk)
         return form
 
+class CostCentreDetailView(LoginRequiredMixin, DetailView):
+    model = CostCentre
+    template_name = 'finance/costcentre_detail.html'
+    context_object_name = 'cost_centre'
+
+    def get_queryset(self):
+        return CostCentre.objects.filter(company=get_user_company(self.request))
+
+class CostCentreDeleteView(LoginRequiredMixin, DeleteView):
+    model = CostCentre
+    template_name = 'finance/costcentre_confirm_delete.html'
+    success_url = reverse_lazy('finance:costcentre_list')
+
+    def get_queryset(self):
+        return CostCentre.objects.filter(company=get_user_company(self.request))
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Cost Centre deleted successfully')
+        return super().delete(request, *args, **kwargs)
+
 
 class BudgetListView(LoginRequiredMixin, ListView):
     model = Budget
@@ -290,6 +373,51 @@ class BudgetCreateView(LoginRequiredMixin, CreateView):
         form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Budget created successfully')
         return super().form_valid(form)
+
+class BudgetUpdateView(LoginRequiredMixin, UpdateView):
+    model = Budget
+    fields = ['name', 'financial_year', 'account', 'cost_centre', 
+              'period', 'budget_amount', 'notes']
+    template_name = 'finance/budget_form.html'
+    success_url = reverse_lazy('finance:budget_list')
+    
+    def get_queryset(self):
+        return Budget.objects.filter(company=get_user_company(self.request))
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['account'].queryset = Account.objects.filter(
+            company=get_user_company(self.request),
+            account_type__in=['Income', 'Expense']
+        )
+        form.fields['cost_centre'].queryset = CostCentre.objects.filter(
+            company=get_user_company(self.request)
+        )
+        return form
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Budget updated successfully')
+        return super().form_valid(form)
+
+class BudgetDetailView(LoginRequiredMixin, DetailView):
+    model = Budget
+    template_name = 'finance/budget_detail.html'
+    context_object_name = 'budget'
+
+    def get_queryset(self):
+        return Budget.objects.filter(company=get_user_company(self.request))
+
+class BudgetDeleteView(LoginRequiredMixin, DeleteView):
+    model = Budget
+    template_name = 'finance/budget_confirm_delete.html'
+    success_url = reverse_lazy('finance:budget_list')
+
+    def get_queryset(self):
+        return Budget.objects.filter(company=get_user_company(self.request))
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Budget deleted successfully')
+        return super().delete(request, *args, **kwargs)
 
 
 class PriceListView(LoginRequiredMixin, ListView):

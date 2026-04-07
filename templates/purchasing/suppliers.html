@@ -41,7 +41,13 @@
                             <td>{{ supplier.email }}</td>
                             <td>{{ supplier.phone }}</td>
                             <td>{{ supplier.payment_terms }}</td>
-                            <td class="text-muted">—</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'purchasing:supplier_detail' supplier.pk %}" class="btn btn-outline-primary py-0 px-1" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{% url 'purchasing:supplier_edit' supplier.pk %}" class="btn btn-outline-primary py-0 px-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'purchasing:supplier_delete' supplier.pk %}" class="btn btn-outline-danger py-0 px-1" title="Delete"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>

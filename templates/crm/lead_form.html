@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ action }} Lead | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <div class="form-header">
+            <a href="{% url 'crm:leads' %}" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="bi bi-arrow-left me-1"></i>{% trans "Back to Leads" %}
+            </a>
+            <h2 class="page-title">🎯 {% trans action %} Lead</h2>
+        </div>
+
+        <div class="form-card card shadow-sm">
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Lead Name" %} *</label>
+                        {{ form.lead_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Company" %}</label>
+                        {{ form.company_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Contact Person" %} *</label>
+                        {{ form.contact_person }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Email" %} *</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Phone" %}</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Source" %}</label>
+                        {{ form.source }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Status" %}</label>
+                        {{ form.status }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Estimated Value" %}</label>
+                        {{ form.estimated_value }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">{% trans "Notes" %}</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="form-actions mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{% trans "Save" %}
+                        </button>
+                        <a href="{% url 'crm:leads' %}" class="btn btn-outline-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

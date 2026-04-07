@@ -4,17 +4,35 @@ from django.db import models
 from django.db.models import Q, Sum, F
 from .models import Product, Warehouse, StockLevel, StockMovement
 from .forms import ProductForm, WarehouseForm, StockMovementForm
+from core.utils import get_user_company
 
 
 @login_required
 def products(request):
-    qs = Product.objects.select_related('category').all()
+    company = get_user_company(request)
+    qs = Product.objects.filter(company=company).select_related('category')
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(name__icontains=query) | Q(sku__icontains=query))
     qs = qs.order_by('name')
     context = {'products': qs, 'query': query}
     return render(request, 'inventory/products.html', context)
+
+
+@login_required
+def product_detail(request, pk):
+    product = get_object_or_404(Product.objects.select_related('category'), pk=pk)
+    # Get current stock levels
+    stock_levels = StockLevel.objects.filter(product=product).select_related('warehouse')
+    # Get recent movements
+    recent_movements = StockMovement.objects.filter(product=product).select_related('warehouse').order_by('-date')[:10]
+    
+    context = {
+        'product': product,
+        'stock_levels': stock_levels,
+        'recent_movements': recent_movements
+    }
+    return render(request, 'inventory/product_detail.html', context)
 
 
 @login_required

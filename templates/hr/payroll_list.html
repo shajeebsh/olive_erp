@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Payroll" %} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">💰 {% trans "Payroll Periods" %}</h2>
+            <a href="{% url 'hr:payroll_create' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "New Payroll Run" %}
+            </a>
+        </div>
+
+        <div class="report-card card shadow-sm">
+            <div class="card-body">
+                <table class="report-table table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Period Name" %}</th>
+                            <th>{% trans "Start Date" %}</th>
+                            <th>{% trans "End Date" %}</th>
+                            <th class="text-center">{% trans "Status" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in payroll_periods %}
+                        <tr>
+                            <td class="fw-bold">{{ period.name }}</td>
+                            <td>{{ period.start_date }}</td>
+                            <td>{{ period.end_date }}</td>
+                            <td class="text-center">
+                                {% if period.status == 'PAID' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle py-1">{% trans "Paid" %}</span>
+                                {% elif period.status == 'PROCESSED' %}
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle py-1">{% trans "Processed" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1">{% trans "Draft" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'hr:payroll_detail' period.pk %}" class="btn btn-outline-primary py-0 px-1" title="View"><i class="bi bi-eye"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">{% trans "No payroll periods found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

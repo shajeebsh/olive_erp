@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "New Payroll Run" %} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">💰 {% trans "New Payroll Run" %}</h2>
+        </div>
+
+        <div class="report-card card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{% trans "Period Name" %}</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. April 2026" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Start Date" %}</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "End Date" %}</label>
+                            <input type="date" name="end_date" class="form-control" required>
+                        </div>
+                        <div class="col-12 mt-4 text-end">
+                            <a href="{% url 'hr:payroll' %}" class="btn btn-secondary me-2">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">{% trans "Initialize Payroll Run" %}</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

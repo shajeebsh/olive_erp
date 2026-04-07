@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Customer Detail" %}: {{ customer.company_name|default:customer.contact_person }} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">👥 {% trans "Customer" %}: {{ customer.company_name|default:customer.contact_person }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'crm:customer_edit' customer.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+                <a href="{% url 'crm:customers' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Contact Info" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Contact Person" %}</label>
+                            <p class="fw-bold mb-0">{{ customer.contact_person }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Email" %}</label>
+                            <p class="mb-0">{{ customer.email }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Phone" %}</label>
+                            <p class="mb-0">{{ customer.phone }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted fs-xs d-block">{% trans "Payment Terms" %}</label>
+                            <span class="badge bg-light text-dark border">{{ customer.payment_terms }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Address & Tax" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Tax Number" %}</label>
+                            <p class="mb-0">{{ customer.tax_number|default:"—" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "State Code" %}</label>
+                            <p class="mb-0">{{ customer.state_code|default:"—" }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted fs-xs d-block">{% trans "Billing Address" %}</label>
+                            <p class="mb-0 small">{{ customer.address|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Order History" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="report-table table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Order #" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-end">{% trans "Total" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in sales_orders %}
+                                <tr>
+                                    <td class="fw-bold"><a href="{% url 'crm:sales_order_detail' order.pk %}">{{ order.order_number }}</a></td>
+                                    <td>{{ order.order_date }}</td>
+                                    <td>{{ order.get_status_display }}</td>
+                                    <td class="text-end fw-bold">€{{ order.total_amount|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">{% trans "No orders found." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
