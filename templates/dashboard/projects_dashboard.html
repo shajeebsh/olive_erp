@@ -11,67 +11,74 @@
 
     <!-- Top Stats -->
     <div class="row g-2 mb-2">
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-green">
-                <div class="kpi-icon"><i class="bi bi-kanban"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Active Projects</span>
-                    <span class="kpi-value">8</span>
-                    <span class="kpi-meta">In progress</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'projects:active' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon"><i class="bi bi-kanban"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Active Projects</span>
+                        <span class="kpi-value">{{ active_projects|default:"0" }}</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-blue">
-                <div class="kpi-icon"><i class="bi bi-list-task"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Open Tasks</span>
-                    <span class="kpi-value">24</span>
-                    <span class="kpi-meta">Assigned</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'projects:tasks' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon"><i class="bi bi-list-task"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Open Tasks</span>
+                        <span class="kpi-value">{{ open_tasks|default:"0" }}</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-orange">
-                <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Overdue Tasks</span>
-                    <span class="kpi-value">2</span>
-                    <span class="kpi-change kpi-change-down">Needs attention</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'projects:tasks' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-orange">
+                    <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Overdue Tasks</span>
+                        <span class="kpi-value">{{ overdue_tasks|length }}</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-purple">
-                <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Completed</span>
-                    <span class="kpi-value">15</span>
-                    <span class="kpi-meta">This month</span>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Charts -->
+    <!-- Quick Actions -->
     <div class="row g-2 mb-2">
-        <div class="col-lg-6">
-            <div class="card chart-card mb-0">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Project Status</span>
+                    <span class="fw-semibold">Quick Actions</span>
                 </div>
-                <div class="card-body p-2">
-                    <canvas id="projectStatusChart" height="132"></canvas>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'projects:project_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-plus-lg me-2"></i>New Project
+                        </a>
+                        <a href="{% url 'projects:task_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-plus-lg me-2"></i>New Task
+                        </a>
+                        <a href="{% url 'projects:timeline' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-calendar-range me-2"></i>View Timeline
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Resource Allocation</span>
+                    <span class="fw-semibold">Projects by Status</span>
                 </div>
                 <div class="card-body p-2">
-                    <canvas id="resourceAllocationChart" height="132"></canvas>
+                    {% if proj_status_labels %}
+                    <canvas id="projectsStatusChart" height="140"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No project data</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -79,39 +86,75 @@
 
     <!-- Tables -->
     <div class="row g-2">
-        <div class="col-12">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Active Tasks</span>
-                    <span class="badge bg-olive">5</span>
+                    <span class="fw-semibold">Recent Projects</span>
                 </div>
                 <div class="card-body p-0">
+                    {% if recent_projects %}
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in recent_projects %}
+                                <tr>
+                                    <td><a href="{% url 'projects:project_detail' project.pk %}">{{ project.name }}</a></td>
+                                    <td>
+                                        {% if project.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ project.get_status_display }}</span>
+                                        {% elif project.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-primary">{{ project.get_status_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ project.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No projects yet</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Overdue Tasks</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if overdue_tasks %}
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th>Task</th>
                                     <th>Project</th>
-                                    <th>Assignee</th>
-                                    <th>Due Date</th>
+                                    <th>Due</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for task in overdue_tasks %}
                                 <tr>
-                                    <td>Task 1</td>
-                                    <td>Project A</td>
-                                    <td>John Doe</td>
-                                    <td><span class="badge bg-warning text-dark">20 Mar</span></td>
+                                    <td>{{ task.name }}</td>
+                                    <td>{{ task.project.name }}</td>
+                                    <td><span class="badge bg-danger">{{ task.due_date }}</span></td>
                                 </tr>
-                                <tr>
-                                    <td>Task 2</td>
-                                    <td>Project B</td>
-                                    <td>Jane Smith</td>
-                                    <td><span class="badge bg-success">22 Mar</span></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No overdue tasks</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -121,43 +164,29 @@
 
 {% block extra_js %}
 <script>
-    const projectStatusCtx = document.getElementById('projectStatusChart').getContext('2d');
-    new Chart(projectStatusCtx, {
-        type: 'bar',
+(function() {
+    const el = document.getElementById('projectsStatusChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
         data: {
-            labels: ['Project A', 'Project B', 'Project C'],
+            labels: {{ proj_status_labels|safe }},
             datasets: [{
-                label: 'Completion %',
-                data: [75, 50, 25],
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                data: {{ proj_status_data }},
+                backgroundColor: ['#16a34a', '#2563eb', '#ea580c', '#9333ea', '#6b7280'],
+                borderWidth: 1,
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
+            cutout: '55%',
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 10 }, padding: 8 } }
             }
         }
     });
-
-    const resourceAllocationCtx = document.getElementById('resourceAllocationChart').getContext('2d');
-    new Chart(resourceAllocationCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Team A', 'Team B', 'Team C'],
-            datasets: [{
-                data: [40, 30, 30],
-                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
-        }
-    });
+})();
 </script>
 {% endblock %}

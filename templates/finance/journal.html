@@ -3,91 +3,300 @@
 
 {% block title %}Journal Entries | Olive ERP{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ═══════════════════════════════════════
+   Journal Entries — Compact Card Grid Layout
+   ═══════════════════════════════════════ */
+
+/* Page wrapper */
+.je-page { max-width: 1200px; margin: 0 auto; }
+
+/* Filter bar */
+.je-filter-bar {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+}
+.je-filter-bar .form-label { font-size: 0.7rem; color: #6b7280; margin-bottom: 0.15rem; }
+
+/* Card Grid */
+.je-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+@media (max-width: 900px) {
+    .je-grid { grid-template-columns: 1fr; }
+}
+
+/* Entry Card */
+.je-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.je-card:hover { border-color: #9ca3af; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+/* Card Header */
+.je-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.6rem 0.75rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+.je-card-title { display: flex; flex-direction: column; gap: 0.1rem; }
+.je-number { font-weight: 700; font-size: 0.85rem; color: #1f2937; letter-spacing: 0.01em; }
+.je-date { font-size: 0.72rem; color: #6b7280; }
+
+/* Status Badge */
+.je-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.je-badge.posted { background: #dcfce7; color: #15803d; }
+.je-badge.draft { background: #fef3c7; color: #92400e; }
+
+/* Card Summary */
+.je-card-summary {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.73rem;
+    color: #6b7280;
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.je-card-summary i { margin-right: 0.35rem; opacity: 0.5; }
+
+/* Card Ledger Table */
+.je-ledger-table {
+    width: 100%;
+    font-size: 0.72rem;
+    border-collapse: collapse;
+}
+.je-ledger-table th {
+    padding: 0.3rem 0.5rem;
+    background: #f9fafb;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+.je-ledger-table th:nth-child(2),
+.je-ledger-table th:nth-child(3) { text-align: right; }
+.je-ledger-table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+.je-ledger-table tr:last-child td { border-bottom: none; }
+.je-ledger-table tr:nth-child(even) { background: #fafafa; }
+
+.je-ledger-table .je-account-code {
+    font-weight: 600;
+    font-family: 'SF Mono', 'Roboto Mono', monospace;
+    font-size: 0.7rem;
+    color: #374151;
+    width: 52px;
+}
+.je-ledger-table .je-account-name {
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.je-ledger-table .je-debit,
+.je-ledger-table .je-credit {
+    text-align: right;
+    font-family: 'SF Mono', 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    width: 70px;
+}
+.je-debit { color: #b91c1c; }
+.je-credit { color: #15803d; }
+
+/* Card Footer / Total */
+.je-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.7rem;
+}
+.je-total-label { color: #6b7280; font-weight: 500; }
+.je-total-amount {
+    font-family: 'SF Mono', 'Roboto Mono', monospace;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Empty state */
+.je-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+.je-empty i { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
+
+/* ─── Mobile ─── */
+@media (max-width: 600px) {
+    .je-grid { gap: 0.5rem; }
+    .je-card-header { padding: 0.5rem; }
+    .je-number { font-size: 0.8rem; }
+    .je-card-summary { padding: 0.35rem 0.5rem; font-size: 0.7rem; }
+    .je-ledger-table th, .je-ledger-table td { padding: 0.25rem 0.35rem; font-size: 0.68rem; }
+    .je-ledger-table .je-account-code { width: 42px; font-size: 0.65rem; }
+    .je-ledger-table .je-debit, .je-ledger-table .je-credit { width: 55px; font-size: 0.68rem; }
+    .je-card-footer { padding: 0.35rem 0.5rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="report-page">
-    <div class="report-container report-container--wide">
+<div class="report-page je-page">
+    <div class="report-container">
         <div class="report-header">
             <h2 class="page-title">📔 {% trans "Journal Entries" %}</h2>
             <div class="d-flex gap-2">
                 <a href="{% url 'finance:journal_create' %}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-lg me-2"></i>{% trans "New Entry" %}
+                    <i class="bi bi-plus-lg me-1"></i>{% trans "New Entry" %}
                 </a>
             </div>
         </div>
 
-        <!-- Search & Filter Bar -->
-        <div class="report-filter-bar shadow-sm mb-3">
-            <form method="get" class="row gx-2 gy-2 align-items-end">
-                <div class="col-md-10">
-                    <label class="form-label">{% trans "Search Journal" %}</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="{% trans 'Search by entry number or description...' %}" value="{{ query }}">
-                    </div>
+        <!-- Filter Bar -->
+        <div class="je-filter-bar">
+            <form method="get" class="row gx-2 gy-1 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">{% trans "Account" %}</label>
+                    <select name="account" class="form-select form-select-sm">
+                        <option value="">{% trans "All accounts" %}</option>
+                        {% for acc in accounts %}
+                        <option value="{{ acc.id }}" {% if account_filter == acc.id|stringformat:"i" %}selected{% endif %}>
+                            {{ acc.code }} — {{ acc.name|truncatechars:20 }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">{% trans "Filter" %}</button>
+                    <label class="form-label">{% trans "Status" %}</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="posted" {% if status_filter == 'posted' %}selected{% endif %}>{% trans "Posted" %}</option>
+                        <option value="draft"  {% if status_filter == 'draft'  %}selected{% endif %}>{% trans "Draft" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{% trans "From" %}</label>
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">{% trans "To" %}</label>
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Search" %}</label>
+                    <input type="text" name="q" class="form-control form-control-sm"
+                           placeholder="{% trans 'Entry # or description…' %}" value="{{ query|default:'' }}">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">{% trans "Go" %}</button>
                 </div>
             </form>
         </div>
 
-        <!-- Entries -->
-        {% for entry in entries %}
-        <div class="report-card card shadow-sm mb-3">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="fw-bold text-dark fs-sm">{{ entry.entry_number }}</span>
-                    <span class="text-muted fs-xs">{{ entry.date }}</span>
+        <!-- Entry Grid -->
+        {% if entries %}
+        <div class="je-grid">
+            {% for entry in entries %}
+            <div class="je-card">
+                <!-- Card Header -->
+                <div class="je-card-header">
+                    <div class="je-card-title">
+                        <a href="{% url 'finance:journal_detail' entry.pk %}" class="je-number">{{ entry.entry_number }}</a>
+                        <span class="je-date">{{ entry.date|date:"d M Y" }}</span>
+                    </div>
                     {% if entry.is_posted %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2 fs-xs">{% trans "Posted" %}</span>
+                    <span class="je-badge posted">{% trans "Posted" %}</span>
                     {% else %}
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle py-0 px-2 fs-xs">{% trans "Draft" %}</span>
+                    <span class="je-badge draft">{% trans "Draft" %}</span>
                     {% endif %}
                 </div>
-                <div class="fs-xs text-muted">
-                    {% trans "By" %} {% if entry.created_by %}{{ entry.created_by.get_full_name|default:entry.created_by.username }}{% else %}{% trans "System" %}{% endif %}
+
+                <!-- Summary / Memo -->
+                {% if entry.description %}
+                <div class="je-card-summary">
+                    <i class="bi bi-card-text"></i>{{ entry.description|truncatechars:50 }}
                 </div>
-            </div>
-            <div class="card-body p-0">
-                <table class="report-table table table-sm mb-0">
+                {% endif %}
+
+                <!-- Ledger Table -->
+                <table class="je-ledger-table">
                     <thead>
-                        <tr class="bg-white border-bottom">
-                            <th class="ps-3" style="width: 40%;">{% trans "Account" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th class="text-end" style="width: 15%;">{% trans "Debit" %}</th>
-                            <th class="text-end pe-3" style="width: 15%;">{% trans "Credit" %}</th>
+                        <tr>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Account" %}</th>
+                            <th>{% trans "Debit" %}</th>
+                            <th>{% trans "Credit" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for line in entry.lines.all %}
                         <tr>
-                            <td class="ps-3">
-                                <span class="fw-600">{{ line.account.code }}</span> — <span class="text-muted">{{ line.account.name }}</span>
-                            </td>
-                            <td class="text-muted fs-xs">{{ line.description }}</td>
-                            <td class="text-end font-monospace">{% if line.debit > 0 %}€{{ line.debit|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
-                            <td class="text-end pe-3 font-monospace">{% if line.credit > 0 %}€{{ line.credit|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
+                            <td class="je-account-code">{{ line.account.code }}</td>
+                            <td class="je-account-name">{{ line.account.name|truncatechars:25 }}</td>
+                            <td class="je-debit">{% if line.debit > 0 %}{{ line.debit|floatformat:2 }}{% endif %}</td>
+                            <td class="je-credit">{% if line.credit > 0 %}{{ line.credit|floatformat:2 }}{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            {% if entry.description %}
-            <div class="card-footer bg-white border-top-0 py-2 px-3">
-                <div class="fs-xs text-muted">
-                    <strong class="text-dark">{% trans "Memo:" %}</strong> {{ entry.description }}
+
+                <!-- Footer / Total -->
+                {% with entry.total_debit as total %}
+                {% if total > 0 %}
+                <div class="je-card-footer">
+                    <span class="je-total-label">Total:</span>
+                    <span class="je-total-amount">€{{ total|floatformat:2 }}</span>
                 </div>
+                {% endif %}
+                {% endwith %}
             </div>
-            {% endif %}
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="report-card card shadow-sm py-5 text-center text-muted">
-            <div class="card-body">
-                <i class="bi bi-journal-text h1 d-block mb-3 opacity-25"></i>
-                <p>{% trans "No journal entries found." %}</p>
-            </div>
+        {% else %}
+        <div class="je-empty">
+            <i class="bi bi-journal-text"></i>
+            <p class="mb-0">{% trans "No journal entries found." %}</p>
+            <a href="{% url 'finance:journal_create' %}" class="btn btn-sm btn-primary mt-2">
+                {% trans "Create First Entry" %}
+            </a>
         </div>
-        {% endfor %}
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

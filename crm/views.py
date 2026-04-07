@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Customer, SalesOrder
-from .forms import CustomerForm, SalesOrderForm
+from .models import Customer, SalesOrder, Lead
+from .forms import CustomerForm, SalesOrderForm, LeadForm
+from core.utils import get_user_company
 
 
 @login_required
 def customers(request):
-    qs = Customer.objects.all()
+    company = get_user_company(request)
+    qs = Customer.objects.filter(company=company)
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(company_name__icontains=query) | Q(contact_person__icontains=query) | Q(email__icontains=query))
@@ -21,13 +23,15 @@ def customer_create(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
         if form.is_valid():
-            # For this demo, we auto-assign a user if not present, but in real apps user management is separate.
             customer = form.save(commit=False)
+            customer.company = get_user_company(request)
             if not hasattr(customer, 'user'):
                 from django.contrib.auth import get_user_model
                 User = get_user_model()
-                # Create a placeholder user or pick current user (demo choice: pick current)
-                customer.user = request.user
+                # Create a user for the customer if needed, or link existing
+                # For now just set the current user if no user is assigned
+                # In a real ERP this would be handled differently
+                customer.user = request.user 
             customer.save()
             return redirect('crm:customers')
     else:
@@ -36,8 +40,21 @@ def customer_create(request):
 
 
 @login_required
+def customer_detail(request, pk):
+    company = get_user_company(request)
+    customer = get_object_or_404(Customer, pk=pk, company=company)
+    sales_orders = SalesOrder.objects.filter(customer=customer).order_by('-order_date')
+    context = {
+        'customer': customer,
+        'sales_orders': sales_orders
+    }
+    return render(request, 'crm/customer_detail.html', context)
+
+
+@login_required
 def customer_edit(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    company = get_user_company(request)
+    customer = get_object_or_404(Customer, pk=pk, company=company)
     if request.method == 'POST':
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
@@ -49,8 +66,83 @@ def customer_edit(request, pk):
 
 
 @login_required
+def customer_delete(request, pk):
+    company = get_user_company(request)
+    customer = get_object_or_404(Customer, pk=pk, company=company)
+    if request.method == 'POST':
+        customer.delete()
+        return redirect('crm:customers')
+    return render(request, 'crm/customer_confirm_delete.html', {'customer': customer})
+
+
+@login_required
+def leads(request):
+    company = get_user_company(request)
+    qs = Lead.objects.filter(company=company).order_by('-created_at')
+    query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    if query:
+        qs = qs.filter(Q(lead_name__icontains=query) | Q(company_name__icontains=query) | Q(email__icontains=query))
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    context = {
+        'leads': qs,
+        'query': query,
+        'status_filter': status_filter,
+    }
+    return render(request, 'crm/leads.html', context)
+
+
+@login_required
+def lead_create(request):
+    if request.method == 'POST':
+        form = LeadForm(request.POST)
+        if form.is_valid():
+            lead = form.save(commit=False)
+            lead.company = get_user_company(request)
+            lead.save()
+            return redirect('crm:leads')
+    else:
+        form = LeadForm()
+    return render(request, 'crm/lead_form.html', {'form': form, 'action': 'Create'})
+
+
+@login_required
+def lead_detail(request, pk):
+    company = get_user_company(request)
+    lead = get_object_or_404(Lead, pk=pk, company=company)
+    context = {'lead': lead}
+    return render(request, 'crm/lead_detail.html', context)
+
+
+@login_required
+def lead_edit(request, pk):
+    company = get_user_company(request)
+    lead = get_object_or_404(Lead, pk=pk, company=company)
+    if request.method == 'POST':
+        form = LeadForm(request.POST, instance=lead)
+        if form.is_valid():
+            form.save()
+            return redirect('crm:leads')
+    else:
+        form = LeadForm(instance=lead)
+    return render(request, 'crm/lead_form.html', {'form': form, 'action': 'Edit', 'lead': lead})
+
+
+@login_required
+def lead_delete(request, pk):
+    company = get_user_company(request)
+    lead = get_object_or_404(Lead, pk=pk, company=company)
+    if request.method == 'POST':
+        lead.delete()
+        return redirect('crm:leads')
+    return render(request, 'crm/lead_confirm_delete.html', {'lead': lead})
+
+
+@login_required
 def sales_orders(request):
-    qs = SalesOrder.objects.select_related('customer').all().order_by('-order_date')
+    company = get_user_company(request)
+    qs = SalesOrder.objects.filter(company=company).select_related('customer').order_by('-order_date')
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(order_number__icontains=query) | Q(customer__company_name__icontains=query))
@@ -63,7 +155,9 @@ def sales_order_create(request):
     if request.method == 'POST':
         form = SalesOrderForm(request.POST)
         if form.is_valid():
-            form.save()
+            order = form.save(commit=False)
+            order.company = get_user_company(request)
+            order.save()
             return redirect('crm:sales_orders')
     else:
         form = SalesOrderForm()
@@ -71,8 +165,35 @@ def sales_order_create(request):
 
 
 @login_required
-def leads(request):
-    return render(request, 'crm/leads.html')
+def sales_order_detail(request, pk):
+    company = get_user_company(request)
+    order = get_object_or_404(SalesOrder.objects.prefetch_related('lines__product'), pk=pk, company=company)
+    context = {'order': order}
+    return render(request, 'crm/sales_order_detail.html', context)
+
+
+@login_required
+def sales_order_edit(request, pk):
+    company = get_user_company(request)
+    order = get_object_or_404(SalesOrder, pk=pk, company=company)
+    if request.method == 'POST':
+        form = SalesOrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('crm:sales_orders')
+    else:
+        form = SalesOrderForm(instance=order)
+    return render(request, 'crm/sales_order_form.html', {'form': form, 'action': 'Edit', 'order': order})
+
+
+@login_required
+def sales_order_delete(request, pk):
+    company = get_user_company(request)
+    order = get_object_or_404(SalesOrder, pk=pk, company=company)
+    if request.method == 'POST':
+        order.delete()
+        return redirect('crm:sales_orders')
+    return render(request, 'crm/sales_order_confirm_delete.html', {'order': order})
 
 
 @login_required

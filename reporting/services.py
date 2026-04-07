@@ -256,7 +256,7 @@ class ExportService:
         """Export report data to PDF format."""
         # PDF generation implementation would go here
         # This would typically use a library like WeasyPrint or ReportLab
-        pass
+        raise NotImplementedError("PDF export not yet implemented")
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -295,7 +295,7 @@ def send_report_email(execution_id, recipients):
     Celery task for sending report emails.
     """
     # Email sending implementation would go here
-    pass
+    raise NotImplementedError("Report email not yet implemented")
 
 
 class DashboardService:
@@ -340,4 +340,4 @@ class CacheService:
         """Clear cache for all reports."""
         # This would need a more sophisticated approach in production
         # Possibly using Redis patterns or a dedicated cache namespace
-        pass
+        raise NotImplementedError("Cache clearing not yet implemented")

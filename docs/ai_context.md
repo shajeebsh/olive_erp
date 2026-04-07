@@ -1,4 +1,161 @@
-# AI_CONTEXT.md
+# docs/ai_context.md — Project Context & Conventions
+
+## AI Session Workflow
+
+### Primary Files
+- **`docs/ai_context.md`** — This file. The canonical project context file containing architecture, tech stack, decisions, conventions, and what must not be changed.
+- **`docs/ai_task.md`** — The active task-state / interrupted-session handoff file. Contains the current task in progress, status, plan, and stopping point.
+
+### How Sessions Work
+1. **Read `docs/ai_context.md` first** — This gives you the full picture of the project
+2. **Check if `docs/ai_task.md` exists** — If it exists, a previous session was interrupted mid-task
+3. **If `docs/ai_task.md` exists:**
+   - Read it carefully
+   - Do NOT start fresh or re-interpret the task
+   - Resume from where the previous session stopped
+   - Confirm your understanding before writing any code
+4. **If `docs/ai_task.md` does NOT exist:**
+   - We are starting a new task
+   - Ask the user what to work on
+   - Once agreed, create `docs/ai_task.md` with the task description
+
+### Master Prompt — Paste at Start of Every Session
+```
+## AI Coding Session Setup
+
+Before writing any code, follow these steps in order:
+
+### Step 1 — Load Project Context
+Read docs/ai_context.md from the project.
+This gives you the full picture of the project — architecture, tech stack,
+decisions, conventions, and what must not be changed.
+Confirm you have read it before proceeding.
+
+### Step 2 — Check for Active Task
+Check if docs/ai_task.md exists in the project.
+
+IF IT EXISTS:
+- Read it carefully
+- This means a previous session was interrupted mid-task
+- Do NOT start fresh or re-interpret the task
+- Confirm your understanding of exactly where the previous session stopped
+- List the next 2-3 steps you will take to continue from that point
+- Ask the user to confirm before writing any code
+
+IF IT DOES NOT EXIST:
+- We are starting a new task
+- Ask the user what we are working on today
+- Once the user describes the task:
+1. Create docs/ai_task.md with the structure below
+2. Check if .gitignore exists in the project root
+- IF it exists: add "docs/ai_task.md" to it if not already present
+- IF it does not exist: create .gitignore and add "docs/ai_task.md" to it
+This ensures ai_task.md is never accidentally committed to the repository.
+
+---
+# docs/ai_task.md — Active Task State
+
+## Task
+[description of what we are building]
+
+## Status
+🟡 IN PROGRESS
+
+## Plan (Step by Step)
+- [ ] Step 1
+- [ ] Step 2
+- [ ] Step 3
+...
+
+## Files To Be Touched
+(fill as we go)
+
+## Decisions Made
+(fill as we go)
+
+## Warnings / Gotchas
+(fill as we go)
+
+## Exact Stopping Point
+(fill if session ends incomplete)
+---
+
+### Step 3 — Work Incrementally with Checkpoints
+As we work through the task:
+- After completing each step in the plan, mark it ✅ in docs/ai_task.md
+- After every 2-3 steps, write a checkpoint update to docs/ai_task.md
+- If you are about to do something risky or irreversible, tell the user first
+- Do not attempt multiple major changes in one go — go step by step
+
+### Step 4 — Handoff Protocol (if session ends incomplete)
+If we need to stop before the task is complete, before stopping you MUST
+update docs/ai_task.md with:
+
+## Status
+🔴 INCOMPLETE
+
+## What Was Completed
+- ✅ [list every step that is fully done]
+
+## What Is Incomplete
+- 🔴 [file name, line number, what was being done, why it stopped]
+
+## Exact Stopping Point
+File: [filename]
+Line: [line number if applicable]
+Next action: [precise description of what needs to happen next]
+
+## Decisions Made This Session
+[any choices made that the next tool must respect]
+
+## Warnings for Next Tool
+[anything the next AI tool must know before continuing]
+
+### Step 5 — Session Complete Protocol
+If the task is fully completed:
+- Mark all steps ✅ in docs/ai_task.md
+- Set Status to ✅ COMPLETE
+- Update docs/ai_context.md to reflect:
+- Any newly completed features
+- Any new decisions or patterns introduced
+- Updated "Current State" section
+- Updated "Next Logical Steps" section
+- Clear docs/ai_task.md contents for the next task
+
+---
+## Ground Rules
+- Never assume context — always read the files first
+- Never make architectural changes not agreed in this session
+- Always respect decisions documented in docs/ai_context.md
+- docs/ai_task.md must always be present in .gitignore — verify this at the start of every session
+- When in doubt, ask before building
+- Keep docs/ai_task.md updated — it is the safety net if you crash
+
+🔴 Emergency Recovery Prompt
+The previous AI coding session crashed or was interrupted.
+Read docs/ai_task.md carefully.
+Do not start fresh.
+Tell the user:
+1. What was completed before the crash
+2. What is incomplete and which files are affected
+3. Exactly where we need to resume
+4. Any risks or broken state the user should be aware of
+
+Also verify that docs/ai_task.md is listed in .gitignore.
+If it is missing, add it before we continue.
+
+Wait for user confirmation before touching any code.
+
+🔵 Checkpoint Prompt
+Pause and do a checkpoint update.
+Update docs/ai_task.md right now:
+- Mark completed steps as ✅
+- Note current file and line you are working on
+- Write the next 2 steps clearly
+Do this before continuing with any code.
+```
+
+---
 
 ## 1. Project Overview
 
@@ -59,7 +216,7 @@ olive_erp/
 ```
 
 ### Key Design Decisions
-- **Company Scoping**: Most modules scope data by `CompanyProfile` via ForeignKey
+- **Company Scoping**: All core business modules scope data by `CompanyProfile` via ForeignKey. Modules with company field: `finance`, `crm`, `hr`, `projects`, `purchasing`, `inventory`, `apps.accounting`. See "Company Scoping Architecture" section for details.
 - **Custom User**: Uses `core.User` (extends AbstractUser) with optional company link
 - **Navigation**: Generated via `core.context_processors.navigation_menu`
 - **Accounting**: Uses `finance.Account`, `JournalEntry`, `JournalEntryLine` as source of truth
@@ -107,16 +264,24 @@ olive_erp/
 - Dividend register
 - **UI with two-row top navigation layout** - Fixed app shell with utility row (brand/search/user) and module navigation row
 - **Dashboard compaction pass** - Removed nested dashboard content wrappers, reduced top whitespace, tightened KPI/chart spacing, and improved above-the-fold visibility across dashboard pages
+- **Dashboard live data pass** - All 8 dashboards converted to live model data. Bugs fixed: CRM `FieldError` (`Customer` has no `created_at` — use `order_by('-id')`), Lead `status='ACTIVE'` replaced with `exclude(status__in=['WON','LOST'])`, `NoReverseMatch` for `finance:accounts` corrected to `finance:account_list`, missing `compliance_dashboard` route added. See `docs/feature-dashboards.md`.
+- **Finance dashboard chart** - Added Chart.js doughnut chart for invoice status breakdown (paid/unpaid/overdue) via `{% block extra_js %}` in `finance_dashboard.html`. All chart canvases are guarded with `{% if %}` in template + `getElementById` null-check in JS.
+- **Journal entry card-grid layout** - Rewrote `templates/finance/journal.html` as a 2-column compact card grid. Each card shows header (number, date, status badge), optional memo line, mini ledger table inside card, and total footer. Uses existing OliveERP color coding (green posted badge, amber draft badge, red debit, green credit). Responsive collapse to 1 column on smaller screens. See `docs/feature-journal-entries.md`.
+- **CRM lead-status fix** - Fixed CRM dashboard lead counting to use valid statuses: `exclude(status__in=['WON','LOST'])` instead of non-existent `CONVERTED`. Aligns with main dashboard rule.
+- **Dashboard chart coverage** - All 8 dashboards now have chart support: Main (line), Finance (doughnut), Inventory (doughnut - stock by category), HR (doughnut - employees by department), CRM (doughnut - lead pipeline), Projects (doughnut - projects by status), Compliance/Reporting (scaffolded with "coming soon" empty state). Chart.js loaded via base.html, each canvas guarded with `{% if %}` + JS null-check. See `docs/feature-dashboards.md`.
 - **Accounting report density pass** - Unified and compacted Balance Sheet, Profit & Loss, and VAT Summary reports using shared `.report-table`, `.report-card`, and `.report-header` classes to maximize above-the-fold information.
+- **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions. Fixed create flows to set company on save.
+- **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
+- **Template humanize fix** - Added `{% load humanize %}` to templates using `|intcomma` filter
+- **Phase 1-3 improvements** - Stabilization: Added company FK to JournalEntry, improved exception handling in reporting, created CompanyScopedMixin. Refactoring: Verified consistent CRUD patterns across modules. Features: AuditLog and ApprovalWorkflow already exist, dashboard drill-downs added (KPI clickable), bulk import foundation added at `core/import_utils.py`. See `docs/ai_task.md`.
+- **Phase 3 Advanced Features** - Enhanced sample data with ApprovalWorkflow records, AuditLog entries, and DocumentAttachment mocks. Built complete bulk import UI workflow: template download, CSV upload, preview, and result pages for Accounts and Products. Advanced Approval Workflow UI: list view with filters, approve/reject actions, Journal Entry integration (high-value JE >=€10k triggers approval). Added generic DocumentAttachment model for Journal Entries and Invoices with upload UI. See `docs/ai_task.md`.
+- **Related Party Transactions** - Identified dual-model design: compliance model (manual statutory disclosures) and journal-linked model (direct tags on GL entries). The view already combines both via adapter pattern, so no consolidation needed - design serves both use cases. See Known Issues section.
+- **Full Audit Trail Activation** - Wired up Django signals in `core/signals.py` for automatic AuditLog creation on CRUD operations. Signals fire on post_save and pre_delete for: JournalEntry, Invoice, PurchaseOrder, CompanyProfile, Product. Auto-loads via `core/apps.py` ready() method. See `docs/ai_task.md`.
 
 ### 🔄 In-progress Features
-- **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback
-- **Accounting module**: Enhanced reporting, seed data, compliance features
-- **Test coverage**: Test discovery for `apps.accounting` module
-- **Related party transactions**: Consolidation between two models in progress
+- **Top navigation UI polish**: Two-row enterprise header in place with visual polish verified - hover/focus states, mobile responsiveness, proper overflow behavior. CSS is inline in base.html for load-order reliability.
 
 ### ❌ Not Yet Started
-- Full audit trail implementation
 - Multi-company support (current design is single-company per installation)
 - Advanced workflow automation beyond signals
 - API documentation
@@ -127,24 +292,62 @@ olive_erp/
 
 ---
 
+## 5b. Company Scoping Architecture
+
+### Overview
+All core business modules scope data by `CompanyProfile` via ForeignKey. This enables multi-tenant design and ensures users only see data for their company.
+
+### Modules with Company Field
+| Module | Model | Company Field |
+|--------|-------|---------------|
+| **finance** | Account, Invoice, JournalEntry, Budget, CostCentre | `company` FK |
+| **crm** | Customer, Lead, SalesOrder | `company` FK |
+| **hr** | Employee, Department, LeaveRequest, Attendance, PayrollPeriod | `company` FK |
+| **projects** | Project | `company` FK |
+| **purchasing** | Supplier, PurchaseOrder | `company` FK |
+| **inventory** | Product | `company` FK |
+| **apps.accounting** | FixedAsset, BankReconciliation, Dividend, CT1Computation | `company` FK |
+
+### Scoping Pattern
+Views use `get_user_company(request)` to get the current user's company and filter queries:
+```python
+company = get_user_company(request)
+qs = Model.objects.filter(company=company)
+```
+
+### Adding Company to a Module
+1. Add `company` FK to model: `company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='...', null=True, blank=True)`
+2. Run `makemigrations` and `migrate`
+3. Update views to filter by company
+4. Update forms to handle company (usually set in view on save)
+
+---
+
 ## 6. Known Issues & Workarounds
 
 1. **Accounting tables missing**: `apps.accounting_*` tables don't exist in SQLite - need migrations for MySQL/PostgreSQL
    - Tables: `apps_accounting_fixedasset`, `apps_accounting_bankreconciliation`, etc.
    - Migrations exist but table creation may fail on SQLite
 
-2. **Duplicate `get_user_company()` helper**: The helper is currently duplicated in:
-   - `apps/accounting/reporting/views.py`
-   - `apps/accounting/assets/views.py`
-   - **TODO**: Centralize in `core/utils.py`
+2. **Duplicate `get_user_company()` helper**: The helper has been centralized in `core/utils.py`. The HR module now uses this shared version.
+   - **Status**: ✅ Centralized.
 
-3. **Duplicate RelatedPartyTransaction**: Two models exist:
-   - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (standalone)
-   - `apps/accounting/related_party/models.py::RelatedPartyTransaction` (journal-linked)
-   - Views query both but data should be consolidated
+ 3. **Related Party Transactions** (RESOLVED - dual-model by design):
+    - Two models exist:
+      - `apps/accounting/compliance/models.py::RelatedPartyTransaction` (manual statutory disclosures)
+      - `apps/accounting/related_party/models.py::RelatedPartyTransaction` (journal-linked via JournalEntryLine)
+    - This is intentional: compliance model for manual statutory entries, journal-linked for direct GL tagging
+    - View `RelatedPartyTransactionView` in `apps/accounting/reporting/views.py` already combines both via adapter pattern
+    - No action needed - design serves both use cases
 
 4. **Sample data company mismatch**: Old seed data creates "Olive Tech Solutions Ltd" but current user may be linked to "Nimra tech"
    - Use `manage.py reset_demo_data` to get clean dataset
+
+5. **Dashboard model field gotchas** — Do NOT use these patterns (they cause `FieldError` at runtime):
+   - `Employee.objects.filter(status=...)` — `Employee` has no `status` field
+   - `Customer.objects.order_by('-created_at')` — `Customer` has no `created_at` field
+   - `Lead.objects.filter(status='ACTIVE')` — `Lead` has no `'ACTIVE'` choice; use `exclude(status__in=['WON','LOST'])`
+   - See `docs/feature-dashboards.md` for correct query patterns for each dashboard
 
 ---
 
@@ -182,6 +385,10 @@ olive_erp/
 ---
 
 ## 8. External Integrations & Environment
+
+### Feature Documentation
+- **[Attendance Tracking](feature-attendance.md)** - Automatic attendance recording on login, duplicate prevention, end-to-end scenarios
+- **[Company Scoping](architecture-company-scoping.md)** - How company scoping works across modules
 
 ### Required Environment Variables
 - `SECRET_KEY` - Django secret key
@@ -1203,3 +1410,126 @@ All icons include `title` attributes for accessibility.
 - ✅ Edit/Delete actions now display as icons
 - ✅ `python manage.py check` passes
 - ✅ `python manage.py test` passes (38 tests)
+
+---
+
+## 28. Platform Hardening & Feature Foundation (April 2026)
+
+### Phase 1: High-Priority Fixes
+
+#### P1: Company Scoping Normalization
+
+**Issue:** Company scoping was inconsistent across finance views - `InvoiceListView`, `JournalEntryListView`, `ExpenseListView` were not filtering by active company.
+
+**Implementation:**
+- Created centralized `get_user_company()` helper in `core/utils.py`
+- Updated imports in `finance/views.py`, `apps/accounting/reporting/views.py`, `apps/accounting/assets/views.py`
+- Fixed `InvoiceListView` to filter by `company=company`
+- Fixed `InvoiceUpdateView` and `InvoiceDeleteView` with company-scoped queryset
+- Fixed `JournalEntryListView` to filter via related account's company
+- Fixed `JournalEntryCreateView` to auto-assign company
+- Fixed `ExpenseListView` to filter by company
+
+**Files Modified:**
+- `core/utils.py` - New centralized helper
+- `finance/views.py` - All company scoping fixes
+- `apps/accounting/reporting/views.py` - Updated imports
+- `apps/accounting/assets/views.py` - Updated imports
+
+#### P1: Broad Exception Handling Fix
+
+**Issue:** `BalanceSheetView` used `except Exception:` which could hide real issues.
+
+**Implementation:**
+- Changed to `except ImportError:` - more specific for the actual risk (FixedAsset model not available)
+
+**Files Modified:**
+- `apps/accounting/reporting/views.py` - Line 102
+
+#### P2: Debug Print Removal
+
+**Issue:** Debug `print()` statements in production task code.
+
+**Implementation:**
+- `core/tasks.py`: Replaced `print()` with proper `logger.info()` using Python logging
+- `apps/accounting/tasks.py`: Replaced `print()` with `logger.info()`/`logger.warning()`
+
+**Files Modified:**
+- `core/tasks.py`
+- `apps/accounting/tasks.py`
+
+### Phase 2: Targeted Refactor
+
+#### P2: Centralized Company Helper
+
+**Implementation:**
+- Created `core/utils.py` with `get_user_company(request)` function
+- Type hints: `def get_user_company(request: HttpRequest) -> Optional[CompanyProfile]`
+- Updated imports across all affected view files
+
+#### P2: Dashboard Drill-Down Links
+
+**Implementation:**
+- Made Finance dashboard KPI cards clickable:
+  - Revenue → filtered invoices (PAID status)
+  - Invoices → invoice list
+  - Expenses → expense accounts
+  - Cash Flow → journal entries
+- Made Inventory dashboard KPI cards clickable:
+  - Total SKUs → products list
+  - In Stock → stock levels
+  - Low Stock → filtered stock (low_stock=1)
+  - Reorder → filtered stock (reorder=1)
+
+**Files Modified:**
+- `templates/dashboard/finance_dashboard.html`
+- `templates/dashboard/inventory_dashboard.html`
+
+### Phase 3: Feature Additions
+
+#### P1: Approval Workflow Foundation
+
+**Implementation:**
+- Added `ApprovalWorkflow` model to `core/models.py`
+- Supports workflow types: JOURNAL_POST, DIVIDEND, PURCHASE_ORDER, TAX_FILING
+- Status tracking: Pending, Approved, Rejected
+- Helper methods: `approve(user, notes)`, `reject(user, notes)`
+- Created migration `core/migrations/0004_add_approval_workflow.py`
+
+**Files Modified:**
+- `core/models.py` - Added ApprovalWorkflow model
+- `core/migrations/0004_add_approval_workflow.py` - New migration
+
+#### Audit Trail
+
+The existing `AuditLog` model in `core/models.py` provides audit trail capabilities:
+- Tracks user, action, model_name, object_id, changes, timestamp, ip_address
+- Already implemented, ready to be populated via signals
+
+### Testing & Validation
+
+- ✅ `python manage.py check` passes (no issues)
+- ✅ `python manage.py test` passes (38 tests)
+- ✅ Added company scoping tests in `finance/tests/test_company_scoping.py`
+
+### Known Gaps / Next Steps
+
+1. **Purchasing/Inventory/CRM company scoping** - These modules should also scope by company; currently they show all records
+2. **Journal Entry company field** - The model doesn't have a direct `company` FK; we filter via account.company in views
+3. **Bulk import scaffold** - Not implemented yet; would need CSV/XLSX import views and forms
+4. **Document attachments** - Not implemented yet; would need a generic attachment model
+5. **Approval workflow integration** - Model exists but not integrated into posting/approval flows yet
+
+### Summary
+
+| Category | Status |
+|----------|--------|
+| Company Scoping Fixes | ✅ Complete (finance views) |
+| Exception Handling Fix | ✅ Complete |
+| Debug Print Removal | ✅ Complete |
+| Centralized Helper | ✅ Complete |
+| Dashboard Drill-down | ✅ Complete |
+| Approval Workflow Model | ✅ Complete |
+| Audit Trail | ✅ Existing model available |
+| Bulk Import | ⏳ Not implemented |
+| Document Attachments | ⏳ Not implemented |

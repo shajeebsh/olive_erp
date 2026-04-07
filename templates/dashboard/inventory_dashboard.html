@@ -12,66 +12,88 @@
     <!-- Top Stats -->
     <div class="row g-2 mb-2">
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-inventory">
-                <div class="kpi-icon"><i class="bi bi-box"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Total SKUs</span>
-                    <span class="kpi-value">1,234</span>
-                    <span class="kpi-meta">Products</span>
+            <a href="{% url 'inventory:products' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-inventory">
+                    <div class="kpi-icon"><i class="bi bi-box"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Total SKUs</span>
+                        <span class="kpi-value">{{ total_products|default:"0" }}</span>
+                        <span class="kpi-meta">Products</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-green">
-                <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">In Stock</span>
-                    <span class="kpi-value">1,089</span>
-                    <span class="kpi-meta">88% of total</span>
+            <a href="{% url 'inventory:stock' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">In Stock</span>
+                        <span class="kpi-value">{{ in_stock_count|default:"0" }}</span>
+                        <span class="kpi-meta">Products with stock</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-orange">
-                <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Low Stock</span>
-                    <span class="kpi-value">42</span>
-                    <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-up"></i> 8</span>
+            <a href="{% url 'inventory:stock' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-orange">
+                    <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Out of Stock</span>
+                        <span class="kpi-value">{{ low_stock_items|length }}</span>
+                        <span class="kpi-meta">Zero quantity</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-purple">
-                <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Reorder</span>
-                    <span class="kpi-value">12</span>
-                    <span class="kpi-meta">Items due</span>
+            <a href="{% url 'inventory:stock' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Low Stock</span>
+                        <span class="kpi-value">{{ low_stock_warning|length }}</span>
+                        <span class="kpi-meta">Near reorder level</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Charts -->
+    <!-- Quick Actions -->
     <div class="row g-2 mb-2">
-        <div class="col-lg-6">
-            <div class="card chart-card mb-0">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Quick Actions</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'inventory:product_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-plus-lg me-2"></i>Add New Product
+                        </a>
+                        <a href="{% url 'inventory:movement_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-arrow-left-right me-2"></i>Record Stock Movement
+                        </a>
+                        <a href="{% url 'inventory:warehouse_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-building me-2"></i>Add Warehouse
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
                 <div class="card-header py-2 px-3">
                     <span class="fw-semibold">Stock by Category</span>
                 </div>
                 <div class="card-body p-2">
-                    <canvas id="stockByCategoryChart" height="132"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Top Selling Products</span>
-                </div>
-                <div class="card-body p-2">
-                    <canvas id="topSellingProductsChart" height="132"></canvas>
+                    {% if category_labels %}
+                    <canvas id="inventoryCategoryChart" height="140"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No stock data</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -79,39 +101,71 @@
 
     <!-- Tables -->
     <div class="row g-2">
-        <div class="col-12">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Low Stock Alerts</span>
-                    <span class="badge bg-warning text-dark">5</span>
+                    <span class="fw-semibold">Out of Stock</span>
                 </div>
                 <div class="card-body p-0">
+                    {% if low_stock_items %}
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th>Product</th>
-                                    <th>SKU</th>
-                                    <th>In Stock</th>
-                                    <th>Reorder Level</th>
+                                    <th>Warehouse</th>
+                                    <th>Qty</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for item in low_stock_items %}
                                 <tr>
-                                    <td>Product D</td>
-                                    <td>SKU-004</td>
-                                    <td><span class="badge bg-warning text-dark">5</span></td>
-                                    <td>10</td>
+                                    <td><a href="{% url 'inventory:product_detail' item.product.pk %}">{{ item.product.name }}</a></td>
+                                    <td>{{ item.warehouse.name }}</td>
+                                    <td><span class="badge bg-danger">{{ item.quantity_on_hand|default:"0" }}</span></td>
                                 </tr>
-                                <tr>
-                                    <td>Product E</td>
-                                    <td>SKU-005</td>
-                                    <td><span class="badge bg-danger">2</span></td>
-                                    <td>5</td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No out of stock items</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Low Stock Warnings</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if low_stock_warning %}
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Warehouse</th>
+                                    <th>Qty</th>
+                                    <th>Reorder</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_warning %}
+                                <tr>
+                                    <td><a href="{% url 'inventory:product_detail' item.product.pk %}">{{ item.product.name }}</a></td>
+                                    <td>{{ item.warehouse.name }}</td>
+                                    <td><span class="badge bg-warning text-dark">{{ item.quantity_on_hand|floatformat:0 }}</span></td>
+                                    <td>{{ item.reorder_level|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No low stock warnings</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -121,44 +175,29 @@
 
 {% block extra_js %}
 <script>
-    const stockByCategoryCtx = document.getElementById('stockByCategoryChart').getContext('2d');
-    new Chart(stockByCategoryCtx, {
+(function() {
+    const el = document.getElementById('inventoryCategoryChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: ['Category A', 'Category B', 'Category C'],
+            labels: {{ category_labels|safe }},
             datasets: [{
-                data: [300, 50, 100],
-                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
+                data: {{ category_data }},
+                backgroundColor: ['#4a6b3a', '#16a34a', '#2563eb', '#ea580c', '#9333ea', '#ec4899'],
+                borderWidth: 1,
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
-        }
-    });
-
-    const topSellingProductsCtx = document.getElementById('topSellingProductsChart').getContext('2d');
-    new Chart(topSellingProductsCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Product A', 'Product B', 'Product C'],
-            datasets: [{
-                label: 'Units Sold',
-                data: [120, 90, 75],
-                backgroundColor: '#4e73df'
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { color: 'rgba(0,0,0,0.05)' } },
-                y: { grid: { display: false } }
+            cutout: '55%',
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 10 }, padding: 8 } }
             }
         }
     });
+})();
 </script>
 {% endblock %}

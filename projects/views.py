@@ -3,10 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import Project, Task
 from .forms import ProjectForm, TaskForm
+from core.utils import get_user_company
 
 @login_required
 def active(request):
-    qs = Project.objects.select_related('customer').all().order_by('-start_date')
+    company = get_user_company(request)
+    qs = Project.objects.filter(company=company).select_related('customer').order_by('-start_date')
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(name__icontains=query) | Q(customer__company_name__icontains=query))
@@ -15,30 +17,55 @@ def active(request):
 
 @login_required
 def project_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
-        form = ProjectForm(request.POST)
+        form = ProjectForm(request.POST, company=company)
         if form.is_valid():
-            form.save()
+            project = form.save(commit=False)
+            project.company = company
+            project.save()
             return redirect('projects:active')
     else:
-        form = ProjectForm()
+        form = ProjectForm(company=company)
     return render(request, 'projects/project_form.html', {'form': form, 'action': 'Create'})
 
 @login_required
+def project_detail(request, pk):
+    company = get_user_company(request)
+    project = get_object_or_404(Project.objects.select_related('customer'), pk=pk, company=company)
+    tasks = Task.objects.filter(project=project).select_related('assigned_to__user')
+    context = {
+        'project': project,
+        'tasks': tasks
+    }
+    return render(request, 'projects/project_detail.html', context)
+
+@login_required
 def project_edit(request, pk):
-    project = get_object_or_404(Project, pk=pk)
+    company = get_user_company(request)
+    project = get_object_or_404(Project, pk=pk, company=company)
     if request.method == 'POST':
-        form = ProjectForm(request.POST, instance=project)
+        form = ProjectForm(request.POST, instance=project, company=company)
         if form.is_valid():
             form.save()
             return redirect('projects:active')
     else:
-        form = ProjectForm(instance=project)
+        form = ProjectForm(instance=project, company=company)
     return render(request, 'projects/project_form.html', {'form': form, 'action': 'Edit', 'project': project})
 
 @login_required
+def project_delete(request, pk):
+    company = get_user_company(request)
+    project = get_object_or_404(Project, pk=pk, company=company)
+    if request.method == 'POST':
+        project.delete()
+        return redirect('projects:active')
+    return render(request, 'projects/project_confirm_delete.html', {'project': project})
+
+@login_required
 def tasks(request):
-    qs = Task.objects.select_related('project', 'assigned_to__user').all().order_by('due_date')
+    company = get_user_company(request)
+    qs = Task.objects.filter(project__company=company).select_related('project', 'assigned_to__user').order_by('due_date')
     query = request.GET.get('q', '')
     if query:
         qs = qs.filter(Q(name__icontains=query) | Q(project__name__icontains=query))
@@ -47,18 +74,20 @@ def tasks(request):
 
 @login_required
 def task_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
-        form = TaskForm(request.POST)
+        form = TaskForm(request.POST, company=company)
         if form.is_valid():
             form.save()
             return redirect('projects:tasks')
     else:
-        form = TaskForm()
+        form = TaskForm(company=company)
     return render(request, 'projects/task_form.html', {'form': form})
 
 @login_required
 def timeline(request):
-    projects = Project.objects.all().order_by('start_date')
+    company = get_user_company(request)
+    projects = Project.objects.filter(company=company).order_by('start_date')
     return render(request, 'projects/timeline.html', {'projects': projects})
 
 @login_required

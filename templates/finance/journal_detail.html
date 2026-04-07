@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Journal Entry {{ entry.entry_number }} - Olive ERP{% endblock %}
+
+{% block content %}
+<section class="dashboard-page dashboard-page--compact">
+    <div class="report-container">
+        <div class="report-header d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="page-title">Journal Entry: {{ entry.entry_number }}</h2>
+                <p class="page-subtitle">{{ entry.date|date:"d M Y" }} | 
+                    {% if entry.is_posted %}
+                    <span class="badge bg-success">Posted</span>
+                    {% else %}
+                    <span class="badge bg-warning">Draft</span>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{% url 'finance:journal' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Journal
+            </a>
+        </div>
+
+        {% if entry.description %}
+        <div class="alert alert-info mb-3">
+            <strong>Description:</strong> {{ entry.description }}
+        </div>
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-header py-2">
+                <h5 class="mb-0">Journal Lines</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 report-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Account Code</th>
+                            <th>Account Name</th>
+                            <th class="text-end">Debit</th>
+                            <th class="text-end">Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in entry.lines.all %}
+                        <tr>
+                            <td class="font-monospace">{{ line.account.code }}</td>
+                            <td>{{ line.account.name }}</td>
+                            <td class="text-end font-monospace {% if line.debit > 0 %}text-danger{% endif %}">
+                                {{ line.debit|default:"0"|intcomma }}
+                            </td>
+                            <td class="text-end font-monospace {% if line.credit > 0 %}text-success{% endif %}">
+                                {{ line.credit|default:"0"|intcomma }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="2" class="text-end">Totals:</th>
+                            <th class="text-end font-monospace">{{ entry.total_debit|intcomma }}</th>
+                            <th class="text-end font-monospace">{{ entry.total_credit|intcomma }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0"><i class="bi bi-paperclip me-2"></i>Attachments ({{ attachments.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if attachments %}
+                        <ul class="list-group list-group-flush">
+                            {% for att in attachments %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <i class="bi bi-file-{% if att.file_type == 'PDF' %}pdf{% else %}eark{% endif %} me-2"></i>
+                                    {{ att.filename }}
+                                </div>
+                                <small class="text-muted">{{ att.file_size|filesizeformat }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">No attachments</p>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                            <i class="bi bi-upload"></i> Upload Attachment
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0">Metadata</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Created By</dt>
+                            <dd class="col-sm-8">{{ entry.created_by|default:"System" }}</dd>
+                            
+                            <dt class="col-sm-4">Created</dt>
+                            <dd class="col-sm-8">{{ entry.created_at|date:"d M Y H:i" }}</dd>
+                            
+                            <dt class="col-sm-4">Company</dt>
+                            <dd class="col-sm-8">{{ entry.company.name }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Attachment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'core:upload_attachment' %}">
+                {% csrf_token %}
+                <input type="hidden" name="content_type" value="finance.journalentry">
+                <input type="hidden" name="object_id" value="{{ entry.pk }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">File</label>
+                        <input type="file" name="file" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (optional)</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

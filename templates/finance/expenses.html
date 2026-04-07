@@ -32,9 +32,13 @@
                         <tr>
                             <td class="fw-bold">{{ account.code }}</td>
                             <td>{{ account.name }}</td>
-                            <td class="text-end fw-bold font-monospace">€0.00</td>
+                            <td class="text-end fw-bold font-monospace">€{{ account.get_balance|floatformat:2|intcomma }}</td>
                             <td class="text-end">
-                                <a href="#" class="btn btn-xs btn-outline-primary py-0">{% trans "View Ledger" %}</a>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'finance:account_detail' account.pk %}" class="btn btn-outline-primary py-0 px-1" title="{% trans 'View' %}"><i class="bi bi-eye"></i></a>
+                                    <a href="{% url 'finance:account_update' account.pk %}" class="btn btn-outline-primary py-0 px-1" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'finance:account_delete' account.pk %}" class="btn btn-outline-danger py-0 px-1" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}

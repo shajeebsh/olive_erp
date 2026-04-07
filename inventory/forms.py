@@ -40,6 +40,12 @@ class WarehouseForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+        if company is None:
+            self.fields.pop('company', None)
+
 
 class StockMovementForm(forms.ModelForm):
     class Meta:
@@ -52,3 +58,10 @@ class StockMovementForm(forms.ModelForm):
             'movement_type': forms.Select(attrs={'class': 'form-select'}),
             'reference': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+        if company:
+            self.fields['product'].queryset = Product.objects.filter(company=company)
+            self.fields['warehouse'].queryset = Warehouse.objects.filter(company=company)

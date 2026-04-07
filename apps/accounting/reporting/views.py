@@ -14,11 +14,7 @@ from apps.accounting.compliance.forms import DividendForm, RelatedPartyTransacti
 from tax_engine.countries.ie.models import Director, Secretary, Shareholder
 from tax_engine.countries.ie.rbo import BeneficialOwner
 from tax_engine.forms import DirectorForm, DirectorEditForm, SecretaryForm, SecretaryEditForm, ShareholderForm, BeneficialOwnerForm
-
-def get_user_company(request):
-    if hasattr(request.user, "company") and request.user.company:
-        return request.user.company
-    return CompanyProfile.objects.first()
+from core.utils import get_user_company
 
 from decimal import Decimal
 
@@ -103,7 +99,7 @@ class BalanceSheetView(LoginRequiredMixin, TemplateView):
         try:
             from apps.accounting.assets.models import FixedAsset
             fixed_assets_nbv = sum(a.net_book_value for a in FixedAsset.objects.filter(company=company))
-        except Exception:
+        except ImportError:
             fixed_assets_nbv = sumifs('Asset', 'Fixed Assets')
 
         total_assets = cash_bank + accounts_receivable + fixed_assets_nbv

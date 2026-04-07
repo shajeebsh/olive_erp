@@ -1,14 +1,103 @@
 {% extends 'base.html' %}
+{% load i18n humanize %}
 
 {% block title %}Leads | Olive ERP{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">🎯 {% trans "Leads" %}</h2>
+            <a href="{% url 'crm:lead_create' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>{% trans "New Lead" %}
+            </a>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="report-filter-bar shadow-sm mb-3">
+            <form method="get" class="row gx-2 gy-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">{% trans "Search Leads" %}</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="{% trans 'Search by name or company...' %}" value="{{ query }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">{% trans "Status" %}</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">{% trans "All Statuses" %}</option>
+                        <option value="NEW" {% if status_filter == 'NEW' %}selected{% endif %}>{% trans "New" %}</option>
+                        <option value="CONTACTED" {% if status_filter == 'CONTACTED' %}selected{% endif %}>{% trans "Contacted" %}</option>
+                        <option value="QUALIFIED" {% if status_filter == 'QUALIFIED' %}selected{% endif %}>{% trans "Qualified" %}</option>
+                        <option value="PROPOSAL" {% if status_filter == 'PROPOSAL' %}selected{% endif %}>{% trans "Proposal" %}</option>
+                        <option value="WON" {% if status_filter == 'WON' %}selected{% endif %}>{% trans "Won" %}</option>
+                        <option value="LOST" {% if status_filter == 'LOST' %}selected{% endif %}>{% trans "Lost" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">{% trans "Filter" %}</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="report-card card shadow-sm">
             <div class="card-body">
-                <h4 class="card-title">Leads</h4>
-                <p>This is a placeholder page for Leads. Content will be added later.</p>
+                <div class="table-responsive">
+                    <table class="report-table table table-hover">
+                        <thead>
+                            <tr class="bg-light">
+                                <th>{% trans "Lead Name" %}</th>
+                                <th>{% trans "Company" %}</th>
+                                <th>{% trans "Contact" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th class="text-end">{% trans "Value" %}</th>
+                                <th class="text-end">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in leads %}
+                            <tr>
+                                <td class="fw-600">{{ lead.lead_name }}</td>
+                                <td>{{ lead.company_name|default:"—" }}</td>
+                                <td>{{ lead.email }}<br><span class="text-muted fs-xs">{{ lead.phone }}</span></td>
+                                <td>
+                                    {% if lead.status == 'NEW' %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1">{% trans "New" %}</span>
+                                    {% elif lead.status == 'CONTACTED' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle py-1">{% trans "Contacted" %}</span>
+                                    {% elif lead.status == 'QUALIFIED' %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle py-1">{% trans "Qualified" %}</span>
+                                    {% elif lead.status == 'PROPOSAL' %}
+                                        <span class="badge bg-purple-subtle text-purple border border-purple-subtle py-1">{% trans "Proposal" %}</span>
+                                    {% elif lead.status == 'WON' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle py-1">{% trans "Won" %}</span>
+                                    {% elif lead.status == 'LOST' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-1">{% trans "Lost" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end font-monospace">{% if lead.estimated_value %}€{{ lead.estimated_value|floatformat:2|intcomma }}{% else %}—{% endif %}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'crm:lead_detail' lead.pk %}" class="btn btn-outline-primary py-0 px-1" title="{% trans 'View' %}"><i class="bi bi-eye"></i></a>
+                                        <a href="{% url 'crm:lead_edit' lead.pk %}" class="btn btn-outline-primary py-0 px-1" title="{% trans 'Edit' %}"><i class="bi bi-pencil"></i></a>
+                                        <a href="{% url 'crm:lead_delete' lead.pk %}" class="btn btn-outline-danger py-0 px-1" title="{% trans 'Delete' %}"><i class="bi bi-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-person-lines-fill h3 d-block mb-3 opacity-25"></i>
+                                    <p>{% trans "No leads found." %}</p>
+                                    <a href="{% url 'crm:lead_create' %}" class="btn btn-primary btn-sm">{% trans "Add your first lead" %}</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

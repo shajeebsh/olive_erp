@@ -3,6 +3,7 @@ from django.conf import settings
 from inventory.models import Product, Warehouse
 
 class Supplier(models.Model):
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='suppliers', null=True, blank=True)
     company_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255)
     email = models.EmailField()
@@ -23,6 +24,7 @@ class PurchaseOrder(models.Model):
         ('RECEIVED', 'Received'),
         ('CANCELLED', 'Cancelled'),
     )
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='purchase_orders', null=True, blank=True)
     po_number = models.CharField(max_length=50, unique=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     order_date = models.DateField()

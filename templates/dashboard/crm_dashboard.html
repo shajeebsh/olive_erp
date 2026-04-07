@@ -11,67 +11,74 @@
 
     <!-- Top Stats -->
     <div class="row g-2 mb-2">
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-crm">
-                <div class="kpi-icon"><i class="bi bi-person-check"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Active Leads</span>
-                    <span class="kpi-value">28</span>
-                    <span class="kpi-meta">This month</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'crm:leads' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-crm">
+                    <div class="kpi-icon"><i class="bi bi-person-check"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Active Leads</span>
+                        <span class="kpi-value">{{ active_leads|default:"0" }}</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-green">
-                <div class="kpi-icon"><i class="bi bi-trophy"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Won Deals</span>
-                    <span class="kpi-value">12</span>
-                    <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 4</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'crm:sales_orders' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon"><i class="bi bi-cart-check"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Open Orders</span>
+                        <span class="kpi-value">{{ open_orders|default:"0" }}</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-blue">
-                <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Pipeline Value</span>
-                    <span class="kpi-value">€125K</span>
-                    <span class="kpi-meta">Total opportunities</span>
+        <div class="col-6 col-lg-4">
+            <a href="{% url 'crm:customers' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-pink">
+                    <div class="kpi-icon"><i class="bi bi-people"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Customers</span>
+                        <span class="kpi-value">{{ customer_count|default:"0" }}</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-pink">
-                <div class="kpi-icon"><i class="bi bi-people"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Customers</span>
-                    <span class="kpi-value">156</span>
-                    <span class="kpi-meta">Active</span>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Charts -->
+    <!-- Quick Actions -->
     <div class="row g-2 mb-2">
-        <div class="col-lg-6">
-            <div class="card chart-card mb-0">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Sales Pipeline</span>
+                    <span class="fw-semibold">Quick Actions</span>
                 </div>
-                <div class="card-body p-2">
-                    <canvas id="salesPipelineChart" height="132"></canvas>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'crm:customer_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-person-plus me-2"></i>Add Customer
+                        </a>
+                        <a href="{% url 'crm:lead_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-telephone-plus me-2"></i>Add Lead
+                        </a>
+                        <a href="{% url 'crm:sales_order_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-cart-plus me-2"></i>Create Sales Order
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-12 col-lg-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Monthly Deals</span>
+                    <span class="fw-semibold">Lead Pipeline</span>
                 </div>
                 <div class="card-body p-2">
-                    <canvas id="monthlyDealsChart" height="132"></canvas>
+                    {% if lead_status_labels %}
+                    <canvas id="crmLeadChart" height="140"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No lead data</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -82,29 +89,33 @@
         <div class="col-12">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Recent Opportunities</span>
+                    <span class="fw-semibold">Recent Customers</span>
                 </div>
                 <div class="card-body p-0">
+                    {% if recent_customers %}
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
-                                    <th>Opportunity</th>
-                                    <th>Customer</th>
-                                    <th>Value</th>
-                                    <th>Probability</th>
+                                    <th>Company</th>
+                                    <th>Contact</th>
+                                    <th>Email</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for customer in recent_customers %}
                                 <tr>
-                                    <td>Opp-001</td>
-                                    <td>Customer D</td>
-                                    <td>€15,000</td>
-                                    <td><span class="badge bg-success">75%</span></td>
+                                    <td><a href="{% url 'crm:customer_detail' customer.pk %}">{{ customer.company_name }}</a></td>
+                                    <td>{{ customer.contact_person }}</td>
+                                    <td>{{ customer.email }}</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No customers yet</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -114,51 +125,29 @@
 
 {% block extra_js %}
 <script>
-    const salesPipelineCtx = document.getElementById('salesPipelineChart').getContext('2d');
-    new Chart(salesPipelineCtx, {
-        type: 'bar',
+(function() {
+    const el = document.getElementById('crmLeadChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
         data: {
-            labels: ['Leads', 'Qualified', 'Proposal', 'Won'],
+            labels: {{ lead_status_labels|safe }},
             datasets: [{
-                label: 'Deals',
-                data: [100, 75, 50, 25],
-                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+                data: {{ lead_status_data }},
+                backgroundColor: ['#16a34a', '#2563eb', '#ea580c', '#9333ea', '#6b7280'],
+                borderWidth: 1,
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
+            cutout: '55%',
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 10 }, padding: 8 } }
             }
         }
     });
-
-    const monthlyDealsCtx = document.getElementById('monthlyDealsChart').getContext('2d');
-    new Chart(monthlyDealsCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Deals',
-                data: [5, 8, 12, 10, 15, 18],
-                borderColor: '#4e73df',
-                backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                tension: 0.3,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
+})();
 </script>
 {% endblock %}

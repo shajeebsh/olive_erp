@@ -18,9 +18,10 @@ from purchasing.models import Supplier, PurchaseOrder, PurchaseOrderLine, GoodsR
 from tax_engine.models import TaxPeriod, TaxFiling, BeneficialOwner
 from apps.accounting.assets.models import FixedAsset
 from apps.accounting.reconciliation.models import BankReconciliation
-from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend
+from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend, RelatedPartyTransaction
 
 User = get_user_model()
+
 
 class Command(BaseCommand):
     help = 'Generates realistic sample data for Olive ERP modules'
@@ -63,6 +64,9 @@ class Command(BaseCommand):
         # Generate transactional data over time
         self.generate_transactions()
         self.generate_compliance()
+        
+        # Generate audit logs and approval workflows
+        self.generate_audit_and_approvals()
 
         self.stdout.write(self.style.SUCCESS("Successfully generated sample data!"))
 
@@ -847,3 +851,145 @@ class Command(BaseCommand):
                         )
         
         self.stdout.write(self.style.SUCCESS(f"Created {len(journal_entries)} posted journal entries"))
+
+    def generate_audit_and_approvals(self):
+        self.stdout.write("Generating Audit Logs and Approval Workflows...")
+        
+        from core.models import AuditLog, ApprovalWorkflow
+        from finance.models import JournalEntry
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        # Get some posted journal entries
+        recent_jes = JournalEntry.objects.filter(is_posted=True)[:10]
+        
+        # Generate audit logs for journal entries
+        for i, je in enumerate(recent_jes):
+            AuditLog.objects.get_or_create(
+                user=self.admin_user,
+                action='CREATE',
+                model_name='JournalEntry',
+                object_id=str(je.id),
+                object_repr=str(je),
+                defaults={
+                    'changes': {'entry_number': je.entry_number, 'amount': str(je.total_debit)},
+                    'timestamp': je.date - timedelta(hours=random.randint(1, 48))
+                }
+            )
+            
+            # 30% chance of a posted journal needing approval (simulate high-risk JE)
+            if random.random() < 0.3:
+                ApprovalWorkflow.objects.get_or_create(
+                    company=self.company,
+                    workflow_type='JOURNAL_POST',
+                    reference_id=str(je.id),
+                    reference_model='JournalEntry',
+                    defaults={
+                        'status': random.choice(['PE', 'AP', 'RJ']),
+                        'requested_by': self.admin_user,
+                        'approved_by': self.admin_user if random.random() > 0.3 else None,
+                        'request_notes': f'High-value journal entry requiring approval',
+                        'approval_notes': 'Approved per policy' if random.random() > 0.3 else '',
+                        'decided_at': timezone.now() - timedelta(days=random.randint(1, 10)) if random.random() > 0.3 else None
+                    }
+                )
+        
+        # Generate approval workflows for dividends
+        dividends = Dividend.objects.all()[:5]
+        for div in dividends:
+            ApprovalWorkflow.objects.get_or_create(
+                company=self.company,
+                workflow_type='DIVIDEND',
+                reference_id=str(div.id),
+                reference_model='Dividend',
+                defaults={
+                    'status': random.choice(['PE', 'AP']),
+                    'requested_by': self.admin_user,
+                    'approved_by': self.admin_user if random.random() > 0.2 else None,
+                    'request_notes': f'Dividend payment of €{div.net_amount}',
+                    'decided_at': timezone.now() - timedelta(days=random.randint(1, 30)) if random.random() > 0.2 else None
+                }
+            )
+        
+        # Generate approval workflows for purchase orders over €5000
+        high_value_pos = PurchaseOrder.objects.filter(total_amount__gte=5000)[:5]
+        for po in high_value_pos:
+            ApprovalWorkflow.objects.get_or_create(
+                company=self.company,
+                workflow_type='PURCHASE_ORDER',
+                reference_id=str(po.id),
+                reference_model='PurchaseOrder',
+                defaults={
+                    'status': random.choice(['PE', 'AP', 'RJ']),
+                    'requested_by': self.admin_user,
+                    'approved_by': self.admin_user if random.random() > 0.4 else None,
+                    'request_notes': f'High-value PO: €{po.total_amount}',
+                    'decided_at': timezone.now() - timedelta(days=random.randint(1, 14)) if random.random() > 0.4 else None
+                }
+            )
+        
+        # Generate audit logs for invoices
+        invoices = Invoice.objects.all()[:10]
+        for inv in invoices:
+            AuditLog.objects.get_or_create(
+                user=self.admin_user,
+                action='CREATE' if random.random() > 0.5 else 'UPDATE',
+                model_name='Invoice',
+                object_id=str(inv.id),
+                object_repr=str(inv),
+                defaults={
+                    'changes': {'status': inv.status, 'amount': str(inv.total_amount)},
+                    'timestamp': inv.issue_date - timedelta(hours=random.randint(1, 24))
+                }
+            )
+        
+        # Generate mock document attachments (without actual files)
+        self.generate_document_attachments()
+        
+        self.stdout.write(self.style.SUCCESS("Audit logs and approval workflows generated!"))
+    
+    def generate_document_attachments(self):
+        self.stdout.write("Generating Document Attachments...")
+        
+        from core.models import DocumentAttachment
+        from django.contrib.contenttypes.models import ContentType
+        
+        # Get content types
+        je_ct = ContentType.objects.get_for_model(JournalEntry)
+        inv_ct = ContentType.objects.get_for_model(Invoice)
+        
+        # Attachments for Journal Entries
+        recent_jes = JournalEntry.objects.all()[:5]
+        attachment_names = ['Invoice_Scan.pdf', 'Bank_Statement.pdf', 'Receipt_001.jpg', 'Contract_Signed.pdf', 'Expenses_Sheet.xlsx']
+        
+        for i, je in enumerate(recent_jes):
+            DocumentAttachment.objects.get_or_create(
+                company=self.company,
+                content_type=je_ct,
+                object_id=je.id,
+                filename=attachment_names[i % len(attachment_names)],
+                defaults={
+                    'file_type': 'PDF' if attachment_names[i % len(attachment_names)].endswith('.pdf') else 'IMAGE',
+                    'description': f'Mock attachment for journal entry {je.entry_number}',
+                    'uploaded_by': self.admin_user,
+                    'file_size': random.randint(10000, 500000)
+                }
+            )
+        
+        # Attachments for Invoices
+        recent_invs = Invoice.objects.all()[:5]
+        for i, inv in enumerate(recent_invs):
+            DocumentAttachment.objects.get_or_create(
+                company=self.company,
+                content_type=inv_ct,
+                object_id=inv.id,
+                filename=f'Customer_Invoice_{inv.invoice_number}.pdf',
+                defaults={
+                    'file_type': 'PDF',
+                    'description': f'Invoice document for {inv.invoice_number}',
+                    'uploaded_by': self.admin_user,
+                    'file_size': random.randint(20000, 100000)
+                }
+            )
+        
+        self.stdout.write(self.style.SUCCESS("Document attachments generated!"))

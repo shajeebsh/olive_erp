@@ -47,7 +47,11 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                     <span class="badge bg-light text-dark font-monospace">{{ customer.payment_terms }}</span>
-                    <a href="{% url 'crm:customer_edit' customer.pk %}" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'crm:customer_detail' customer.pk %}" class="btn btn-outline-primary py-0 px-1" title="View"><i class="bi bi-eye"></i></a>
+                        <a href="{% url 'crm:customer_edit' customer.pk %}" class="btn btn-outline-primary py-0 px-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'crm:customer_delete' customer.pk %}" class="btn btn-outline-danger py-0 px-1" title="Delete"><i class="bi bi-trash"></i></a>
+                    </div>
                 </div>
             </div>
         </div>

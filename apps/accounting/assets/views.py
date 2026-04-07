@@ -1,13 +1,8 @@
 from django.views.generic import ListView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from company.models import CompanyProfile
+from core.utils import get_user_company
 from .models import FixedAsset
-
-def get_user_company(request):
-    if hasattr(request.user, "company") and request.user.company:
-        return request.user.company
-    return CompanyProfile.objects.first()
 
 class FixedAssetListView(LoginRequiredMixin, ListView):
     model = FixedAsset

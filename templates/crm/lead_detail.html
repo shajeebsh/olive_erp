@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Lead Detail" %}: {{ lead.lead_name }} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">🎯 {% trans "Lead" %}: {{ lead.lead_name }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'crm:lead_edit' lead.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+                <a href="{% url 'crm:leads' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Lead Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-muted fs-xs d-block">{% trans "Company Name" %}</label>
+                                <p class="fw-bold mb-0">{{ lead.company_name|default:"—" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted fs-xs d-block">{% trans "Contact Person" %}</label>
+                                <p class="fw-bold mb-0">{{ lead.contact_person }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted fs-xs d-block">{% trans "Email" %}</label>
+                                <p class="mb-0">{{ lead.email }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted fs-xs d-block">{% trans "Phone" %}</label>
+                                <p class="mb-0">{{ lead.phone }}</p>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-muted fs-xs d-block">{% trans "Address" %}</label>
+                                <p class="mb-0">{{ lead.address|linebreaksbr|default:"—" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-card card shadow-sm">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Notes" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ lead.notes|linebreaksbr|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="report-card card shadow-sm mb-3">
+                    <div class="card-header py-2 px-3">
+                        <h5 class="mb-0 fs-sm fw-600 text-muted">{% trans "Status & Value" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Status" %}</label>
+                            {% if lead.status == 'NEW' %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 w-100">{% trans "New" %}</span>
+                            {% elif lead.status == 'CONTACTED' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 w-100">{% trans "Contacted" %}</span>
+                            {% elif lead.status == 'QUALIFIED' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 w-100">{% trans "Qualified" %}</span>
+                            {% elif lead.status == 'PROPOSAL' %}
+                                <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-3 py-2 w-100">{% trans "Proposal" %}</span>
+                            {% elif lead.status == 'WON' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 w-100">{% trans "Won" %}</span>
+                            {% elif lead.status == 'LOST' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 w-100">{% trans "Lost" %}</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted fs-xs d-block">{% trans "Estimated Value" %}</label>
+                            <p class="fs-4 fw-bold text-success mb-0">{% if lead.estimated_value %}€{{ lead.estimated_value|floatformat:2|intcomma }}{% else %}—{% endif %}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted fs-xs d-block">{% trans "Source" %}</label>
+                            <p class="mb-0">{{ lead.source|default:"—" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

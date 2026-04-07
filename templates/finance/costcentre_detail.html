@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Cost Centre" %}: {{ cost_centre.name }} | Olive ERP{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="page-title">🏢 {% trans "Cost Centre" %}: {{ cost_centre.name }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'finance:costcentre_update' cost_centre.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                </a>
+                <a href="{% url 'finance:costcentre_list' %}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="report-card card shadow-sm">
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="text-muted fs-xs d-block">{% trans "Code" %}</label>
+                        <p class="fs-5 fw-bold">{{ cost_centre.code }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-xs d-block">{% trans "Name" %}</label>
+                        <p class="fs-5">{{ cost_centre.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-xs d-block">{% trans "Parent Cost Centre" %}</label>
+                        <p>{{ cost_centre.parent.name|default:"—" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-xs d-block">{% trans "Status" %}</label>
+                        {% if cost_centre.is_active %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">{% trans "Active" %}</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1">{% trans "Inactive" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted fs-xs d-block">{% trans "Description" %}</label>
+                        <p class="mb-0">{{ cost_centre.description|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

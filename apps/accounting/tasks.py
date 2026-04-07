@@ -5,6 +5,9 @@ from django.db.models import Sum
 from company.models import CompanyProfile
 from finance.models import JournalEntryLine
 from .compliance.models import ComplianceDeadline
+import logging
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def send_deadline_reminders():
@@ -12,8 +15,7 @@ def send_deadline_reminders():
     tomorrow = timezone.now().date() + timedelta(days=1)
     upcoming = ComplianceDeadline.objects.filter(deadline_date=tomorrow, status='PE')
     for deadline in upcoming:
-        # Placeholder for notification logic (email, Slack, etc.)
-        print(f"REMINDER: {deadline.title} is due tomorrow!")
+        logger.info(f"REMINDER: {deadline.title} is due tomorrow!")
 
 @shared_task
 def notify_vat_threshold():
@@ -25,7 +27,6 @@ def notify_vat_threshold():
     threshold_goods = 82500
     
     for company in companies:
-        # Sum income lines for the last 12 months
         total_income = JournalEntryLine.objects.filter(
             account__company=company,
             account__account_type='Income',
@@ -34,5 +35,4 @@ def notify_vat_threshold():
         ).aggregate(Sum('credit'))['credit__sum'] or 0
         
         if total_income > (threshold_services * 0.85):
-            print(f"VAT WARNING: {company.name} is at {total_income/threshold_services*100:.1f}% of threshold.")
-            # Trigger notification...
+            logger.warning(f"VAT WARNING: {company.name} is at {total_income/threshold_services*100:.1f}% of threshold.")

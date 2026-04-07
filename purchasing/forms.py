@@ -26,3 +26,9 @@ class PurchaseOrderForm(forms.ModelForm):
             'expected_delivery_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+        if company:
+            self.fields['supplier'].queryset = Supplier.objects.filter(company=company)
