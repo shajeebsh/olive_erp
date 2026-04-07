@@ -16,9 +16,8 @@
                 <div class="kpi-card kpi-revenue">
                     <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-label">Revenue</span>
-                        <span class="kpi-value">€284.5K</span>
-                        <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 12.3%</span>
+                        <span class="kpi-label">Paid Revenue</span>
+                        <span class="kpi-value">€{{ paid_total|floatformat:0|default:"0" }}</span>
                     </div>
                 </div>
             </a>
@@ -28,33 +27,32 @@
                 <div class="kpi-card kpi-blue">
                     <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-label">Invoices</span>
-                        <span class="kpi-value">156</span>
-                        <span class="kpi-meta">This month</span>
+                        <span class="kpi-label">Unpaid</span>
+                        <span class="kpi-value">€{{ unpaid_total|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-meta">Awaiting payment</span>
                     </div>
                 </div>
             </a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{% url 'finance:expenses' %}" class="text-decoration-none">
+            <a href="{% url 'finance:invoices' %}?status=OVERDUE" class="text-decoration-none">
                 <div class="kpi-card kpi-orange">
-                    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+                    <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-label">Expenses</span>
-                        <span class="kpi-value">€42.8K</span>
-                        <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-down"></i> 3.2%</span>
+                        <span class="kpi-label">Overdue</span>
+                        <span class="kpi-value">€{{ overdue_total|floatformat:0|default:"0" }}</span>
                     </div>
                 </div>
             </a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="{% url 'finance:journal' %}" class="text-decoration-none">
+            <a href="{% url 'finance:account_list' %}" class="text-decoration-none">
                 <div class="kpi-card kpi-green">
                     <div class="kpi-icon"><i class="bi bi-bank"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-label">Cash Flow</span>
-                        <span class="kpi-value">€185K</span>
-                        <span class="kpi-meta">Net position</span>
+                        <span class="kpi-label">Total Revenue</span>
+                        <span class="kpi-value">€{{ paid_total|add:unpaid_total|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-meta">All invoices</span>
                     </div>
                 </div>
             </a>
@@ -66,21 +64,38 @@
         <div class="col-lg-7">
             <div class="card chart-card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">P&L Trend</span>
-                    <span class="text-muted small ms-2">Revenue vs Expenses</span>
+                    <span class="fw-semibold">Invoice Status</span>
+                    <span class="text-muted small ms-2">Current breakdown</span>
                 </div>
-                <div class="card-body p-2">
+                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                    {% if paid_total|add:unpaid_total|add:overdue_total > 0 %}
                     <canvas id="pnlTrendChart" height="132"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-4">
+                        <i class="bi bi-receipt fs-1 mb-2 d-block"></i>
+                        <span>No invoices yet. Create your first invoice.</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         <div class="col-lg-5">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">AR Aging</span>
+                    <span class="fw-semibold">Quick Links</span>
                 </div>
-                <div class="card-body p-2">
-                    <canvas id="arAgingChart" height="132"></canvas>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'finance:invoice_create' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-plus-lg me-2"></i>New Invoice
+                        </a>
+                        <a href="{% url 'finance:journal' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-journal-text me-2"></i>Journal Entries
+                        </a>
+                        <a href="{% url 'finance:account_list' %}" class="list-group-item list-group-item-action py-2">
+                            <i class="bi bi-list-ul me-2"></i>Chart of Accounts
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,6 +109,7 @@
                     <span class="fw-semibold">Recent Invoices</span>
                 </div>
                 <div class="card-body p-0">
+                    {% if recent_invoices %}
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
@@ -105,27 +121,30 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for invoice in recent_invoices %}
                                 <tr>
-                                    <td>INV-001</td>
-                                    <td>Customer A</td>
-                                    <td>€1,200</td>
-                                    <td><span class="badge bg-success">Paid</span></td>
+                                    <td><a href="{% url 'finance:invoice_detail' invoice.pk %}">{{ invoice.invoice_number }}</a></td>
+                                    <td>{{ invoice.customer.company_name }}</td>
+                                    <td>€{{ invoice.total_amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if invoice.status == 'PAID' %}
+                                        <span class="badge bg-success">Paid</span>
+                                        {% elif invoice.status == 'OVERDUE' %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                        {% elif invoice.status == 'SENT' %}
+                                        <span class="badge bg-primary">Sent</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Draft</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                                <tr>
-                                    <td>INV-002</td>
-                                    <td>Customer B</td>
-                                    <td>€2,500</td>
-                                    <td><span class="badge bg-warning text-dark">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td>INV-003</td>
-                                    <td>Customer C</td>
-                                    <td>€800</td>
-                                    <td><span class="badge bg-danger">Overdue</span></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="text-muted text-center py-3">No invoices found</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -135,42 +154,40 @@
 
 {% block extra_js %}
 <script>
-    const pnlTrendCtx = document.getElementById('pnlTrendChart').getContext('2d');
-    new Chart(pnlTrendCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [
-                { label: 'Revenue', data: [12, 19, 3, 5, 2, 3], backgroundColor: '#28a745' },
-                { label: 'Expenses', data: [8, 12, 2, 3, 1, 2], backgroundColor: '#dc3545' }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
+    (function () {
+        const el = document.getElementById('pnlTrendChart');
+        if (!el) return;
+        new Chart(el.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Unpaid', 'Overdue'],
+                datasets: [{
+                    data: [{{ paid_total }}, {{ unpaid_total }}, {{ overdue_total }}],
+                    backgroundColor: ['#16a34a', '#2563eb', '#ea580c'],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 }, padding: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ' €' + ctx.parsed.toLocaleString('en-IE', { minimumFractionDigits: 0 });
+                            }
+                        }
+                    }
+                }
             }
-        }
-    });
-
-    const arAgingCtx = document.getElementById('arAgingChart').getContext('2d');
-    new Chart(arAgingCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['0-30', '31-60', '61-90', '90+'],
-            datasets: [{
-                data: [60, 25, 10, 5],
-                backgroundColor: ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
-        }
-    });
+        });
+    })();
 </script>
 {% endblock %}

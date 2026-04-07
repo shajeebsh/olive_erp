@@ -264,6 +264,9 @@ olive_erp/
 - Dividend register
 - **UI with two-row top navigation layout** - Fixed app shell with utility row (brand/search/user) and module navigation row
 - **Dashboard compaction pass** - Removed nested dashboard content wrappers, reduced top whitespace, tightened KPI/chart spacing, and improved above-the-fold visibility across dashboard pages
+- **Dashboard live data pass** - All 8 dashboards converted to live model data. Bugs fixed: CRM `FieldError` (`Customer` has no `created_at` — use `order_by('-id')`), Lead `status='ACTIVE'` replaced with `exclude(status__in=['WON','LOST'])`, `NoReverseMatch` for `finance:accounts` corrected to `finance:account_list`, missing `compliance_dashboard` route added. See `docs/feature-dashboards.md`.
+- **Finance dashboard chart** - Added Chart.js doughnut chart for invoice status breakdown (paid/unpaid/overdue) via `{% block extra_js %}` in `finance_dashboard.html`. All chart canvases are guarded with `{% if %}` in template + `getElementById` null-check in JS.
+- **Journal entry ledger layout** - Full rewrite of `templates/finance/journal.html`. Uses 5-column CSS Grid (`52px 1fr 100px 72px 72px`) with always-present grid children (code|name|desc|debit|credit) to prevent column-shift when description is absent. Per-entry column header row, compact row padding, mobile-responsive (description hidden on mobile). See `docs/feature-journal-entries.md`.
 - **Accounting report density pass** - Unified and compacted Balance Sheet, Profit & Loss, and VAT Summary reports using shared `.report-table`, `.report-card`, and `.report-header` classes to maximize above-the-fold information.
 - **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions. Fixed create flows to set company on save.
 - **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
@@ -334,6 +337,12 @@ qs = Model.objects.filter(company=company)
 
 4. **Sample data company mismatch**: Old seed data creates "Olive Tech Solutions Ltd" but current user may be linked to "Nimra tech"
    - Use `manage.py reset_demo_data` to get clean dataset
+
+5. **Dashboard model field gotchas** — Do NOT use these patterns (they cause `FieldError` at runtime):
+   - `Employee.objects.filter(status=...)` — `Employee` has no `status` field
+   - `Customer.objects.order_by('-created_at')` — `Customer` has no `created_at` field
+   - `Lead.objects.filter(status='ACTIVE')` — `Lead` has no `'ACTIVE'` choice; use `exclude(status__in=['WON','LOST'])`
+   - See `docs/feature-dashboards.md` for correct query patterns for each dashboard
 
 ---
 

@@ -49,8 +49,8 @@
                 <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
                 <div class="kpi-content">
                     <span class="kpi-label">Revenue</span>
-                    <span class="kpi-value">€284.5K</span>
-                    <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 12.3%</span>
+                    <span class="kpi-value">€{{ total_revenue|floatformat:0|default:"0" }}</span>
+                    <span class="kpi-meta">Paid Invoices</span>
                 </div>
             </div>
         </div>
@@ -59,8 +59,8 @@
                 <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
                 <div class="kpi-content">
                     <span class="kpi-label">Products</span>
-                    <span class="kpi-value">1,234</span>
-                    <span class="kpi-meta">In stock</span>
+                    <span class="kpi-value">{{ total_products|default:"0" }}</span>
+                    <span class="kpi-meta">{{ in_stock|default:"0" }} in stock</span>
                 </div>
             </div>
         </div>
@@ -69,8 +69,8 @@
                 <div class="kpi-icon"><i class="bi bi-people"></i></div>
                 <div class="kpi-content">
                     <span class="kpi-label">Employees</span>
-                    <span class="kpi-value">42</span>
-                    <span class="kpi-meta">Active</span>
+                    <span class="kpi-value">{{ employee_count|default:"0" }}</span>
+                    <span class="kpi-meta">On Record</span>
                 </div>
             </div>
         </div>
@@ -79,8 +79,8 @@
                 <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
                 <div class="kpi-content">
                     <span class="kpi-label">Active Deals</span>
-                    <span class="kpi-value">28</span>
-                    <span class="kpi-meta">€125K value</span>
+                    <span class="kpi-value">{{ active_leads|default:"0" }}</span>
+                    <span class="kpi-meta">{{ open_orders|default:"0" }} orders</span>
                 </div>
             </div>
         </div>
@@ -92,39 +92,42 @@
             <div class="card chart-card mb-0">
                 <div class="card-header py-2 px-3">
                     <span class="fw-semibold">Revenue Trend</span>
-                    <span class="text-muted small ms-2">Last 6 months</span>
+                    <span class="text-muted small ms-2">Paid Invoices</span>
                 </div>
-                <div class="card-body p-2">
+                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                    {% if total_revenue > 0 %}
                     <canvas id="revenueTrendChart" height="160"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-4">
+                        <i class="bi bi-graph-up fs-1 mb-2 d-block"></i>
+                        <span>No revenue data yet. Create and post some invoices.</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Top Products</span>
+                    <span class="fw-semibold">Active Projects</span>
                 </div>
                 <div class="card-body p-0">
+                    {% if active_projects > 0 %}
                     <table class="table table-sm mb-0">
                         <tbody>
                             <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">1</span> Product A</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">€12.5K</td>
+                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">Projects</span></td>
+                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ active_projects }}</td>
                             </tr>
                             <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">2</span> Product B</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">€9.8K</td>
-                            </tr>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">3</span> Product C</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">€7.2K</td>
-                            </tr>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-secondary">4</span> Product D</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">€5.1K</td>
+                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">Tasks</span></td>
+                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ open_tasks|default:"0" }}</td>
                             </tr>
                         </tbody>
                     </table>
+                    {% else %}
+                    <div class="text-muted small text-center py-3">No active projects</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -135,36 +138,48 @@
         <div class="col-md-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Pending Tasks</span>
-                    <span class="badge bg-warning text-dark">3</span>
+                    <span class="fw-semibold">Quick Stats</span>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span><i class="bi bi-circle text-danger me-2" style="font-size:0.5rem;"></i>Invoice #1234 overdue</span>
-                            <span class="badge bg-danger">Urgent</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span><i class="bi bi-circle text-warning me-2" style="font-size:0.5rem;"></i>Approve leave request</span>
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span><i class="bi bi-circle text-info me-2" style="font-size:0.5rem;"></i>Review PO #567</span>
-                            <span class="badge bg-info">Review</span>
-                        </li>
-                    </ul>
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="border-0 py-2 ps-3"><i class="bi bi-people me-2"></i>Employees</td>
+                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ employee_count|default:"0" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0 py-2 ps-3"><i class="bi bi-box-seam me-2"></i>Products</td>
+                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ total_products|default:"0" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0 py-2 ps-3"><i class="bi bi-person-badge me-2"></i>Customers</td>
+                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ customer_count|default:"0" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Upcoming Deadlines</span>
+                    <span class="fw-semibold">Module Links</span>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush" id="dashboard-deadlines">
-                        <li class="list-group-item text-muted small py-3 text-center">No upcoming deadlines found.</li>
-                    </ul>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'finance:invoice_create' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                            <span><i class="bi bi-receipt me-2"></i>New Invoice</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                        <a href="{% url 'inventory:product_create' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                            <span><i class="bi bi-plus-lg me-2"></i>Add Product</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                        <a href="{% url 'projects:project_create' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                            <span><i class="bi bi-kanban me-2"></i>New Project</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -174,38 +189,35 @@
 
 {% block extra_js %}
 <script>
-    const revenueTrendCtx = document.getElementById('revenueTrendChart').getContext('2d');
-    new Chart(revenueTrendCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Revenue',
-                data: [12000, 19000, 3000, 5000, 20000, 30000],
-                borderColor: '#4a6b3a',
-                backgroundColor: 'rgba(74, 107, 58, 0.1)',
-                tension: 0.3,
-                fill: true,
-                pointRadius: 4,
-                pointBackgroundColor: '#4a6b3a'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+    // Revenue Trend Chart — only rendered when total_revenue > 0 (canvas is in an if block)
+    (function() {
+        const el = document.getElementById('revenueTrendChart');
+        if (!el) return;
+        new Chart(el.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue (€)',
+                    data: [0, 0, 0, 0, 0, {{ total_revenue }}],
+                    borderColor: '#4a6b3a',
+                    backgroundColor: 'rgba(74, 107, 58, 0.08)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#4a6b3a'
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    grid: { display: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
                 }
             }
-        }
-    });
+        });
+    })();
 </script>
 {% endblock %}
