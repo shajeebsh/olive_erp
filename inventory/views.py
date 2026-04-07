@@ -40,7 +40,9 @@ def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            product = form.save(commit=False)
+            product.company = get_user_company(request)
+            product.save()
             return redirect('inventory:products')
     else:
         form = ProductForm()

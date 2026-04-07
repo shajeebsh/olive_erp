@@ -70,7 +70,7 @@ def purchase_orders(request):
     qs = PurchaseOrder.objects.filter(company=company).select_related('supplier').order_by('-order_date')
     query = request.GET.get('q', '')
     if query:
-        qs = qs.filter(Q(order_number__icontains=query) | Q(supplier__company_name__icontains=query))
+        qs = qs.filter(Q(po_number__icontains=query) | Q(supplier__company_name__icontains=query))
     return render(request, 'purchasing/purchase_orders.html', {'purchase_orders': qs, 'query': query})
 
 
@@ -108,7 +108,9 @@ def purchase_order_create(request):
     if request.method == 'POST':
         form = PurchaseOrderForm(request.POST)
         if form.is_valid():
-            form.save()
+            order = form.save(commit=False)
+            order.company = get_user_company(request)
+            order.save()
             return redirect('purchasing:purchase_orders')
     else:
         form = PurchaseOrderForm()

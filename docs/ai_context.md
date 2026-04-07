@@ -265,8 +265,9 @@ olive_erp/
 - **UI with two-row top navigation layout** - Fixed app shell with utility row (brand/search/user) and module navigation row
 - **Dashboard compaction pass** - Removed nested dashboard content wrappers, reduced top whitespace, tightened KPI/chart spacing, and improved above-the-fold visibility across dashboard pages
 - **Accounting report density pass** - Unified and compacted Balance Sheet, Profit & Loss, and VAT Summary reports using shared `.report-table`, `.report-card`, and `.report-header` classes to maximize above-the-fold information.
-- **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions
+- **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions. Fixed create flows to set company on save.
 - **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
+- **Template humanize fix** - Added `{% load humanize %}` to templates using `|intcomma` filter
 
 ### 🔄 In-progress Features
 - **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback
