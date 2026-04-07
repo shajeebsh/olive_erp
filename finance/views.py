@@ -12,12 +12,7 @@ from .models import (
     PriceList, DiscountRule, RecurringInvoice, CreditDebitNote, 
     InvoiceTemplate, SystemConfig
 )
-
-def get_user_company(request):
-    if not hasattr(request.user, "company") or not request.user.company:
-        from company.models import CompanyProfile
-        return CompanyProfile.objects.first()
-    return request.user.company
+from core.utils import get_user_company
 
 
 class InvoiceListView(LoginRequiredMixin, ListView):
@@ -26,7 +21,8 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     context_object_name = 'invoices'
     
     def get_queryset(self):
-        qs = Invoice.objects.select_related('customer')
+        company = get_user_company(self.request)
+        qs = Invoice.objects.filter(company=company).select_related('customer')
         query = self.request.GET.get('q', '')
         status = self.request.GET.get('status', '')
         if query:
@@ -37,10 +33,11 @@ class InvoiceListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        company = get_user_company(self.request)
         context['query'] = self.request.GET.get('q', '')
         context['status_filter'] = self.request.GET.get('status', '')
         context['status_choices'] = Invoice.STATUS_CHOICES
-        context['totals'] = Invoice.objects.aggregate(
+        context['totals'] = Invoice.objects.filter(company=company).aggregate(
             total_paid=Sum('total_amount', filter=Q(status='PAID')),
             total_unpaid=Sum('total_amount', filter=Q(status__in=['SENT', 'DRAFT'])),
             total_overdue=Sum('total_amount', filter=Q(status='OVERDUE')),
@@ -54,6 +51,16 @@ class InvoiceCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('finance:invoices')
     extra_context = {'action': 'Create'}
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = get_user_company(self.request)
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.company = get_user_company(self.request)
+        messages.success(self.request, 'Invoice created successfully')
+        return super().form_valid(form)
+
 class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
     model = Invoice
     form_class = InvoiceForm
@@ -61,10 +68,26 @@ class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('finance:invoices')
     extra_context = {'action': 'Edit'}
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = get_user_company(self.request)
+        return kwargs
+
+    def get_queryset(self):
+        return Invoice.objects.filter(company=get_user_company(self.request))
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Invoice updated successfully')
+        return super().form_valid(form)
+
+
 class InvoiceDeleteView(LoginRequiredMixin, DeleteView):
     model = Invoice
     template_name = 'finance/invoice_confirm_delete.html'
     success_url = reverse_lazy('finance:invoices')
+
+    def get_queryset(self):
+        return Invoice.objects.filter(company=get_user_company(self.request))
 
 class JournalEntryListView(LoginRequiredMixin, ListView):
     model = JournalEntry
@@ -72,7 +95,10 @@ class JournalEntryListView(LoginRequiredMixin, ListView):
     context_object_name = 'entries'
     
     def get_queryset(self):
-        entries = JournalEntry.objects.prefetch_related('lines__account').order_by('-date')
+        company = get_user_company(self.request)
+        entries = JournalEntry.objects.filter(
+            lines__account__company=company
+        ).prefetch_related('lines__account').distinct().order_by('-date')
         query = self.request.GET.get('q', '')
         if query:
             entries = entries.filter(Q(entry_number__icontains=query) | Q(description__icontains=query))
@@ -92,6 +118,7 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
+        form.instance.company = get_user_company(self.request)
         messages.success(self.request, 'Journal Entry created successfully')
         return super().form_valid(form)
 
@@ -101,7 +128,8 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     context_object_name = 'expense_accounts'
     
     def get_queryset(self):
-        return Account.objects.filter(account_type='Expense').order_by('code')
+        company = get_user_company(self.request)
+        return Account.objects.filter(company=company, account_type='Expense').order_by('code')
 
 class AccountListView(LoginRequiredMixin, ListView):
     model = Account

@@ -1,7 +1,8 @@
 from django import forms
 from .models import (
     Invoice, JournalEntry, JournalEntryLine, Account,
-    PriceList, DiscountRule, RecurringInvoice, CreditDebitNote
+    PriceList, DiscountRule, RecurringInvoice, CreditDebitNote,
+    InvoiceTemplate
 )
 
 
@@ -19,6 +20,15 @@ class InvoiceForm(forms.ModelForm):
             'tax_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+
+        if self.company:
+            self.fields['invoice_template'].queryset = InvoiceTemplate.objects.filter(
+                company=self.company
+            )
 
 
 class PriceListForm(forms.ModelForm):

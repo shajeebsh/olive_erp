@@ -12,44 +12,52 @@
     <!-- Top Stats -->
     <div class="row g-2 mb-2">
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-inventory">
-                <div class="kpi-icon"><i class="bi bi-box"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Total SKUs</span>
-                    <span class="kpi-value">1,234</span>
-                    <span class="kpi-meta">Products</span>
+            <a href="{% url 'inventory:products' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-inventory">
+                    <div class="kpi-icon"><i class="bi bi-box"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Total SKUs</span>
+                        <span class="kpi-value">1,234</span>
+                        <span class="kpi-meta">Products</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-green">
-                <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">In Stock</span>
-                    <span class="kpi-value">1,089</span>
-                    <span class="kpi-meta">88% of total</span>
+            <a href="{% url 'inventory:stock' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">In Stock</span>
+                        <span class="kpi-value">1,089</span>
+                        <span class="kpi-meta">88% of total</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-orange">
-                <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Low Stock</span>
-                    <span class="kpi-value">42</span>
-                    <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-up"></i> 8</span>
+            <a href="{% url 'inventory:stock' %}?low_stock=1" class="text-decoration-none">
+                <div class="kpi-card kpi-orange">
+                    <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Low Stock</span>
+                        <span class="kpi-value">42</span>
+                        <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-up"></i> 8</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-purple">
-                <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Reorder</span>
-                    <span class="kpi-value">12</span>
-                    <span class="kpi-meta">Items due</span>
+            <a href="{% url 'inventory:stock' %}?reorder=1" class="text-decoration-none">
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Reorder</span>
+                        <span class="kpi-value">12</span>
+                        <span class="kpi-meta">Items due</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

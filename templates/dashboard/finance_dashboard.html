@@ -12,44 +12,52 @@
     <!-- Top KPI Cards -->
     <div class="row g-2 mb-2">
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-revenue">
-                <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Revenue</span>
-                    <span class="kpi-value">€284.5K</span>
-                    <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 12.3%</span>
+            <a href="{% url 'finance:invoices' %}?status=PAID" class="text-decoration-none">
+                <div class="kpi-card kpi-revenue">
+                    <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Revenue</span>
+                        <span class="kpi-value">€284.5K</span>
+                        <span class="kpi-change kpi-change-up"><i class="bi bi-arrow-up"></i> 12.3%</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-blue">
-                <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Invoices</span>
-                    <span class="kpi-value">156</span>
-                    <span class="kpi-meta">This month</span>
+            <a href="{% url 'finance:invoices' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Invoices</span>
+                        <span class="kpi-value">156</span>
+                        <span class="kpi-meta">This month</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-orange">
-                <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Expenses</span>
-                    <span class="kpi-value">€42.8K</span>
-                    <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-down"></i> 3.2%</span>
+            <a href="{% url 'finance:expenses' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-orange">
+                    <div class="kpi-icon"><i class="bi bi-credit-card"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Expenses</span>
+                        <span class="kpi-value">€42.8K</span>
+                        <span class="kpi-change kpi-change-down"><i class="bi bi-arrow-down"></i> 3.2%</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-green">
-                <div class="kpi-icon"><i class="bi bi-bank"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Cash Flow</span>
-                    <span class="kpi-value">€185K</span>
-                    <span class="kpi-meta">Net position</span>
+            <a href="{% url 'finance:journal' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon"><i class="bi bi-bank"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Cash Flow</span>
+                        <span class="kpi-value">€185K</span>
+                        <span class="kpi-meta">Net position</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

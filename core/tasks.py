@@ -1,8 +1,13 @@
 from celery import shared_task
 from django.core.mail import send_mail
+from django.db import models
+from django.utils import timezone
 from finance.models import Invoice
 from inventory.models import Product, StockLevel
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def send_invoice_reminders():
@@ -18,13 +23,12 @@ def send_invoice_reminders():
 
 @shared_task
 def update_inventory_valuations():
-    # Example logic for nightly valuation
-    total_value = sum(
-        sl.quantity_on_hand * sl.product.cost_price 
-        for sl in StockLevel.objects.all()
-    )
-    # Log or save valuation to a model
-    print(f"Total Inventory Value: {total_value}")
+    from django.db.models import Sum
+    total_value = StockLevel.objects.aggregate(
+        total=Sum(models.F('quantity_on_hand') * models.F('product__cost_price'))
+    )['total'] or 0
+    logger = logging.getLogger(__name__)
+    logger.info(f"Total Inventory Value: {total_value}")
 
 @shared_task
 def send_deadline_reminders():

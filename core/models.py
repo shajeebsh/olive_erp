@@ -72,3 +72,74 @@ class UserRole(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.role} @ {self.company}"
+
+
+class ApprovalWorkflow(models.Model):
+    """
+    Reusable approval workflow for high-risk ERP operations.
+    Supports journal posting, dividend approvals, purchasing thresholds, etc.
+    """
+    STATUS_CHOICES = [
+        ('PE', 'Pending'),
+        ('AP', 'Approved'),
+        ('RJ', 'Rejected'),
+    ]
+    
+    WORKFLOW_TYPES = [
+        ('JOURNAL_POST', 'Journal Posting'),
+        ('DIVIDEND', 'Dividend Approval'),
+        ('PURCHASE_ORDER', 'Purchase Order Approval'),
+        ('TAX_FILING', 'Tax Filing Approval'),
+    ]
+    
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE)
+    workflow_type = models.CharField(max_length=20, choices=WORKFLOW_TYPES)
+    reference_id = models.CharField(max_length=100, help_text="ID of the object being approved")
+    reference_model = models.CharField(max_length=50, help_text="Model name, e.g. JournalEntry, Dividend")
+    
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='PE')
+    
+    requested_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='approval_requests'
+    )
+    approved_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='approvals_given'
+    )
+    
+    request_notes = models.TextField(blank=True)
+    approval_notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "approval workflow"
+        verbose_name_plural = "approval workflows"
+    
+    def __str__(self):
+        return f"{self.get_workflow_type_display()} - {self.reference_id} ({self.get_status_display()})"
+    
+    def approve(self, user, notes=''):
+        self.status = 'AP'
+        self.approved_by = user
+        self.approval_notes = notes
+        from django.utils import timezone
+        self.decided_at = timezone.now()
+        self.save()
+    
+    def reject(self, user, notes=''):
+        self.status = 'RJ'
+        self.approved_by = user
+        self.approval_notes = notes
+        from django.utils import timezone
+        self.decided_at = timezone.now()
+        self.save()

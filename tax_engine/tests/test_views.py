@@ -21,7 +21,6 @@ class ComplianceAppTest(TestCase):
     def test_dashboard_kpis(self):
         """Test the dashboard KPIs accurately count TaxFilings based on status/due_dates."""
         now = timezone.now()
-        # Create filings
         TaxFiling.objects.create(
             company=self.company,
             filing_type='vat_return',
@@ -34,19 +33,13 @@ class ComplianceAppTest(TestCase):
             filing_type='corp_tax',
             period='2023',
             due_date=now.date() - datetime.timedelta(days=5),
-            status='draft' # Status is draft/pending, due date past -> overdue count
+            status='draft'
         )
-        
+
         self.client.login(username='test_user', password='password123')
         url = reverse('tax_engine:dashboard')
-        print("RESOLVED URL:", url)
         response = self.client.get(url)
-        
-        print("STATUS:", response.status_code)
-        print("TEMPLATES:", [t.name for t in getattr(response, 'templates', [])])
-        print("CONTENT HEAD:", response.content.decode('utf-8')[:500])
-        if response.status_code == 200:
-            print("CONTEXT KEYS:", response.context.keys() if hasattr(response, 'context') and response.context else "NO CONTEXT")
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['pending_filings'].count(), 2)
         self.assertEqual(response.context['overdue_filings'], 1)
