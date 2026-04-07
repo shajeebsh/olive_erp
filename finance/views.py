@@ -109,7 +109,7 @@ class JournalEntryListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         company = get_user_company(self.request)
         entries = JournalEntry.objects.filter(
-            lines__account__company=company
+            company=company
         ).prefetch_related('lines__account', 'created_by').distinct().order_by('-date')
         
         # Filters

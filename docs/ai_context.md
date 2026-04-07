@@ -273,6 +273,7 @@ olive_erp/
 - **Company scoping fix** - Added `company` field to Project, Supplier, PurchaseOrder, and Product models to fix FieldError regressions. Fixed create flows to set company on save.
 - **Attendance-on-login** - Implemented and tested automatic attendance recording on user login with duplicate prevention
 - **Template humanize fix** - Added `{% load humanize %}` to templates using `|intcomma` filter
+- **Phase 1-3 improvements** - Stabilization: Added company FK to JournalEntry, improved exception handling in reporting, created CompanyScopedMixin. Refactoring: Verified consistent CRUD patterns across modules. Features: AuditLog and ApprovalWorkflow already exist, dashboard drill-downs added (KPI clickable), bulk import foundation added at `core/import_utils.py`. See `docs/ai_task.md`.
 
 ### 🔄 In-progress Features
 - **Top navigation UI polish**: Two-row enterprise header is in place; continue refining visual polish and responsive behavior based on user feedback

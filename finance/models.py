@@ -77,6 +77,7 @@ class JournalEntry(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     is_posted = models.BooleanField(default=False)
+    company = models.ForeignKey('company.CompanyProfile', on_delete=models.CASCADE, related_name='journal_entries', null=True, blank=True)
 
     def __str__(self):
         return self.entry_number

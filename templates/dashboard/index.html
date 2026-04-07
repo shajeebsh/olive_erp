@@ -45,44 +45,51 @@
     <!-- KPI Row -->
     <div class="row g-2 mb-2">
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-revenue">
-                <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Revenue</span>
-                    <span class="kpi-value">€{{ total_revenue|floatformat:0|default:"0" }}</span>
-                    <span class="kpi-meta">Paid Invoices</span>
+            <a href="{% url 'finance:invoices' %}?status=PAID" class="text-decoration-none">
+                <div class="kpi-card kpi-revenue">
+                    <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Revenue</span>
+                        <span class="kpi-value">€{{ total_revenue|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-meta">Paid Invoices</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-inventory">
-                <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Products</span>
-                    <span class="kpi-value">{{ total_products|default:"0" }}</span>
-                    <span class="kpi-meta">{{ in_stock|default:"0" }} in stock</span>
+            <a href="{% url 'inventory:products' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-inventory">
+                    <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Products</span>
+                        <span class="kpi-value">{{ total_products|default:"0" }}</span>
+                        <span class="kpi-meta">{{ in_stock|default:"0" }} in stock</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-hr">
-                <div class="kpi-icon"><i class="bi bi-people"></i></div>
-                <div class="kpi-content">
-                    <span class="kpi-label">Employees</span>
-                    <span class="kpi-value">{{ employee_count|default:"0" }}</span>
-                    <span class="kpi-meta">On Record</span>
+            <a href="{% url 'hr:employees' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-hr">
+                    <div class="kpi-icon"><i class="bi bi-people"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Employees</span>
+                        <span class="kpi-value">{{ employee_count|default:"0" }}</span>
+                        <span class="kpi-meta">On Record</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="kpi-card kpi-crm">
-                <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
-                <div class="kpi-content">
+            <a href="{% url 'crm:customers' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-crm">
+                    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
+                    <div class="kpi-content">
                     <span class="kpi-label">Active Deals</span>
                     <span class="kpi-value">{{ active_leads|default:"0" }}</span>
                     <span class="kpi-meta">{{ open_orders|default:"0" }} orders</span>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

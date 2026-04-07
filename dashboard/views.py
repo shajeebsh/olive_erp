@@ -138,7 +138,7 @@ def inventory_dashboard(request):
             Category.objects.filter(
                 product__company=company
             ).annotate(
-                total_stock=Sum('product__stock_levels__quantity_on_hand')
+                total_stock=Sum('product__stocklevel__quantity_on_hand')
             ).values('name', 'total_stock')[:6]
         )
         category_labels = [c['name'] or 'Uncategorized' for c in stock_by_category]
