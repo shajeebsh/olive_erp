@@ -1,5 +1,7 @@
 from django import forms
 from .models import Project, Task
+from crm.models import Customer
+from hr.models import Employee
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -15,6 +17,12 @@ class ProjectForm(forms.ModelForm):
             'budget': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+        if company:
+            self.fields['customer'].queryset = Customer.objects.filter(company=company)
+
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
@@ -27,3 +35,10 @@ class TaskForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'hours_logged': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop('company', None)
+        super().__init__(*args, **kwargs)
+        if company:
+            self.fields['project'].queryset = Project.objects.filter(company=company)
+            self.fields['assigned_to'].queryset = Employee.objects.filter(company=company)

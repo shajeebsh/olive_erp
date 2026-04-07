@@ -21,7 +21,8 @@ def products(request):
 
 @login_required
 def product_detail(request, pk):
-    product = get_object_or_404(Product.objects.select_related('category'), pk=pk)
+    company = get_user_company(request)
+    product = get_object_or_404(Product.objects.select_related('category'), pk=pk, company=company)
     # Get current stock levels
     stock_levels = StockLevel.objects.filter(product=product).select_related('warehouse')
     # Get recent movements
@@ -51,7 +52,8 @@ def product_create(request):
 
 @login_required
 def product_edit(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    company = get_user_company(request)
+    product = get_object_or_404(Product, pk=pk, company=company)
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
@@ -64,7 +66,8 @@ def product_edit(request, pk):
 
 @login_required
 def product_delete(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    company = get_user_company(request)
+    product = get_object_or_404(Product, pk=pk, company=company)
     if request.method == 'POST':
         product.delete()
         return redirect('inventory:products')

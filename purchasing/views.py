@@ -16,11 +16,12 @@ def suppliers(request):
 
 @login_required
 def supplier_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save(commit=False)
-            supplier.company = get_user_company(request)
+            supplier.company = company
             supplier.save()
             return redirect('purchasing:suppliers')
     else:
@@ -76,27 +77,30 @@ def purchase_orders(request):
 
 @login_required
 def purchase_order_detail(request, pk):
-    order = get_object_or_404(PurchaseOrder.objects.prefetch_related('lines__product'), pk=pk)
+    company = get_user_company(request)
+    order = get_object_or_404(PurchaseOrder.objects.prefetch_related('lines__product'), pk=pk, company=company)
     context = {'order': order}
     return render(request, 'purchasing/purchase_order_detail.html', context)
 
 
 @login_required
 def purchase_order_edit(request, pk):
-    order = get_object_or_404(PurchaseOrder, pk=pk)
+    company = get_user_company(request)
+    order = get_object_or_404(PurchaseOrder, pk=pk, company=company)
     if request.method == 'POST':
-        form = PurchaseOrderForm(request.POST, instance=order)
+        form = PurchaseOrderForm(request.POST, instance=order, company=company)
         if form.is_valid():
             form.save()
             return redirect('purchasing:purchase_orders')
     else:
-        form = PurchaseOrderForm(instance=order)
+        form = PurchaseOrderForm(instance=order, company=company)
     return render(request, 'purchasing/purchase_order_form.html', {'form': form, 'action': 'Edit', 'order': order})
 
 
 @login_required
 def purchase_order_delete(request, pk):
-    order = get_object_or_404(PurchaseOrder, pk=pk)
+    company = get_user_company(request)
+    order = get_object_or_404(PurchaseOrder, pk=pk, company=company)
     if request.method == 'POST':
         order.delete()
         return redirect('purchasing:purchase_orders')
@@ -105,13 +109,14 @@ def purchase_order_delete(request, pk):
 
 @login_required
 def purchase_order_create(request):
+    company = get_user_company(request)
     if request.method == 'POST':
-        form = PurchaseOrderForm(request.POST)
+        form = PurchaseOrderForm(request.POST, company=company)
         if form.is_valid():
             order = form.save(commit=False)
-            order.company = get_user_company(request)
+            order.company = company
             order.save()
             return redirect('purchasing:purchase_orders')
     else:
-        form = PurchaseOrderForm()
+        form = PurchaseOrderForm(company=company)
     return render(request, 'purchasing/purchase_order_form.html', {'form': form, 'action': 'Create'})
