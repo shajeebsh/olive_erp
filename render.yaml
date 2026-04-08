@@ -1,0 +1,71 @@
+# Render Blueprint for OliveERP
+# This file defines the infrastructure for deploying OliveERP on Render.com
+
+services:
+  # PostgreSQL Database
+  - type: postgres
+    name: olive-erp-db
+    plan: free
+    postgresMajorVersion: "15"
+    # Environment variables will be auto-generated:
+    # DATABASE_URL=postgresql://...
+
+  # Redis Instance (for Celery)
+  - type: redis
+    name: olive-erp-redis
+    plan: free
+    # Environment variables will be auto-generated:
+    # REDIS_URL=redis://...
+
+  # Web Service - Django Application
+  - type: web
+    name: olive-erp-web
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: gunicorn wagtailerp.wsgi:application --workers 2 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "olive-erp-web.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: olive-erp-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: olive-erp-redis
+          property: connectionString
+      - key: EMAIL_HOST
+        value: "smtp.example.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: WAGTAIL_SITE_NAME
+        value: "OliveERP"
+      - key: WAGTAILADMIN_BASE_URL
+        value: "https://olive-erp-web.onrender.com"
+
+  # Background Worker - Celery
+  - type: worker
+    name: olive-erp-worker
+    plan: free
+    startCommand: celery -A wagtailerp worker -l INFO
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: olive-erp-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: olive-erp-redis
+          property: connectionString
