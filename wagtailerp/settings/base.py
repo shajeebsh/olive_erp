@@ -11,6 +11,16 @@ ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
+# Trust the Render Load Balancer's proxy headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Trust CSRF requests originating from our domain
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS", 
+    default="https://olive-erp.onrender.com", 
+    cast=lambda v: [s.strip() for s in v.split(",")]
+)
+
 INSTALLED_APPS = [
     "core",
     "company",
