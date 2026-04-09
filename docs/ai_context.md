@@ -1534,3 +1534,55 @@ The existing `AuditLog` model in `core/models.py` provides audit trail capabilit
 | Audit Trail | ✅ Existing model available |
 | Bulk Import | ⏳ Not implemented |
 | Document Attachments | ⏳ Not implemented |
+
+---
+
+## 21. Render.com Deployment Configuration (April 2026)
+
+### Overview
+OliveERP has been configured for deployment on Render.com using Infrastructure-as-Code with `render.yaml` blueprint.
+
+### Files Added
+
+| File | Purpose |
+|------|---------|
+| `render.yaml` | Render blueprint defining PostgreSQL, Redis, Web Service, and Celery Worker |
+| `build.sh` | Build script: pip install, collectstatic, migrate, optional superuser creation |
+| `.python-version` | Specifies Python 3.11 for Render |
+| `.env.sample` | Template for environment variables (safe to commit) |
+
+### Dependencies Added
+- `whitenoise>=6.6.0` - Static file serving
+- `django-celery-beat>=2.5.0` - Celery beat scheduler
+
+### Settings Updates for Production
+- **Whitenoise middleware**: Added `whitenoise.middleware.WhiteNoiseMiddleware` after SecurityMiddleware
+- **Decouple defaults**: Added fallback values for `SECRET_KEY` and `ALLOWED_HOSTS` to handle Render's variable propagation timing
+- **Proxy headers**: Added `SECURE_PROXY_SSL_HEADER` and `CSRF_TRUSTED_ORIGINS` for Render's load balancer
+
+### Environment Variables for Render
+```bash
+# Required
+DATABASE_URL=postgresql://... (auto-linked from blueprint)
+REDIS_URL=redis://... (auto-linked from blueprint)
+SECRET_KEY=... (auto-generated)
+ALLOWED_HOSTS=olive-erp-web.onrender.com
+
+# Optional - Superuser creation
+CREATE_SUPERUSER=true
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+
+# Optional - CSRF
+CSRF_TRUSTED_ORIGINS=https://olive-erp-web.onrender.com
+
+# Optional - Email
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+```
+
+### Validation
+- ✅ All config() calls have safe defaults
+- ✅ Whitenoise configured for static file serving
+- ✅ CSRF trusted origins configurable
+- ✅ Build script includes superuser creation automation
