@@ -1,18 +1,22 @@
 #!/bin/bash
 # OliveERP Runtime Start Script
 
-echo ">>> Starting OliveERP Production Runtime (Migrations & Server) <<<"
+echo "================================================="
+echo ">>> OLIVE ERP PRODUCTION RUNTIME STARTING <<<"
+echo "================================================="
 
 set -e
 
-# Run database migrations
+echo "---> Applying database migrations..."
 python manage.py migrate --no-input
+echo "---> Migrations complete."
 
-# Create a superuser if requested
 if [[ "$CREATE_SUPERUSER" == "true" ]]; then
-    echo "Creating superuser..."
-    python manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL" || true
+    echo "---> CREATE_SUPERUSER is true. Checking for admin account..."
+    python manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL" || echo "---> Superuser already exists or creation failed (skipping)."
+else
+    echo "---> Skipping superuser creation (not requested)."
 fi
 
-# Start Gunicorn
+echo "---> Starting Gunicorn web server on port $PORT..."
 gunicorn wagtailerp.wsgi:application --workers 2 --bind 0.0.0.0:$PORT
