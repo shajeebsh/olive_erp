@@ -1,6 +1,8 @@
 #!/bin/bash
 # OliveERP Runtime Start Script
 
+echo ">>> Starting OliveERP Production Runtime (Migrations & Server) <<<"
+
 set -e
 
 # Run database migrations
