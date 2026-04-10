@@ -1720,3 +1720,4 @@ For first-time deployment, manually enter these values in the Render Dashboard:
 - ✅ Superuser creation automated via run.sh
 - ✅ CSRF trusted origins auto-detected via RENDER_EXTERNAL_URL
 - ✅ Migration conflict fixed: TaxFiling UUID id field restored, AlterField removed
+- ✅ Sample Data Generator added to Wagtail Admin at /admin/system/sample-data/

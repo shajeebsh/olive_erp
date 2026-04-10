@@ -1,0 +1,50 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block extra_css %}
+    <style>
+        .sample-data-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .sample-data-warning h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .sample-data-warning p {
+            margin-bottom: 0;
+            color: #856404;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% block header %}
+        <header class="w-header">
+            <div class="w-header__container">
+                <div class="w-header__title">
+                    <h1>Sample Data Generator</h1>
+                </div>
+            </div>
+        </header>
+    {% endblock %}
+
+    <div class="w-content">
+        <div class="sample-data-warning">
+            <h3>⚠️ Warning</h3>
+            <p>This tool generates sample data including customers, suppliers, products, employees, and financial records. Running this will add many records to your database. Use with caution on production systems.</p>
+        </div>
+
+        <p>This tool runs the <code>generate_sample_data</code> management command with 6 months of historical data.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="button button-secondary">
+                Run Sample Data Generator
+            </button>
+        </form>
+    </div>
+{% endblock %}
