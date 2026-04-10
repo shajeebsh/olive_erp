@@ -19,6 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+RUN chmod +x /app/run.sh
+
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wagtailerp.wsgi:application"]
+CMD ["./run.sh"]
