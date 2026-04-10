@@ -1586,3 +1586,67 @@ EMAIL_PORT=587
 - ✅ Whitenoise configured for static file serving
 - ✅ CSRF trusted origins configurable
 - ✅ Build script includes superuser creation automation
+
+---
+
+## 22. Production Fail-Safe Logic (April 2026)
+
+### Overview
+Middleware has been hardened to prevent non-critical failures from crashing the entire request cycle. This is especially important for production environments where database connections may be transient or under load.
+
+### Middleware Hardening
+
+#### AuditMiddleware (`core/middleware.py`)
+- Wrapped `AuditLog.objects.create()` in `try...except` block
+- On failure: logs error via Python's `logging` module but **preserves the response**
+- User request completes successfully even if audit logging fails
+
+```python
+try:
+    AuditLog.objects.create(...)
+except Exception as e:
+    logger.error(f"AuditMiddleware failed to create log: {e}")
+```
+
+#### PermissionMiddleware (`core/middleware.py`)
+- Wrapped `request.user.get_company_permissions(company)` in `try...except` block
+- On failure: logs error but sets `request.company_permissions = set()` (empty set)
+- User can still access the app without permissions data
+
+```python
+try:
+    request.company_permissions = request.user.get_company_permissions(company)
+except Exception as e:
+    logger.error(f"PermissionMiddleware failed to get permissions: {e}")
+    request.company_permissions = set()
+```
+
+### Settings Hardening
+
+#### CSRF_TRUSTED_ORIGINS
+- Updated to handle empty/None values gracefully
+- Auto-detects Render deployment URL via `RENDER_EXTERNAL_URL` environment variable
+- Removes duplicates while preserving order
+
+```python
+_csrf_origins_raw = config("CSRF_TRUSTED_ORIGINS", default="")
+_render_external_url = config("RENDER_EXTERNAL_URL", default=None)
+
+CSRF_TRUSTED_ORIGINS = []
+
+if _csrf_origins_raw:
+    CSRF_TRUSTED_ORIGINS.extend([s.strip() for s in _csrf_origins_raw.split(",") if s.strip()])
+
+if _render_external_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
+# Remove duplicates while preserving order
+seen = set()
+CSRF_TRUSTED_ORIGINS = [x for x in CSRF_TRUSTED_ORIGINS if not (x in seen or seen.add(x))]
+```
+
+### Validation
+- ✅ Audit logging failures don't crash login
+- ✅ Permission fetch failures don't crash login
+- ✅ Empty CSRF_TRUSTED_ORIGINS doesn't crash boot
+- ✅ Errors are logged for debugging

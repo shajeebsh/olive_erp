@@ -15,11 +15,20 @@ ALLOWED_HOSTS = config(
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Trust CSRF requests originating from our domain
-CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS", 
-    default="https://olive-erp.onrender.com", 
-    cast=lambda v: [s.strip() for s in v.split(",")]
-)
+_csrf_origins_raw = config("CSRF_TRUSTED_ORIGINS", default="")
+_render_external_url = config("RENDER_EXTERNAL_URL", default=None)
+
+CSRF_TRUSTED_ORIGINS = []
+
+if _csrf_origins_raw:
+    CSRF_TRUSTED_ORIGINS.extend([s.strip() for s in _csrf_origins_raw.split(",") if s.strip()])
+
+if _render_external_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
+# Remove duplicates while preserving order
+seen = set()
+CSRF_TRUSTED_ORIGINS = [x for x in CSRF_TRUSTED_ORIGINS if not (x in seen or seen.add(x))]
 
 INSTALLED_APPS = [
     "core",
