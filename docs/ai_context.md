@@ -1551,6 +1551,7 @@ OliveERP has been configured for deployment on Render.com using Infrastructure-a
 | `run.sh` | Runtime script: migrate, superuser creation, gunicorn |
 | `.python-version` | Specifies Python 3.11 for Render |
 | `.env.sample` | Template for environment variables (safe to commit) |
+| `Dockerfile` | Docker configuration updated to use run.sh |
 
 ### Dependencies Added
 - `whitenoise>=6.6.0` - Static file serving
@@ -1560,6 +1561,7 @@ OliveERP has been configured for deployment on Render.com using Infrastructure-a
 - **Whitenoise middleware**: Added `whitenoise.middleware.WhiteNoiseMiddleware` after SecurityMiddleware
 - **Decouple defaults**: Added fallback values for `SECRET_KEY` and `ALLOWED_HOSTS` to handle Render's variable propagation timing
 - **Proxy headers**: Added `SECURE_PROXY_SSL_HEADER` and `CSRF_TRUSTED_ORIGINS` for Render's load balancer
+- **Docker-native startup**: Updated `Dockerfile` to use `run.sh` instead of direct gunicorn command, enabling automatic migrations on container start
 
 ### Environment Variables for Render
 ```bash
