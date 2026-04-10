@@ -1547,7 +1547,8 @@ OliveERP has been configured for deployment on Render.com using Infrastructure-a
 | File | Purpose |
 |------|---------|
 | `render.yaml` | Render blueprint defining PostgreSQL, Redis, Web Service, and Celery Worker |
-| `build.sh` | Build script: pip install, collectstatic, migrate, optional superuser creation |
+| `build.sh` | Build script: pip install, collectstatic |
+| `run.sh` | Runtime script: migrate, superuser creation, gunicorn |
 | `.python-version` | Specifies Python 3.11 for Render |
 | `.env.sample` | Template for environment variables (safe to commit) |
 
@@ -1650,3 +1651,69 @@ CSRF_TRUSTED_ORIGINS = [x for x in CSRF_TRUSTED_ORIGINS if not (x in seen or see
 - ✅ Permission fetch failures don't crash login
 - ✅ Empty CSRF_TRUSTED_ORIGINS doesn't crash boot
 - ✅ Errors are logged for debugging
+
+---
+
+## 23. Production Deployment - Environment Variables
+
+### Overview
+Comprehensive list of all environment variables required for production deployment on Render.com.
+
+### Required Variables Table
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DATABASE_URL` | ✅ Auto-linked | - | PostgreSQL connection string (auto-linked from render.yaml) |
+| `REDIS_URL` | ✅ Auto-linked | - | Redis connection string (auto-linked from render.yaml) |
+| `SECRET_KEY` | ✅ | - | Django secret key (use Render's `generateValue: true`) |
+| `DEBUG` | ✅ | `False` | Set to `False` in production |
+| `ALLOWED_HOSTS` | ✅ | `*` | Comma-separated list of allowed hostnames |
+| `LOG_LEVEL` | Optional | `INFO` | Logging level: DEBUG, INFO, WARNING, ERROR |
+| `CSRF_TRUSTED_ORIGINS` | Optional | Auto | Comma-separated CSRF trusted origins |
+| `RENDER_EXTERNAL_URL` | Auto | - | Auto-provided by Render |
+
+### Superuser Creation Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CREATE_SUPERUSER` | Optional | Set to `"true"` to create superuser during deploy |
+| `DJANGO_SUPERUSER_USERNAME` | If creating | Username for the superuser |
+| `DJANGO_SUPERUSER_EMAIL` | If creating | Email for the superuser |
+| `DJANGO_SUPERUSER_PASSWORD` | If creating | Password for the superuser |
+
+### Email Configuration Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `EMAIL_HOST` | Optional | - | SMTP server hostname |
+| `EMAIL_PORT` | Optional | 587 | SMTP server port |
+| `EMAIL_USE_TLS` | Optional | True | Use TLS for SMTP |
+| `EMAIL_HOST_USER` | Optional | - | SMTP username |
+| `EMAIL_HOST_PASSWORD` | Optional | - | SMTP password |
+| `EMAIL_FROM` | Optional | - | From email address |
+
+### Wagtail Configuration Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `WAGTAIL_SITE_NAME` | Optional | `Olive_ERP` | Site name displayed in Wagtail admin |
+| `WAGTAILADMIN_BASE_URL` | Optional | - | Base URL for Wagtail admin |
+
+### Initial Setup Instructions (Render Dashboard)
+
+For first-time deployment, manually enter these values in the Render Dashboard:
+
+1. **Go to your Web Service** → "Environment" tab
+2. **Add these secret variables** (click "Add Environment Variable"):
+   - `CREATE_SUPERUSER` = `true`
+   - `DJANGO_SUPERUSER_USERNAME` = `admin` (or your preferred username)
+   - `DJANGO_SUPERUSER_EMAIL` = `your-email@example.com`
+   - `DJANGO_SUPERUSER_PASSWORD` = `your-secure-password`
+   - `LOG_LEVEL` = `DEBUG` (temporarily for debugging, change to `INFO` after)
+3. **Redeploy** the web service to trigger superuser creation
+
+### Validation Checklist
+- ✅ All sensitive values stored as Render secrets (not in render.yaml)
+- ✅ LOG_LEVEL configurable for debugging
+- ✅ Superuser creation automated via run.sh
+- ✅ CSRF trusted origins auto-detected via RENDER_EXTERNAL_URL

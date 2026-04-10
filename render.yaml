@@ -22,7 +22,7 @@ services:
     name: olive-erp-web
     plan: free
     buildCommand: ./build.sh
-    startCommand: gunicorn wagtailerp.wsgi:application --workers 2 --bind 0.0.0.0:$PORT
+    startCommand: ./run.sh
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
@@ -51,6 +51,16 @@ services:
         value: "OliveERP"
       - key: WAGTAILADMIN_BASE_URL
         value: "https://olive-erp-web.onrender.com"
+      - key: LOG_LEVEL
+        value: "DEBUG"
+      - key: CREATE_SUPERUSER
+        value: ""
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: ""
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: ""
+      - key: DJANGO_SUPERUSER_PASSWORD
+        value: ""
 
   # Background Worker - Celery
   - type: worker
@@ -69,3 +79,13 @@ services:
           type: redis
           name: olive-erp-redis
           property: connectionString
+      - key: LOG_LEVEL
+        value: "DEBUG"
+      - key: CREATE_SUPERUSER
+        value: ""
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: ""
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: ""
+      - key: DJANGO_SUPERUSER_PASSWORD
+        value: ""
