@@ -1534,3 +1534,186 @@ The existing `AuditLog` model in `core/models.py` provides audit trail capabilit
 | Audit Trail | ✅ Existing model available |
 | Bulk Import | ⏳ Not implemented |
 | Document Attachments | ⏳ Not implemented |
+
+---
+
+## 21. Render.com Deployment Configuration (April 2026)
+
+### Overview
+OliveERP has been configured for deployment on Render.com using Infrastructure-as-Code with `render.yaml` blueprint.
+
+### Files Added
+
+| File | Purpose |
+|------|---------|
+| `render.yaml` | Render blueprint defining PostgreSQL, Redis, Web Service, and Celery Worker |
+| `build.sh` | Build script: pip install, collectstatic |
+| `run.sh` | Runtime script: migrate, superuser creation, gunicorn |
+| `.python-version` | Specifies Python 3.11 for Render |
+| `.env.sample` | Template for environment variables (safe to commit) |
+
+### Dependencies Added
+- `whitenoise>=6.6.0` - Static file serving
+- `django-celery-beat>=2.5.0` - Celery beat scheduler
+
+### Settings Updates for Production
+- **Whitenoise middleware**: Added `whitenoise.middleware.WhiteNoiseMiddleware` after SecurityMiddleware
+- **Decouple defaults**: Added fallback values for `SECRET_KEY` and `ALLOWED_HOSTS` to handle Render's variable propagation timing
+- **Proxy headers**: Added `SECURE_PROXY_SSL_HEADER` and `CSRF_TRUSTED_ORIGINS` for Render's load balancer
+
+### Environment Variables for Render
+```bash
+# Required
+DATABASE_URL=postgresql://... (auto-linked from blueprint)
+REDIS_URL=redis://... (auto-linked from blueprint)
+SECRET_KEY=... (auto-generated)
+ALLOWED_HOSTS=olive-erp-web.onrender.com
+
+# Optional - Superuser creation
+CREATE_SUPERUSER=true
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+
+# Optional - CSRF
+CSRF_TRUSTED_ORIGINS=https://olive-erp-web.onrender.com
+
+# Optional - Email
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+```
+
+### Validation
+- ✅ All config() calls have safe defaults
+- ✅ Whitenoise configured for static file serving
+- ✅ CSRF trusted origins configurable
+- ✅ Build script includes superuser creation automation
+
+---
+
+## 22. Production Fail-Safe Logic (April 2026)
+
+### Overview
+Middleware has been hardened to prevent non-critical failures from crashing the entire request cycle. This is especially important for production environments where database connections may be transient or under load.
+
+### Middleware Hardening
+
+#### AuditMiddleware (`core/middleware.py`)
+- Wrapped `AuditLog.objects.create()` in `try...except` block
+- On failure: logs error via Python's `logging` module but **preserves the response**
+- User request completes successfully even if audit logging fails
+
+```python
+try:
+    AuditLog.objects.create(...)
+except Exception as e:
+    logger.error(f"AuditMiddleware failed to create log: {e}")
+```
+
+#### PermissionMiddleware (`core/middleware.py`)
+- Wrapped `request.user.get_company_permissions(company)` in `try...except` block
+- On failure: logs error but sets `request.company_permissions = set()` (empty set)
+- User can still access the app without permissions data
+
+```python
+try:
+    request.company_permissions = request.user.get_company_permissions(company)
+except Exception as e:
+    logger.error(f"PermissionMiddleware failed to get permissions: {e}")
+    request.company_permissions = set()
+```
+
+### Settings Hardening
+
+#### CSRF_TRUSTED_ORIGINS
+- Updated to handle empty/None values gracefully
+- Auto-detects Render deployment URL via `RENDER_EXTERNAL_URL` environment variable
+- Removes duplicates while preserving order
+
+```python
+_csrf_origins_raw = config("CSRF_TRUSTED_ORIGINS", default="")
+_render_external_url = config("RENDER_EXTERNAL_URL", default=None)
+
+CSRF_TRUSTED_ORIGINS = []
+
+if _csrf_origins_raw:
+    CSRF_TRUSTED_ORIGINS.extend([s.strip() for s in _csrf_origins_raw.split(",") if s.strip()])
+
+if _render_external_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
+# Remove duplicates while preserving order
+seen = set()
+CSRF_TRUSTED_ORIGINS = [x for x in CSRF_TRUSTED_ORIGINS if not (x in seen or seen.add(x))]
+```
+
+### Validation
+- ✅ Audit logging failures don't crash login
+- ✅ Permission fetch failures don't crash login
+- ✅ Empty CSRF_TRUSTED_ORIGINS doesn't crash boot
+- ✅ Errors are logged for debugging
+
+---
+
+## 23. Production Deployment - Environment Variables
+
+### Overview
+Comprehensive list of all environment variables required for production deployment on Render.com.
+
+### Required Variables Table
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DATABASE_URL` | ✅ Auto-linked | - | PostgreSQL connection string (auto-linked from render.yaml) |
+| `REDIS_URL` | ✅ Auto-linked | - | Redis connection string (auto-linked from render.yaml) |
+| `SECRET_KEY` | ✅ | - | Django secret key (use Render's `generateValue: true`) |
+| `DEBUG` | ✅ | `False` | Set to `False` in production |
+| `ALLOWED_HOSTS` | ✅ | `*` | Comma-separated list of allowed hostnames |
+| `LOG_LEVEL` | Optional | `INFO` | Logging level: DEBUG, INFO, WARNING, ERROR |
+| `CSRF_TRUSTED_ORIGINS` | Optional | Auto | Comma-separated CSRF trusted origins |
+| `RENDER_EXTERNAL_URL` | Auto | - | Auto-provided by Render |
+
+### Superuser Creation Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CREATE_SUPERUSER` | Optional | Set to `"true"` to create superuser during deploy |
+| `DJANGO_SUPERUSER_USERNAME` | If creating | Username for the superuser |
+| `DJANGO_SUPERUSER_EMAIL` | If creating | Email for the superuser |
+| `DJANGO_SUPERUSER_PASSWORD` | If creating | Password for the superuser |
+
+### Email Configuration Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `EMAIL_HOST` | Optional | - | SMTP server hostname |
+| `EMAIL_PORT` | Optional | 587 | SMTP server port |
+| `EMAIL_USE_TLS` | Optional | True | Use TLS for SMTP |
+| `EMAIL_HOST_USER` | Optional | - | SMTP username |
+| `EMAIL_HOST_PASSWORD` | Optional | - | SMTP password |
+| `EMAIL_FROM` | Optional | - | From email address |
+
+### Wagtail Configuration Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `WAGTAIL_SITE_NAME` | Optional | `Olive_ERP` | Site name displayed in Wagtail admin |
+| `WAGTAILADMIN_BASE_URL` | Optional | - | Base URL for Wagtail admin |
+
+### Initial Setup Instructions (Render Dashboard)
+
+For first-time deployment, manually enter these values in the Render Dashboard:
+
+1. **Go to your Web Service** → "Environment" tab
+2. **Add these secret variables** (click "Add Environment Variable"):
+   - `CREATE_SUPERUSER` = `true`
+   - `DJANGO_SUPERUSER_USERNAME` = `admin` (or your preferred username)
+   - `DJANGO_SUPERUSER_EMAIL` = `your-email@example.com`
+   - `DJANGO_SUPERUSER_PASSWORD` = `your-secure-password`
+   - `LOG_LEVEL` = `DEBUG` (temporarily for debugging, change to `INFO` after)
+3. **Redeploy** the web service to trigger superuser creation
+
+### Validation Checklist
+- ✅ All sensitive values stored as Render secrets (not in render.yaml)
+- ✅ LOG_LEVEL configurable for debugging
+- ✅ Superuser creation automated via run.sh
+- ✅ CSRF trusted origins auto-detected via RENDER_EXTERNAL_URL

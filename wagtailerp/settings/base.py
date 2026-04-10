@@ -5,11 +5,30 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = config("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-render-deployment-fallback-key")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")]
+    "ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")]
 )
+
+# Trust the Render Load Balancer's proxy headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Trust CSRF requests originating from our domain
+_csrf_origins_raw = config("CSRF_TRUSTED_ORIGINS", default="")
+_render_external_url = config("RENDER_EXTERNAL_URL", default=None)
+
+CSRF_TRUSTED_ORIGINS = []
+
+if _csrf_origins_raw:
+    CSRF_TRUSTED_ORIGINS.extend([s.strip() for s in _csrf_origins_raw.split(",") if s.strip()])
+
+if _render_external_url:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
+# Remove duplicates while preserving order
+seen = set()
+CSRF_TRUSTED_ORIGINS = [x for x in CSRF_TRUSTED_ORIGINS if not (x in seen or seen.add(x))]
 
 INSTALLED_APPS = [
     "core",
@@ -175,3 +194,41 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 WAGTAIL_SITE_NAME = "Olive_ERP"
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"
+
+# Production Logging
+LOG_LEVEL = config("LOG_LEVEL", default="INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "wagtail": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "core": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}

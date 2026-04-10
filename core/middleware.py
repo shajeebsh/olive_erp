@@ -2,6 +2,9 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.conf import settings
 from company.models import CompanyProfile
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CompanySetupMiddleware:
     """
@@ -36,14 +39,17 @@ class AuditMiddleware:
         if request.user.is_authenticated and request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             from .models import AuditLog
             # Simple audit log for write operations
-            AuditLog.objects.create(
-                user=request.user,
-                action=request.method,
-                model_name="Request",
-                object_id="N/A",
-                object_repr=request.path_info,
-                ip_address=self.get_client_ip(request)
-            )
+            try:
+                AuditLog.objects.create(
+                    user=request.user,
+                    action=request.method,
+                    model_name="Request",
+                    object_id="N/A",
+                    object_repr=request.path_info,
+                    ip_address=self.get_client_ip(request)
+                )
+            except Exception as e:
+                logger.error(f"AuditMiddleware failed to create log: {e}")
         return response
 
     def get_client_ip(self, request):
@@ -64,7 +70,11 @@ class PermissionMiddleware:
             # Attach permissions to request for easy access in templates/views
             company = getattr(request.user, 'company', None)
             if company:
-                request.company_permissions = request.user.get_company_permissions(company)
+                try:
+                    request.company_permissions = request.user.get_company_permissions(company)
+                except Exception as e:
+                    logger.error(f"PermissionMiddleware failed to get permissions: {e}")
+                    request.company_permissions = set()
             else:
                 request.company_permissions = set()
         
