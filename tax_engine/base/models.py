@@ -101,6 +101,7 @@ class TaxPeriod(models.Model):
 
 
 class TaxFiling(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     FILING_TYPES = [
         ("VAT3","VAT3 Return"),
         ("CT1","CT1 Corporation Tax"),

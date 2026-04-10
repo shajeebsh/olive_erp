@@ -89,11 +89,6 @@ class Migration(migrations.Migration):
             name='filing_type',
             field=models.CharField(choices=[('VAT3', 'VAT3 Return'), ('CT1', 'CT1 Corporation Tax'), ('CRO_B1', 'CRO B1 Annual Return'), ('RBO', 'RBO Beneficial Ownership'), ('PAYE', 'PAYE/PRSI')], max_length=20),
         ),
-        migrations.AlterField(
-            model_name='taxfiling',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
-        ),
         migrations.CreateModel(
             name='FilingApproval',
             fields=[

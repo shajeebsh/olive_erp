@@ -1719,3 +1719,4 @@ For first-time deployment, manually enter these values in the Render Dashboard:
 - ✅ LOG_LEVEL configurable for debugging
 - ✅ Superuser creation automated via run.sh
 - ✅ CSRF trusted origins auto-detected via RENDER_EXTERNAL_URL
+- ✅ Migration conflict fixed: TaxFiling UUID id field restored, AlterField removed
