@@ -1,0 +1,171 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block extra_css %}
+    <style>
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .profile-table th, .profile-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .profile-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .profile-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .total-row {
+            font-weight: 700;
+            background-color: #e9ecef;
+        }
+        .module-header {
+            background-color: #4a6b3a;
+            color: white;
+            font-weight: 600;
+        }
+        .deep-stats-table {
+            margin-top: 1.5rem;
+        }
+        .chart-container {
+            max-width: 400px;
+            margin: 1.5rem 0;
+        }
+        .model-select-form {
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% if chart_data %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('nullChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{
+                    data: {{ chart_data.data }},
+                    backgroundColor: ['#4a6b3a', '#ff6b6b']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Data Completeness' }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    {% block header %}
+        <header class="w-header">
+            <div class="w-header__container">
+                <div class="w-header__title">
+                    <h1>Data Profiling</h1>
+                </div>
+            </div>
+        </header>
+    {% endblock %}
+
+    <div class="w-content">
+        <p>This dashboard shows the record counts across all OliveERP modules. Click on a model to see detailed statistics.</p>
+        
+        <form class="model-select-form" method="get">
+            <label for="model-select">Select a model for deep profiling:</label>
+            <select name="model" id="model-select" onchange="this.form.submit()" style="margin-left: 0.5rem; padding: 0.5rem;">
+                <option value="">-- Select Model --</option>
+                {% for module_name, model_paths in modules.items %}
+                    <optgroup label="{{ module_name }}">
+                    {% for model_path in model_paths %}
+                        <option value="{{ model_path }}" {% if selected_model == model_path %}selected{% endif %}>{{ model_path }}</option>
+                    {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </form>
+        
+        {% if deep_stats %}
+        <div class="w-panel">
+            <h3>Deep Statistics for {{ deep_stats.model }}</h3>
+            <p>Total Rows: <strong>{{ deep_stats.total_rows }}</strong></p>
+            
+            {% if chart_data %}
+            <div class="chart-container">
+                <canvas id="nullChart"></canvas>
+            </div>
+            {% endif %}
+            
+            <table class="profile-table deep-stats-table">
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Type</th>
+                        <th>Filled</th>
+                        <th>Null</th>
+                        <th>Null %</th>
+                        <th>Distinct</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col in deep_stats.columns %}
+                    <tr>
+                        <td>{{ col.column }}</td>
+                        <td>{{ col.type }}</td>
+                        <td>{{ col.filled_count }}</td>
+                        <td>{{ col.null_count }}</td>
+                        <td>{{ col.null_percentage }}%</td>
+                        <td>{{ col.distinct_count }}</td>
+                        <td>{{ col.min }}</td>
+                        <td>{{ col.max }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <h3 style="margin-top: 2rem;">Module Overview</h3>
+        <table class="profile-table">
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Model</th>
+                    <th>Record Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for module_name, models in profile_data.items %}
+                    {% for model_name, count in models.items %}
+                        <tr>
+                            {% if forloop.first %}
+                                <td rowspan="{{ models|length }}" style="vertical-align: top; font-weight: 600; background-color: #f0f4e8;">{{ module_name }}</td>
+                            {% endif %}
+                            <td>{{ model_name }}</td>
+                            <td>{% if count == 'N/A' %}<span style="color: #999;">N/A</span>{% else %}{{ count|default:0 }}{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="2">Total Records</td>
+                    <td>{{ total_count }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -7,6 +8,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from faker import Faker
+from django.conf import settings
 
 from company.models import CompanyProfile, Currency
 from finance.models import Account, Invoice, JournalEntry, JournalEntryLine
@@ -21,6 +23,31 @@ from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend, RelatedPartyTransaction
 
 User = get_user_model()
+
+LOG_FILE = os.path.join(settings.MEDIA_ROOT, 'sample_data_log.json')
+
+def init_log():
+    os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+    with open(LOG_FILE, 'w') as f:
+        json.dump([], f)
+
+def log_module(module_name, records_inserted, status, error=None):
+    logs = []
+    if os.path.exists(LOG_FILE):
+        try:
+            with open(LOG_FILE, 'r') as f:
+                logs = json.load(f)
+        except:
+            logs = []
+    logs.append({
+        'module_name': module_name,
+        'records_inserted': records_inserted,
+        'status': status,
+        'error': str(error) if error else None,
+        'timestamp': datetime.now().isoformat()
+    })
+    with open(LOG_FILE, 'w') as f:
+        json.dump(logs, f, indent=2)
 
 
 class Command(BaseCommand):
@@ -44,6 +71,7 @@ class Command(BaseCommand):
         self.clear_existing = options['clear_existing']
         self.num_months = options['num_months']
         
+        init_log()
         self.stdout.write("Starting sample data generation...")
 
         if self.clear_existing:
@@ -51,24 +79,80 @@ class Command(BaseCommand):
             self.clear_database()
 
         # Generate data step by step
-        self.admin_user = self.get_or_create_admin()
-        self.company, self.currency = self.generate_company()
-        self.accounts = self.generate_accounts()
-        self.warehouses = self.generate_warehouses()
-        self.categories, self.products = self.generate_inventory()
-        self.customers = self.generate_crm()
-        self.departments, self.employees = self.generate_hr()
-        self.projects = self.generate_projects()
-        self.suppliers = self.generate_purchasing()
+        try:
+            self.admin_user = self.get_or_create_admin()
+            log_module('Admin User', 1, 'success')
+        except Exception as e:
+            log_module('Admin User', 0, 'fail', str(e))
+
+        try:
+            self.company, self.currency = self.generate_company()
+            log_module('Company', 1, 'success')
+        except Exception as e:
+            log_module('Company', 0, 'fail', str(e))
+
+        try:
+            self.accounts = self.generate_accounts()
+            log_module('Finance - Accounts', len(self.accounts), 'success')
+        except Exception as e:
+            log_module('Finance - Accounts', 0, 'fail', str(e))
+
+        try:
+            self.warehouses = self.generate_warehouses()
+            log_module('Inventory - Warehouses', len(self.warehouses), 'success')
+        except Exception as e:
+            log_module('Inventory - Warehouses', 0, 'fail', str(e))
+
+        try:
+            self.categories, self.products = self.generate_inventory()
+            log_module('Inventory - Products', len(self.products), 'success')
+        except Exception as e:
+            log_module('Inventory - Products', 0, 'fail', str(e))
+
+        try:
+            self.customers = self.generate_crm()
+            log_module('CRM - Customers', len(self.customers), 'success')
+        except Exception as e:
+            log_module('CRM - Customers', 0, 'fail', str(e))
+
+        try:
+            self.departments, self.employees = self.generate_hr()
+            log_module('HR - Employees', len(self.employees), 'success')
+        except Exception as e:
+            log_module('HR - Employees', 0, 'fail', str(e))
+
+        try:
+            self.projects = self.generate_projects()
+            log_module('Projects', len(self.projects), 'success')
+        except Exception as e:
+            log_module('Projects', 0, 'fail', str(e))
+
+        try:
+            self.suppliers = self.generate_purchasing()
+            log_module('Purchasing - Suppliers', len(self.suppliers), 'success')
+        except Exception as e:
+            log_module('Purchasing - Suppliers', 0, 'fail', str(e))
         
-        # Generate transactional data over time
-        self.generate_transactions()
-        self.generate_compliance()
+        try:
+            self.generate_transactions()
+            log_module('Finance - Transactions', 1, 'success')
+        except Exception as e:
+            log_module('Finance - Transactions', 0, 'fail', str(e))
         
-        # Generate audit logs and approval workflows
-        self.generate_audit_and_approvals()
+        try:
+            self.generate_compliance()
+            log_module('Tax Engine', 1, 'success')
+        except Exception as e:
+            log_module('Tax Engine', 0, 'fail', str(e))
+        
+        try:
+            self.generate_audit_and_approvals()
+            log_module('Audit & Approvals', 1, 'success')
+        except Exception as e:
+            log_module('Audit & Approvals', 0, 'fail', str(e))
 
         self.stdout.write(self.style.SUCCESS("Successfully generated sample data!"))
+        log_module('Complete', 1, 'success')
 
     def clear_database(self):
         # Ordered by foreign key dependencies

@@ -18,7 +18,99 @@
             margin-bottom: 0;
             color: #856404;
         }
+        .terminal-log {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            padding: 1rem;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        .terminal-log .entry {
+            margin-bottom: 0.25rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #333;
+        }
+        .terminal-log .timestamp {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+        .terminal-log .module {
+            color: #00ffff;
+        }
+        .terminal-log .success {
+            color: #00ff00;
+        }
+        .terminal-log .fail {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+        .log-table th, .log-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .log-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .log-table .fail-row {
+            background-color: #ffeaea;
+        }
     </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const status = "{{ status|escapejs }}";
+        
+        function pollLog() {
+            fetch('/admin/system/sample-data/log/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.logs && data.logs.length > 0) {
+                        const tbody = document.getElementById('log-tbody');
+                        tbody.innerHTML = '';
+                        data.logs.forEach(log => {
+                            const tr = document.createElement('tr');
+                            if (log.status === 'fail') {
+                                tr.classList.add('fail-row');
+                            }
+                            const time = new Date(log.timestamp).toLocaleTimeString();
+                            tr.innerHTML = `
+                                <td>${time}</td>
+                                <td>${log.module_name}</td>
+                                <td>${log.records_inserted}</td>
+                                <td class="${log.status === 'fail' ? 'fail' : 'success'}">${log.status}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                    
+                    if (data.status === 'COMPLETE') {
+                        // Stop polling
+                    } else if (data.status === 'IN_PROGRESS') {
+                        setTimeout(pollLog, 2000);
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        }
+        
+        if (status === 'IN_PROGRESS') {
+            pollLog();
+        }
+    })();
+</script>
 {% endblock %}
 
 {% block content %}
@@ -42,9 +134,40 @@
 
         <form method="post">
             {% csrf_token %}
+            <div style="margin-bottom: 1rem;">
+                <label>
+                    <input type="checkbox" name="clear_existing" style="margin-right: 0.5rem;">
+                    Wipe existing data first (destructive)
+                </label>
+                <p style="font-size: 0.875rem; color: #666; margin-top: 0.25rem;">Check this to delete all existing sample data before generating new data.</p>
+            </div>
             <button type="submit" class="button button-secondary">
                 Run Sample Data Generator
             </button>
         </form>
+
+        {% if logs %}
+        <h3 style="margin-top: 2rem;">Generation Log</h3>
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Module</th>
+                    <th>Records</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="log-tbody">
+                {% for log in logs %}
+                <tr{% if log.status == 'fail' %} class="fail-row"{% endif %}>
+                    <td>{{ log.timestamp|date:"H:i:s" }}</td>
+                    <td>{{ log.module_name }}</td>
+                    <td>{{ log.records_inserted }}</td>
+                    <td class="{{ log.status }}">{{ log.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
     </div>
 {% endblock %}

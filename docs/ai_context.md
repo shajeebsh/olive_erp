@@ -1721,3 +1721,4 @@ For first-time deployment, manually enter these values in the Render Dashboard:
 - ✅ CSRF trusted origins auto-detected via RENDER_EXTERNAL_URL
 - ✅ Migration conflict fixed: TaxFiling UUID id field restored, AlterField removed
 - ✅ Sample Data Generator added to Wagtail Admin at /admin/system/sample-data/
+- ✅ Admin Tools Refinement: Data Profiling dashboard at /admin/system/data-profiling/
