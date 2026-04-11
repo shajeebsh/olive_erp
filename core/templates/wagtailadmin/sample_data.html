@@ -18,7 +18,169 @@
             margin-bottom: 0;
             color: #856404;
         }
+        .terminal-container {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.8rem;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .terminal-line {
+            display: flex;
+            gap: 1rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .terminal-line:last-child {
+            border-bottom: none;
+        }
+        .terminal-time {
+            color: #8b949e;
+            min-width: 80px;
+        }
+        .terminal-status {
+            min-width: 80px;
+            font-weight: 600;
+        }
+        .terminal-status.pending { color: #d29922; }
+        .terminal-status.success { color: #3fb950; }
+        .terminal-status.fail { color: #f85149; font-weight: bold; }
+        .terminal-status.started { color: #58a6ff; }
+        .terminal-message {
+            color: #c9d1d9;
+            flex: 1;
+        }
+        .terminal-status.fail + .terminal-message {
+            color: #f85149;
+            font-weight: bold;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+        .log-table th, .log-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .log-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .log-table .fail-row {
+            background-color: #ffeaea;
+        }
     </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const status = "{{ status|escapejs }}";
+        let lastLogCount = 0;
+        
+        function getStatusLabel(s) {
+            const labels = {
+                'started': 'STARTED',
+                'pending': 'PENDING',
+                'success': 'SUCCESS',
+                'fail': 'FAIL'
+            };
+            return labels[s] || s.toUpperCase();
+        }
+        
+        function formatTime(isoString) {
+            const d = new Date(isoString);
+            return d.toTimeString().split(' ')[0];
+        }
+        
+        function updateTerminal(logs) {
+            const container = document.getElementById('terminal-body');
+            if (!container) return;
+            
+            // Clear terminal if starting fresh
+            if (logs.length === 0 || (logs.length === 1 && lastLogCount === 0)) {
+                container.innerHTML = '';
+            }
+            
+            // Append new entries
+            logs.slice(lastLogCount).forEach(log => {
+                const line = document.createElement('div');
+                line.className = 'terminal-line';
+                const statusClass = log.status || 'pending';
+                line.innerHTML = `
+                    <span class="terminal-time">[${formatTime(log.timestamp)}]</span>
+                    <span class="terminal-status ${statusClass}">[${getStatusLabel(log.status)}]</span>
+                    <span class="terminal-message">${log.module_name}${log.records_inserted > 0 ? ' (' + log.records_inserted + ' records)' : ''}</span>
+                `;
+                container.appendChild(line);
+            });
+            
+            lastLogCount = logs.length;
+            
+            // Auto-scroll to bottom
+            const terminalContainer = document.getElementById('terminal-container');
+            if (terminalContainer) {
+                terminalContainer.scrollTop = terminalContainer.scrollHeight;
+            }
+        }
+        
+        function updateTable(logs) {
+            const tbody = document.getElementById('log-tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                if (log.status === 'fail') {
+                    tr.classList.add('fail-row');
+                }
+                tr.innerHTML = `
+                    <td>${formatTime(log.timestamp)}</td>
+                    <td>${log.module_name}</td>
+                    <td>${log.records_inserted || 0}</td>
+                    <td class="${log.status === 'fail' ? 'fail' : 'success'}">${log.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function pollLog() {
+            fetch('/admin/system/sample-data/log/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.logs) {
+                        updateTerminal(data.logs);
+                        updateTable(data.logs);
+                    }
+                    
+                    if (data.status === 'IN_PROGRESS') {
+                        setTimeout(pollLog, 2000);
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        }
+        
+        // Clear terminal on form submit
+        document.querySelector('form')?.addEventListener('submit', function() {
+            const container = document.getElementById('terminal-body');
+            if (container) container.innerHTML = '';
+            const tbody = document.getElementById('log-tbody');
+            if (tbody) tbody.innerHTML = '';
+            lastLogCount = 0;
+        });
+        
+        if (status === 'IN_PROGRESS') {
+            pollLog();
+        }
+    })();
+</script>
 {% endblock %}
 
 {% block content %}
@@ -42,9 +204,53 @@
 
         <form method="post">
             {% csrf_token %}
+            <div style="margin-bottom: 1rem;">
+                <label>
+                    <input type="checkbox" name="clear_existing" style="margin-right: 0.5rem;">
+                    Wipe existing data first (destructive)
+                </label>
+                <p style="font-size: 0.875rem; color: #666; margin-top: 0.25rem;">Check this to delete all existing sample data before generating new data.</p>
+            </div>
             <button type="submit" class="button button-secondary">
                 Run Sample Data Generator
             </button>
         </form>
+
+        {% if logs or status == 'IN_PROGRESS' %}
+        <h3 style="margin-top: 2rem;">Live Terminal</h3>
+        <div class="terminal-container" id="terminal-container">
+            <div id="terminal-body">
+                {% for log in logs %}
+                <div class="terminal-line">
+                    <span class="terminal-time">[{{ log.timestamp|date:"H:i:s" }}]</span>
+                    <span class="terminal-status {{ log.status }}">[{{ log.status|upper }}]</span>
+                    <span class="terminal-message">{{ log.module_name }}{% if log.records_inserted > 0 %} ({{ log.records_inserted }} records){% endif %}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <h3>Log Details</h3>
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Module</th>
+                    <th>Records</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="log-tbody">
+                {% for log in logs %}
+                <tr{% if log.status == 'fail' %} class="fail-row"{% endif %}>
+                    <td>{{ log.timestamp|date:"H:i:s" }}</td>
+                    <td>{{ log.module_name }}</td>
+                    <td>{{ log.records_inserted }}</td>
+                    <td class="{{ log.status }}">{{ log.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
     </div>
 {% endblock %}

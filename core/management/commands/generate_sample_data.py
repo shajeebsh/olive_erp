@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -7,6 +8,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from faker import Faker
+from django.conf import settings
 
 from company.models import CompanyProfile, Currency
 from finance.models import Account, Invoice, JournalEntry, JournalEntryLine
@@ -21,6 +23,31 @@ from apps.accounting.reconciliation.models import BankReconciliation
 from apps.accounting.compliance.models import ComplianceDeadline, CT1Computation, Dividend, RelatedPartyTransaction
 
 User = get_user_model()
+
+LOG_FILE = os.path.join(settings.MEDIA_ROOT, 'sample_data_log.json')
+
+def init_log():
+    os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+    with open(LOG_FILE, 'w') as f:
+        json.dump([], f)
+
+def log_module(module_name, records_inserted, status, error=None):
+    logs = []
+    if os.path.exists(LOG_FILE):
+        try:
+            with open(LOG_FILE, 'r') as f:
+                logs = json.load(f)
+        except:
+            logs = []
+    logs.append({
+        'module_name': module_name,
+        'records_inserted': records_inserted,
+        'status': status,
+        'error': str(error) if error else None,
+        'timestamp': datetime.now().isoformat()
+    })
+    with open(LOG_FILE, 'w') as f:
+        json.dump(logs, f, indent=2)
 
 
 class Command(BaseCommand):
@@ -44,31 +71,110 @@ class Command(BaseCommand):
         self.clear_existing = options['clear_existing']
         self.num_months = options['num_months']
         
+        init_log()
+        log_module('Starting sample data generation...', 0, 'started')
         self.stdout.write("Starting sample data generation...")
 
         if self.clear_existing:
             self.stdout.write("Warning: --clear-existing is set. Wiping database...")
+            log_module('Wiping existing data...', 0, 'pending')
             self.clear_database()
+            log_module('Database wiped', 0, 'success')
 
         # Generate data step by step
-        self.admin_user = self.get_or_create_admin()
-        self.company, self.currency = self.generate_company()
-        self.accounts = self.generate_accounts()
-        self.warehouses = self.generate_warehouses()
-        self.categories, self.products = self.generate_inventory()
-        self.customers = self.generate_crm()
-        self.departments, self.employees = self.generate_hr()
-        self.projects = self.generate_projects()
-        self.suppliers = self.generate_purchasing()
+        try:
+            self.admin_user = self.get_or_create_admin()
+            log_module('Admin User', 1, 'success')
+            self.stdout.write("Creating admin user...")
+        except Exception as e:
+            log_module('Admin User creation', 0, 'fail', str(e))
+
+        try:
+            self.company, self.currency = self.generate_company()
+            log_module('Generating Company...', 1, 'success')
+            self.stdout.write("Generating Company...")
+        except Exception as e:
+            log_module('Company generation', 0, 'fail', str(e))
+
+        try:
+            self.accounts = self.generate_accounts()
+            log_module('Generating Chart of Accounts...', len(self.accounts), 'success')
+            self.stdout.write("Generating Chart of Accounts...")
+        except Exception as e:
+            log_module('Chart of Accounts generation', 0, 'fail', str(e))
+
+        try:
+            self.warehouses = self.generate_warehouses()
+            log_module('Generating Warehouses...', len(self.warehouses), 'success')
+            self.stdout.write("Generating Warehouses...")
+        except Exception as e:
+            log_module('Warehouse generation', 0, 'fail', str(e))
+
+        try:
+            self.categories, self.products = self.generate_inventory()
+            log_module('Generating Products...', len(self.products), 'success')
+            self.stdout.write("Generating Products...")
+        except Exception as e:
+            log_module('Product generation', 0, 'fail', str(e))
+
+        try:
+            self.customers = self.generate_crm()
+            log_module('Generating CRM...', len(self.customers), 'success')
+            self.stdout.write("Generating CRM...")
+        except Exception as e:
+            log_module('CRM generation', 0, 'fail', str(e))
+
+        try:
+            self.departments, self.employees = self.generate_hr()
+            log_module('Generating HR...', len(self.employees), 'success')
+            self.stdout.write("Generating HR...")
+        except Exception as e:
+            log_module('HR generation', 0, 'fail', str(e))
+
+        try:
+            self.projects = self.generate_projects()
+            log_module('Generating Projects...', len(self.projects), 'success')
+            self.stdout.write("Generating Projects...")
+        except Exception as e:
+            log_module('Project generation', 0, 'fail', str(e))
+
+        try:
+            self.suppliers = self.generate_purchasing()
+            log_module('Generating Suppliers...', len(self.suppliers), 'success')
+            self.stdout.write("Generating Suppliers...")
+        except Exception as e:
+            log_module('Supplier generation', 0, 'fail', str(e))
         
-        # Generate transactional data over time
-        self.generate_transactions()
-        self.generate_compliance()
+        try:
+            self.generate_transactions()
+            log_module('Generating Transactions...', 1, 'success')
+            self.stdout.write("Generating Transactions...")
+        except Exception as e:
+            log_module('Transaction generation', 0, 'fail', str(e))
         
-        # Generate audit logs and approval workflows
-        self.generate_audit_and_approvals()
+        try:
+            self.generate_compliance()
+            log_module('Generating Tax Engine...', 1, 'success')
+            self.stdout.write("Generating Tax Engine...")
+        except Exception as e:
+            log_module('Tax Engine generation', 0, 'fail', str(e))
+        
+        try:
+            self.generate_audit_and_approvals()
+            log_module('Generating Audit & Approvals...', 1, 'success')
+            self.stdout.write("Generating Audit & Approvals...")
+        except Exception as e:
+            log_module('Audit & Approval generation', 0, 'fail', str(e))
+
+        try:
+            self.generate_document_attachments()
+            log_module('Generating Document Attachments...', 1, 'success')
+            self.stdout.write("Generating Document Attachments...")
+        except Exception as e:
+            log_module('Document Attachment generation', 0, 'fail', str(e))
 
         self.stdout.write(self.style.SUCCESS("Successfully generated sample data!"))
+        log_module('Successfully generated sample data!', 1, 'success')
 
     def clear_database(self):
         # Ordered by foreign key dependencies
