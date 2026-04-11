@@ -213,8 +213,6 @@ def activities(request):
 @login_required
 def lead_kanban(request):
     """HTMX-powered Kanban view for lead pipeline."""
-    from django_htmx import HTMXTemplateResponse
-    
     company = get_user_company(request)
     leads = Lead.objects.filter(company=company)
     
@@ -235,18 +233,18 @@ def lead_kanban(request):
 def lead_move_stage(request):
     """HTMX endpoint to move lead to different stage."""
     from django.http import JsonResponse
-    from django.views.decorators import htmx
     
-    @htmx()
-    def hx_lead_move(request):
+    if request.method == 'POST':
         lead_id = request.POST.get('lead_id')
         new_stage = request.POST.get('stage')
         
-        lead = Lead.objects.get(id=lead_id)
-        old_stage = lead.status
-        lead.status = new_stage
-        lead.save()
-        
-        return JsonResponse({'success': True, 'old': old_stage, 'new': new_stage})
+        try:
+            lead = Lead.objects.get(id=lead_id)
+            old_stage = lead.status
+            lead.status = new_stage
+            lead.save()
+            return JsonResponse({'success': True, 'old': old_stage, 'new': new_stage})
+        except Lead.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Lead not found'})
     
-    return hx_lead_move(request)
+    return JsonResponse({'success': False, 'error': 'POST required'})

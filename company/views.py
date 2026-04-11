@@ -109,6 +109,21 @@ class SetupStep3View(LoginRequiredMixin, TemplateView):
 class SetupCompleteView(LoginRequiredMixin, TemplateView):
     template_name = 'company/setup/complete.html'
 
+    def get(self, request, *args, **kwargs):
+        # Save all session data to CompanyProfile
+        company = CompanyProfile.objects.first()
+        if company:
+            features = request.session.get('setup_features', [])
+            enabled_modules = {f: True for f in features}
+            company.enabled_modules = enabled_modules
+            
+            # Save other setup data
+            company.country_code = request.session.get('setup_country', 'IE')
+            company.tax_id = request.session.get('setup_tax_number', '')
+            company.save()
+            
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['company'] = CompanyProfile.objects.first()
