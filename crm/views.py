@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Sum
 from .models import Customer, SalesOrder, Lead
 from .forms import CustomerForm, SalesOrderForm, LeadForm
 from core.utils import get_user_company
@@ -213,6 +213,8 @@ def activities(request):
 @login_required
 def lead_kanban(request):
     """HTMX-powered Kanban view for lead pipeline."""
+    from django.db.models import Sum
+    
     company = get_user_company(request)
     leads = Lead.objects.filter(company=company)
     
@@ -223,9 +225,26 @@ def lead_kanban(request):
     for stage in stages:
         kanban_board[stage] = leads.filter(status=stage).order_by('-created_at')
     
+    # Summary calculations
+    total_pipeline = leads.exclude(status='LOST').aggregate(
+        total=Sum('estimated_value')
+    )['total'] or 0
+    
+    won_count = leads.filter(status='WON').count()
+    lost_count = leads.filter(status='LOST').count()
+    converted = won_count + lost_count
+    conversion_rate = round((won_count / converted * 100), 1) if converted > 0 else 0
+    
+    # Top sources
+    sources = leads.values('source').annotate(count=models.Count('id')).order_by('-count')[:5]
+    
     return render(request, 'crm/lead_kanban.html', {
         'kanban_board': kanban_board,
         'stages': stages,
+        'total_pipeline': total_pipeline,
+        'conversion_rate': conversion_rate,
+        'won_count': won_count,
+        'sources': sources,
     })
 
 
