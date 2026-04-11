@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 from .models import Customer, SalesOrder, Lead
 from .forms import CustomerForm, SalesOrderForm, LeadForm
 from core.utils import get_user_company
@@ -204,3 +204,66 @@ def opportunities(request):
 @login_required
 def activities(request):
     return render(request, 'crm/activities.html')
+
+
+# ============================================
+# Kanban Pipeline View
+# ============================================
+
+@login_required
+def lead_kanban(request):
+    """HTMX-powered Kanban view for lead pipeline."""
+    from django.db.models import Sum, Count
+    
+    company = get_user_company(request)
+    leads = Lead.objects.filter(company=company)
+    
+    # Group leads by stage
+    stages = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST']
+    kanban_board = {}
+    
+    for stage in stages:
+        kanban_board[stage] = leads.filter(status=stage).order_by('-created_at')
+    
+    # Summary calculations
+    total_pipeline = leads.exclude(status='LOST').aggregate(
+        total=Sum('estimated_value')
+    )['total'] or 0
+    
+    won_count = leads.filter(status='WON').count()
+    lost_count = leads.filter(status='LOST').count()
+    converted = won_count + lost_count
+    conversion_rate = round((won_count / converted * 100), 1) if converted > 0 else 0
+    
+    # Top sources
+    sources = leads.values('source').annotate(count=Count('id')).order_by('-count')[:5]
+    
+    return render(request, 'crm/lead_kanban.html', {
+        'kanban_board': kanban_board,
+        'stages': stages,
+        'total_pipeline': total_pipeline,
+        'conversion_rate': conversion_rate,
+        'won_count': won_count,
+        'sources': sources,
+    })
+
+
+@login_required
+def lead_move_stage(request):
+    """HTMX endpoint to move lead to different stage."""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        lead_id = request.POST.get('lead_id')
+        new_stage = request.POST.get('stage')
+        
+        try:
+            lead = Lead.objects.get(id=lead_id)
+            old_stage = lead.status
+            lead.status = new_stage
+            lead.save()
+            return JsonResponse({'success': True, 'old': old_stage, 'new': new_stage})
+        except Lead.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Lead not found'})
+    
+    return JsonResponse({'success': False, 'error': 'POST required'})

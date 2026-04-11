@@ -1799,3 +1799,19 @@ For first-time deployment, manually enter these values in the Render Dashboard:
 - ✅ Migration conflict fixed: TaxFiling UUID id field restored, AlterField removed
 - ✅ Sample Data Generator added to Wagtail Admin at /admin/system/sample-data/
 - ✅ Admin Tools Refinement: Data Profiling dashboard at /admin/system/data-profiling/
+- ✅ Module Configuration: Per-company access control for ERP modules via `CompanyProfile.enabled_modules` JSONField.
+- ✅ CRM Enhancement: Added Activity tracking, Lead Stages, Quote management, and Kanban pipeline.
+
+## Module Configuration System
+The system uses a `JSONField` on the `CompanyProfile` model to track enabled modules. 
+- **Middleware**: `ModuleAccessMiddleware` in `core/middleware.py` blocks access to disabled modules.
+- **Context Processor**: `navigation_menu` in `core/context_processors.py` filters the sidebar.
+- **Setup Wizard**: Configurable via `SetupStep2View` and `SetupCompleteView`.
+
+## CRM Enhanced Schema
+- **Lead Pipeline**: Uses `Lead.status` with stages: NEW, CONTACTED, QUALIFIED, PROPOSAL, WON, LOST.
+- **Activity Tracking**: `Activity` model for calls, emails, meetings, notes, tasks.
+- **Quotations**: `Quote` and `QuoteLine` models with versioning and status tracking.
+- **Lead Scoring**: `LeadScoring` utility calculates a 0-100 score based on profile completeness and activity frequency.
+- **Kanban**: Accessible at `/crm/leads/kanban/` using HTMX for drag-and-drop.
+

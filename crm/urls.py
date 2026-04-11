@@ -28,4 +28,8 @@ urlpatterns = [
     # Other
     path('opportunities/', views.opportunities, name='opportunities'),
     path('activities/', views.activities, name='activities'),
+    
+    # Kanban Pipeline
+    path('leads/kanban/', views.lead_kanban, name='lead_kanban'),
+    path('leads/move-stage/', views.lead_move_stage, name='lead_move_stage'),
 ]

@@ -80,3 +80,59 @@ class PermissionMiddleware:
         
         response = self.get_response(request)
         return response
+
+
+# Module URL mappings
+MODULE_URL_PATHS = {
+    'finance': '/finance/',
+    'inventory': '/inventory/',
+    'crm': '/crm/',
+    'hr': '/hr/',
+    'projects': '/projects/',
+    'reporting': '/reporting/',
+    'compliance': '/compliance/',
+}
+
+
+class ModuleAccessMiddleware:
+    """
+    Middleware to enforce module-level access control based on company configuration.
+    Blocks access to disabled module URLs.
+    """
+    EXEMPT_URLS = ['/admin/', '/django-admin/', '/accounts/', '/static/', '/media/']
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        
+        # Skip exempt URLs
+        if any(path.startswith(url) for url in self.EXEMPT_URLS):
+            return self.get_response(request)
+        
+        # Determine module for this URL
+        module_slug = None
+        for mod, url_prefix in MODULE_URL_PATHS.items():
+            if path.startswith(url_prefix):
+                module_slug = mod
+                break
+        
+        if not module_slug:
+            return self.get_response(request)
+        
+        # Check company module access
+        try:
+            company = getattr(request.user, 'company', None)
+            if company and not company.is_module_enabled(module_slug):
+                from django.contrib import messages
+                from django.http import HttpResponseForbidden
+                messages.error(
+                    request,
+                    f"The {module_slug.title()} module is not enabled for your company."
+                )
+                return redirect('/')
+        except Exception:
+            pass  # Allow if no company found
+        
+        return self.get_response(request)
