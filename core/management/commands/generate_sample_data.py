@@ -248,7 +248,7 @@ class Command(BaseCommand):
             code="EUR", defaults={'name': 'Euro', 'symbol': '€', 'exchange_rate_to_base': 1.0}
         )
         company, _ = CompanyProfile.objects.get_or_create(
-            name="Olive Tech Solutions Ltd",
+            name="Default Company Ltd",
             defaults={
                 'address': "123 Main Street, Dublin, Ireland",
                 'phone': "+353 1 234 5678",
