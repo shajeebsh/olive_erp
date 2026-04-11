@@ -183,11 +183,55 @@
             </div>
         </div>
         
-        <div class="summary-section">
-            <h2>System Status</h2>
-            {% with green_count=readiness.records|length %}
-            <p>{{ green_count }} of {{ readiness.records|length }} modules have data</p>
-            {% endwith %}
+        <div class="check-card" style="margin-top: 1.5rem;">
+            <h3>💾 Database Performance</h3>
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <select id="db-size-model" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 6px; flex: 1; min-width: 200px;">
+                    <option value="">Select a model...</option>
+                    <option value="finance.Account">finance.Account</option>
+                    <option value="finance.Invoice">finance.Invoice</option>
+                    <option value="finance.JournalEntry">finance.JournalEntry</option>
+                    <option value="inventory.Product">inventory.Product</option>
+                    <option value="inventory.Warehouse">inventory.Warehouse</option>
+                    <option value="crm.Customer">crm.Customer</option>
+                    <option value="hr.Employee">hr.Employee</option>
+                    <option value="projects.Project">projects.Project</option>
+                    <option value="purchasing.Supplier">purchasing.Supplier</option>
+                </select>
+                <button onclick="checkDbSize()" style="background: #4a6b3a; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Check Size</button>
+            </div>
+            <div id="db-size-result" style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px; display: none;">
+                <span id="db-size-text" style="font-weight: 600;"></span>
+            </div>
         </div>
     </div>
+    
+    <script>
+    function checkDbSize() {
+        var model = document.getElementById('db-size-model').value;
+        if (!model) {
+            alert('Please select a model');
+            return;
+        }
+        
+        var resultDiv = document.getElementById('db-size-result');
+        var resultText = document.getElementById('db-size-text');
+        
+        resultDiv.style.display = 'block';
+        resultText.textContent = 'Checking...';
+        
+        fetch('/admin/system/readiness/db-size/?model=' + encodeURIComponent(model))
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultText.textContent = 'Error: ' + data.error;
+                } else {
+                    resultText.innerHTML = data.table + ': <strong>' + data.size_formatted + '</strong>';
+                }
+            })
+            .catch(err => {
+                resultText.textContent = 'Error: ' + err;
+            });
+    }
+    </script>
 {% endblock %}

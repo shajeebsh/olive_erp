@@ -460,6 +460,73 @@ qs = Model.objects.filter(company=company)
 6. **Audit trail**: Implement full audit logging for financial transactions
 7. **UI refinements**: Continue to iterate on the top navigation and dashboard density based on user feedback
 
+---
+
+## 12. System Diagnostics & Admin Tools (April 2026)
+
+OliveERP includes a comprehensive admin diagnostics suite accessible via the Wagtail admin sidebar under "System Tools".
+
+### Components
+
+#### 1. Readiness Checklist (`/admin/system/readiness/`)
+- **Purpose**: Verify OliveERP is properly configured for production use
+- **Features**:
+  - Company Profile status check
+  - Currency configuration validation
+  - Active Tax Period verification (using `status__in=['open', 'in_progress']`)
+  - Module record counts (Finance, Inventory, CRM, HR, Projects, Purchasing)
+  - Real-time summary of modules with data
+  - **Database Performance Tool**: AJAX-based table size check using `pg_total_relation_size()` (PostgreSQL), `information_schema.TABLES` (MySQL), or `sqlite_master` (SQLite)
+
+#### 2. Deep Profiling Dashboard (`/admin/system/data-profiling/`)
+- **Purpose**: Analyze data quality across all modules
+- **Features**:
+  - Grid-based module overview (`display: grid`, `100vh` height)
+  - Per-model deep dive with column statistics
+  - Null value analysis with Chart.js visualizations
+  - Row preview (first 50 records)
+  - Tab navigation: Column Analysis vs Row Preview
+
+#### 3. CSV Export Engine (`/admin/system/data-profiling/export/?model=app.Model`)
+- **Purpose**: Export model data for external analysis
+- **Technical Implementation**:
+  - Streaming response (`StreamingHttpResponse`) for memory efficiency
+  - `csv.writer` with `Echo` class for proper escaping (handles commas, quotes, newlines)
+  - Background-safe: Uses generator pattern with `.iterator()`
+
+#### 4. Sample Data Generator (`/admin/system/sample-data/`)
+- **Purpose**: Generate realistic test data for demos/testing
+- **Technical Implementation**:
+  - Background thread execution (non-blocking UI)
+  - Status file tracking (`media/sample_data_status.txt`)
+  - AJAX polling endpoint (`/admin/system/sample-data/log/`)
+  - Wipe option for fresh data generation
+
+### Menu Structure
+
+```python
+system_tools_menu = Menu(register_hook_name='register_system_tools_menu_item')
+
+@hooks.register('register_system_tools_menu_item')
+def register_system_tools_menu_items():
+    return [
+        MenuItem('Readiness Check', '/admin/system/readiness/', icon_name='check', order=0),
+        MenuItem('Sample Data', '/admin/system/sample-data/', icon_name='snippet', order=1),
+        MenuItem('Data Profiling', '/admin/system/data-profiling/', icon_name='dashboard', order=2),
+    ]
+
+@hooks.register('register_admin_menu_item')
+def register_system_tools_submenu():
+    return SubmenuMenuItem('System Tools', system_tools_menu, icon_name='cog', order=50)
+```
+
+### Validation
+- ✅ `python manage.py check` passes
+- ✅ Submenu renders without `AttributeError`
+- ✅ All three admin pages accessible
+- ✅ CSV export handles special characters properly
+- ✅ Database size query works on PostgreSQL/MySQL/SQLite
+
 ## 12. UI Implementation Notes
 
 ### Two-Row Enterprise Header (April 2026)
