@@ -213,7 +213,7 @@ def activities(request):
 @login_required
 def lead_kanban(request):
     """HTMX-powered Kanban view for lead pipeline."""
-    from django.db.models import Sum
+    from django.db.models import Sum, Count
     
     company = get_user_company(request)
     leads = Lead.objects.filter(company=company)
@@ -236,7 +236,7 @@ def lead_kanban(request):
     conversion_rate = round((won_count / converted * 100), 1) if converted > 0 else 0
     
     # Top sources
-    sources = leads.values('source').annotate(count=models.Count('id')).order_by('-count')[:5]
+    sources = leads.values('source').annotate(count=Count('id')).order_by('-count')[:5]
     
     return render(request, 'crm/lead_kanban.html', {
         'kanban_board': kanban_board,
