@@ -11,7 +11,6 @@
             padding: 1rem;
         }
         
-        /* Sticky Sidebar - Module Navigation */
         .module-sidebar {
             background: #fff;
             border-radius: 12px;
@@ -39,16 +38,12 @@
             font-weight: 500;
             transition: all 0.2s;
         }
-        .module-nav-item:hover {
-            background: #f0f4e8;
-            color: #4a6b3a;
-        }
+        .module-nav-item:hover { background: #f0f4e8; color: #4a6b3a; }
         .module-nav-item.active {
             background: linear-gradient(135deg, #4a6b3a 0%, #5a7b4a 100%);
             color: white;
         }
         
-        /* Main Content */
         .profiling-main {
             display: flex;
             flex-direction: column;
@@ -57,7 +52,6 @@
             min-height: 0;
         }
         
-        /* Module Overview Cards Grid */
         .module-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -69,28 +63,20 @@
             border-radius: 12px;
             padding: 1.25rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-        .module-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-        }
+        .module-card:hover { transform: translateY(-2px); }
         
         .module-card-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 0.75rem;
         }
         
-        .module-card-title {
-            font-weight: 700;
-            color: #4a6b3a;
-            font-size: 1rem;
-        }
-        
+        .module-card-title { font-weight: 700; color: #4a6b3a; }
         .module-card-count {
-            background: linear-gradient(135deg, #4a6b3a 0%, #5a7b4a 100%);
+            background: linear-gradient(135deg, #4a6b3a, #5a7b4a);
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -98,12 +84,6 @@
             font-size: 0.85rem;
         }
         
-        .module-card-models {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-        
-        /* Deep Stats Panel */
         .deep-stats-panel {
             background: #fff;
             border-radius: 12px;
@@ -112,7 +92,7 @@
         }
         
         .deep-stats-header {
-            background: linear-gradient(135deg, #4a6b3a 0%, #5a7b4a 100%);
+            background: linear-gradient(135deg, #4a6b3a, #5a7b4a);
             color: white;
             padding: 1rem 1.5rem;
             display: flex;
@@ -120,48 +100,74 @@
             align-items: center;
         }
         
-        .deep-stats-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
+        .deep-stats-header h3 { margin: 0; font-size: 1.1rem; }
+        
+        .export-btn {
+            background: white;
+            color: #4a6b3a;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .export-btn:hover { background: #f0f4e8; }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #dee2e6;
+            margin: 0 1.5rem;
         }
         
-        .deep-stats-total {
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab.active {
+            color: #4a6b3a;
+            border-bottom-color: #4a6b3a;
         }
         
         .deep-stats-content {
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
         }
         
-        /* Stats Table */
-        .stats-table {
+        .stats-table, .preview-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.8rem;
         }
         
-        .stats-table th {
+        .stats-table th, .preview-table th {
             position: sticky;
             top: 0;
             background: #f8f9fa;
             padding: 0.75rem 0.5rem;
             text-align: left;
             font-weight: 600;
-            color: #495057;
             border-bottom: 2px solid #dee2e6;
         }
         
-        .stats-table td {
-            padding: 0.5rem;
+        .preview-table th { background: #e9ecef; }
+        
+        .preview-table td {
+            padding: 0.4rem;
             border-bottom: 1px solid #eee;
-            vertical-align: middle;
+            font-size: 0.7rem;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
-        /* Type Badge */
         .type-badge {
             display: inline-block;
             padding: 0.15rem 0.4rem;
@@ -176,47 +182,17 @@
         .type-badge.foreign { background: #fce4ec; color: #c2185b; }
         .type-badge.default { background: #f5f5f5; color: #616161; }
         
-        /* Health Chips */
         .health-chip {
             display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
             padding: 0.25rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
             font-weight: 600;
         }
-        .health-chip.green {
-            background: #d4edda;
-            color: #155724;
-        }
-        .health-chip.orange {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .health-chip.red {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        .health-chip.green { background: #d4edda; color: #155724; }
+        .health-chip.orange { background: #fff3cd; color: #856404; }
+        .health-chip.red { background: #f8d7da; color: #721c24; }
         
-        /* Null Bar */
-        .null-bar-container {
-            width: 60px;
-            height: 12px;
-            background: #f0f0f0;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .null-bar-fill {
-            height: 100%;
-            border-radius: 6px;
-            transition: width 0.3s;
-        }
-        .null-bar-fill.green { background: linear-gradient(90deg, #28a745, #20c997); }
-        .null-bar-fill.orange { background: linear-gradient(90deg, #ffc107, #fd7e14); }
-        .null-bar-fill.red { background: linear-gradient(90deg, #dc3545, #e74c3c); }
-        
-        /* Charts */
         .charts-row {
             display: grid;
             grid-template-columns: 250px 1fr;
@@ -231,7 +207,6 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
-        /* Select Form */
         .model-select-form {
             background: #fff;
             padding: 1rem;
@@ -241,32 +216,15 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         
-        .model-select-form label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .model-select-form select {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
+        .model-select-form label { font-weight: 600; color: #495057; }
+        .model-select-form select { flex: 1; min-width: 200px; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 6px; }
         
         @media (max-width: 1024px) {
-            .profiling-container {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            .module-sidebar {
-                max-height: none;
-            }
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
+            .profiling-container { grid-template-columns: 1fr; height: auto; }
+            .charts-row { grid-template-columns: 1fr; }
         }
     </style>
 {% endblock %}
@@ -278,10 +236,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         new Chart(document.getElementById('nullChart').getContext('2d'), {
             type: 'doughnut',
-            data: {
-                labels: {{ chart_data.labels|safe }},
-                datasets: [{ data: {{ chart_data.data }}, backgroundColor: ['#4a6b3a', '#f85149'] }]
-            },
+            data: { labels: {{ chart_data.labels|safe }}, datasets: [{ data: {{ chart_data.data }}, backgroundColor: ['#4a6b3a', '#f85149'] }] },
             options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Data Completeness' } } }
         });
     });
@@ -298,7 +253,7 @@
                     backgroundColor: {{ null_bar_chart.data|safe }}.map(v => v > 50 ? '#dc3545' : v > 20 ? '#ffc107' : '#28a745'),
                     borderRadius: 4 }]
             },
-            options: { responsive: true, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Null %' } } }, plugins: { legend: { display: false }, title: { display: true, text: 'Null Percentage by Column' } } }
+            options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false }, title: { display: true, text: 'Null Percentage by Column' } } }
         });
     });
 </script>
@@ -309,9 +264,7 @@
     {% block header %}
         <header class="w-header">
             <div class="w-header__container">
-                <div class="w-header__title">
-                    <h1>Data Profiling</h1>
-                </div>
+                <div class="w-header__title"><h1>Data Profiling</h1></div>
             </div>
         </header>
     {% endblock %}
@@ -331,7 +284,7 @@
                     {% endfor %}
                 </select>
             </form>
-            
+            <a href="?tab=readiness" class="module-nav-item {% if active_tab == 'readiness' %}active{% endif %}">Readiness Check</a>
             <a href="?" class="module-nav-item {% if not selected_model %}active{% endif %}">Overview</a>
             {% for module_name, model_paths in modules.items %}
                 <a href="?model={{ model_paths.0 }}" class="module-nav-item {% if selected_model == model_paths.0 %}active{% endif %}">{{ module_name }}</a>
@@ -341,37 +294,33 @@
         <div class="profiling-main">
             {% if deep_stats %}
             <div class="model-select-form">
-                <label>Deep Statistics:</label>
+                <label>Selected:</label>
                 <span style="font-weight: 700; color: #4a6b3a;">{{ deep_stats.model }}</span>
-                <span class="deep-stats-total">{{ deep_stats.total_rows }} rows</span>
+                <span class="deep-stats-total" style="background: #4a6b3a;">{{ deep_stats.total_rows }} rows</span>
+                {% if selected_model %}
+                <a href="/admin/system/data-profiling/export/?model={{ selected_model }}" class="export-btn" target="_blank">
+                    📥 Download CSV
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="tabs">
+                <div class="tab {% if active_tab != 'rows' %}active{% endif %}" onclick="window.location='?model={{ selected_model }}&tab=columns'">Column Analysis</div>
+                <div class="tab {% if active_tab == 'rows' %}active{% endif %}" onclick="window.location='?model={{ selected_model }}&tab=rows'">Row Preview</div>
             </div>
             
             <div class="charts-row">
-                <div class="chart-panel">
-                    <canvas id="nullChart"></canvas>
-                </div>
-                <div class="chart-panel">
-                    <canvas id="nullBarChart"></canvas>
-                </div>
+                <div class="chart-panel"><canvas id="nullChart"></canvas></div>
+                <div class="chart-panel"><canvas id="nullBarChart"></canvas></div>
             </div>
             
+            {% if active_tab != 'rows' %}
             <div class="deep-stats-panel">
-                <div class="deep-stats-header">
-                    <h3>Column Analysis</h3>
-                </div>
+                <div class="deep-stats-header"><h3>Column Statistics</h3></div>
                 <div class="deep-stats-content">
                     <table class="stats-table">
                         <thead>
-                            <tr>
-                                <th>Column</th>
-                                <th>Type</th>
-                                <th>Filled</th>
-                                <th>Null</th>
-                                <th>%</th>
-                                <th>Health</th>
-                                <th>Distinct</th>
-                                <th>Range</th>
-                            </tr>
+                            <tr><th>Column</th><th>Type</th><th>Filled</th><th>Null</th><th>%</th><th>Health</th><th>Distinct</th><th>Range</th></tr>
                         </thead>
                         <tbody>
                             {% for col in deep_stats.columns %}
@@ -382,22 +331,47 @@
                                 <td>{{ col.null_count }}</td>
                                 <td>{{ col.null_percentage }}%</td>
                                 <td>
-                                    {% if col.null_percentage == 0 %}
-                                    <span class="health-chip green">● Complete</span>
-                                    {% elif col.null_percentage < 50 %}
-                                    <span class="health-chip orange">● Partial</span>
-                                    {% else %}
-                                    <span class="health-chip red">● Empty</span>
-                                    {% endif %}
+                                    {% if col.null_percentage == 0 %}<span class="health-chip green">● Complete</span>
+                                    {% elif col.null_percentage < 50 %}<span class="health-chip orange">● Partial</span>
+                                    {% else %}<span class="health-chip red">● Empty</span>{% endif %}
                                 </td>
                                 <td>{{ col.distinct_count }}</td>
-                                <td style="font-size: 0.7rem; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">{{ col.min }} → {{ col.max }}</td>
+                                <td style="font-size: 0.7rem; max-width: 100px; overflow: hidden;">{{ col.min }} → {{ col.max }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {% else %}
+            <div class="deep-stats-panel">
+                <div class="deep-stats-header"><h3>First 50 Rows Preview</h3></div>
+                <div class="deep-stats-content" style="max-height: 400px;">
+                    {% if row_preview %}
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                {% for key in row_preview.0.keys %}
+                                <th>{{ key }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in row_preview %}
+                            <tr>
+                                {% for value in row.values %}
+                                <td>{{ value|default:"" }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="padding: 1rem; color: #6c757d;">No data available</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
             {% endif %}
             
             <h3 style="margin-top: 0.5rem;">Module Overview</h3>
@@ -408,7 +382,7 @@
                         <span class="module-card-title">{{ module_name }}</span>
                         <span class="module-card-count">{{ data.total }}</span>
                     </div>
-                    <div class="module-card-models">
+                    <div class="module-card-models" style="font-size: 0.8rem; color: #6c757d;">
                         {% for model_name, count in data.models.items %}{{ model_name }}: {{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}
                     </div>
                 </div>

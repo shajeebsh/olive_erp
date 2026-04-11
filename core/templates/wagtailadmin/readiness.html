@@ -1,0 +1,193 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block extra_css %}
+    <style>
+        .readiness-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .readiness-header {
+            margin-bottom: 2rem;
+        }
+        
+        .readiness-header h1 {
+            color: #4a6b3a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .readiness-header p {
+            color: #6c757d;
+        }
+        
+        .check-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .check-card h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .check-item:last-child {
+            border-bottom: none;
+        }
+        
+        .check-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .check-value {
+            font-weight: 600;
+        }
+        
+        .check-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .check-status.set {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .check-status.not_set, .check-status.empty {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        
+        .record-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        
+        .record-card .count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .record-card .module-name {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .record-card.green .count { color: #28a745; }
+        .record-card.red .count { color: #dc3545; }
+        
+        .summary-section {
+            background: linear-gradient(135deg, #4a6b3a 0%, #5a7b4a 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .summary-section h2 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% block header %}
+        <header class="w-header">
+            <div class="w-header__container">
+                <div class="w-header__title">
+                    <h1>System Readiness Checklist</h1>
+                </div>
+            </div>
+        </header>
+    {% endblock %}
+
+    <div class="readiness-container">
+        <div class="readiness-header">
+            <h1>System Readiness Checklist</h1>
+            <p>Verify that OliveERP is properly configured for production use.</p>
+        </div>
+        
+        <div class="check-card">
+            <h3>⚙️ Core Configuration</h3>
+            <div class="check-item">
+                <span class="check-label">Company Profile</span>
+                <div>
+                    <span class="check-value">{{ readiness.company.value }}</span>
+                    <span class="check-status {% if readiness.company.status == 'set' %}set{% else %}not_set{% endif %}">
+                        {% if readiness.company.status == 'set' %}✓ Configured{% else %}✗ Not Set{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="check-item">
+                <span class="check-label">Currencies</span>
+                <div>
+                    <span class="check-value">{{ readiness.currency.value }}</span>
+                    <span class="check-status {% if readiness.currency.status == 'set' %}set{% else %}empty{% endif %}">
+                        {% if readiness.currency.status == 'set' %}✓ Active{% else %}✗ Empty{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="check-item">
+                <span class="check-label">Active Tax Period</span>
+                <div>
+                    <span class="check-value">{{ readiness.tax_period.value }}</span>
+                    <span class="check-status {% if readiness.tax_period.status == 'set' %}set{% else %}not_set{% endif %}">
+                        {% if readiness.tax_period.status == 'set' %}✓ Active{% else %}✗ Not Set{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="check-card">
+            <h3>📊 Data Overview</h3>
+            <div class="records-grid">
+                {% for record in readiness.records %}
+                <div class="record-card {% if record.status %}green{% else %}red{% endif %}">
+                    <div class="count">{{ record.count }}</div>
+                    <div class="module-name">{{ record.module }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="summary-section">
+            <h2>System Status</h2>
+            {% with green_count=readiness.records|length %}
+            <p>{{ green_count }} of {{ readiness.records|length }} modules have data</p>
+            {% endwith %}
+        </div>
+    </div>
+{% endblock %}
