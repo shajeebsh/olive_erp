@@ -33,11 +33,46 @@
             margin-top: 1.5rem;
         }
         .chart-container {
-            max-width: 400px;
+            max-width: 450px;
+            margin: 1.5rem 0;
+        }
+        .chart-container-wide {
+            max-width: 100%;
             margin: 1.5rem 0;
         }
         .model-select-form {
             margin-bottom: 1rem;
+        }
+        .type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.25rem;
+        }
+        .type-badge.int { background: #e3f2fd; color: #1565c0; }
+        .type-badge.str { background: #f3e5f5; color: #7b1fa2; }
+        .type-badge.date { background: #e8f5e9; color: #2e7d32; }
+        .type-badge.bool { background: #fff3e0; color: #e65100; }
+        .type-badge.foreign { background: #fce4ec; color: #c2185b; }
+        .type-badge.json { background: #eceff1; color: #455a64; }
+        .type-badge.default { background: #f5f5f5; color: #616161; }
+        .null-bar-container {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .null-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a6b3a, #6b8e4d);
+        }
+        .null-bar-fill.high {
+            background: linear-gradient(90deg, #f44336, #ff9800);
+        }
+        .null-bar-fill.medium {
+            background: linear-gradient(90deg, #ff9800, #ffc107);
         }
     </style>
 {% endblock %}
@@ -54,7 +89,7 @@
                 labels: {{ chart_data.labels|safe }},
                 datasets: [{
                     data: {{ chart_data.data }},
-                    backgroundColor: ['#4a6b3a', '#ff6b6b']
+                    backgroundColor: ['#4a6b3a', '#f85149']
                 }]
             },
             options: {
@@ -62,6 +97,35 @@
                 plugins: {
                     legend: { position: 'bottom' },
                     title: { display: true, text: 'Data Completeness' }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% if null_bar_chart %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('nullBarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ null_bar_chart.labels|safe }},
+                datasets: [{
+                    label: 'Null %',
+                    data: {{ null_bar_chart.data }},
+                    backgroundColor: {{ null_bar_chart.data|safe }}.map(v => v > 50 ? '#f85149' : v > 20 ? '#ffc107' : '#4a6b3a'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 100, title: { display: true, text: 'Null %' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Null Percentage by Column' }
                 }
             }
         });
@@ -104,8 +168,14 @@
             <p>Total Rows: <strong>{{ deep_stats.total_rows }}</strong></p>
             
             {% if chart_data %}
-            <div class="chart-container">
+            <div class="chart-container" style="display: inline-block; vertical-align: top;">
                 <canvas id="nullChart"></canvas>
+            </div>
+            {% endif %}
+            
+            {% if null_bar_chart %}
+            <div class="chart-container-wide">
+                <canvas id="nullBarChart"></canvas>
             </div>
             {% endif %}
             
@@ -117,6 +187,7 @@
                         <th>Filled</th>
                         <th>Null</th>
                         <th>Null %</th>
+                        <th>Visual</th>
                         <th>Distinct</th>
                         <th>Min</th>
                         <th>Max</th>
@@ -126,13 +197,30 @@
                     {% for col in deep_stats.columns %}
                     <tr>
                         <td>{{ col.column }}</td>
-                        <td>{{ col.type }}</td>
+                        <td>
+                            <span class="type-badge 
+                                {% if col.type == 'IntegerField' or col.type == 'BigIntegerField' %}int
+                                {% elif col.type == 'CharField' or col.type == 'TextField' %}str
+                                {% elif col.type == 'DateField' or col.type == 'DateTimeField' %}date
+                                {% elif col.type == 'BooleanField' %}bool
+                                {% elif col.type == 'ForeignKey' %}foreign
+                                {% elif col.type == 'JSONField' %}json
+                                {% else %}default{% endif %}">
+                                [{{ col.type|upper|slice:":6" }}]
+                            </span>
+                        </td>
                         <td>{{ col.filled_count }}</td>
                         <td>{{ col.null_count }}</td>
                         <td>{{ col.null_percentage }}%</td>
+                        <td>
+                            <div class="null-bar-container" style="width: 80px;">
+                                <div class="null-bar-fill {% if col.null_percentage > 50 %}high{% elif col.null_percentage > 20 %}medium{% endif %}" 
+                                     style="width: {{ col.null_percentage }}%"></div>
+                            </div>
+                        </td>
                         <td>{{ col.distinct_count }}</td>
-                        <td>{{ col.min }}</td>
-                        <td>{{ col.max }}</td>
+                        <td>{{ col.min|truncatechars:12 }}</td>
+                        <td>{{ col.max|truncatechars:12 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

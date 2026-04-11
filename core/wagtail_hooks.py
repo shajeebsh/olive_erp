@@ -173,6 +173,11 @@ def data_profiling_view(request):
             total_rows = qs.count()
             
             stats = []
+            null_bar_labels = []
+            null_bar_data = []
+            
+            from django.db.models import Min, Max, Count
+            
             for field in model._meta.get_fields():
                 if field.name == 'id':
                     continue
@@ -187,14 +192,16 @@ def data_profiling_view(request):
                     field_type = field.get_internal_type()
                     min_val = None
                     max_val = None
+                    
+                    # Use aggregate for better performance
                     if field_type in ['DateField', 'DateTimeField', 'IntegerField', 'DecimalField', 'FloatField']:
                         try:
-                            min_val = qs.exclude(**{f'{field_name}__isnull': True}).order_by(field_name).first()
-                            max_val = qs.exclude(**{f'{field_name}__isnull': True}).order_by(f'-{field_name}').first()
-                            if min_val:
-                                min_val = getattr(min_val, field_name)
-                            if max_val:
-                                max_val = getattr(max_val, field_name)
+                            agg = qs.aggregate(
+                                min_val=Min(field_name),
+                                max_val=Max(field_name)
+                            )
+                            min_val = agg.get('min_val')
+                            max_val = agg.get('max_val')
                         except:
                             pass
                     
@@ -208,8 +215,15 @@ def data_profiling_view(request):
                         'min': str(min_val) if min_val else 'N/A',
                         'max': str(max_val) if max_val else 'N/A',
                     })
+                    
+                    # For bar chart
+                    null_bar_labels.append(field_name)
+                    null_bar_data.append(round(null_pct, 1))
+                    
                 except Exception as e:
                     stats.append({'column': field_name, 'type': 'unknown', 'error': str(e)})
+                    null_bar_labels.append(field_name)
+                    null_bar_data.append(0)
             
             deep_stats = {
                 'model': selected_model,
@@ -217,11 +231,18 @@ def data_profiling_view(request):
                 'columns': stats,
             }
             
+            # Doughnut chart for overall completeness
             null_count_total = sum(s.get('null_count', 0) for s in stats)
             filled_count_total = sum(s.get('filled_count', 0) for s in stats)
             chart_data = {
                 'labels': ['Filled', 'Null/Empty'],
                 'data': [filled_count_total, null_count_total],
+            }
+            
+            # Bar chart for null percentages
+            null_bar_chart = {
+                'labels': null_bar_labels,
+                'data': null_bar_data,
             }
         except Exception as e:
             messages.error(request, f"Error analyzing model: {str(e)}")
@@ -232,5 +253,6 @@ def data_profiling_view(request):
         'selected_model': selected_model,
         'deep_stats': deep_stats,
         'chart_data': chart_data,
+        'null_bar_chart': null_bar_chart if selected_model else None,
         'modules': modules,
     })
