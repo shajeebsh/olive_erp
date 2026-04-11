@@ -154,16 +154,21 @@ def data_profiling_view(request):
     
     for module_name, model_paths in modules.items():
         module_counts = {}
+        module_total = 0
         for model_path in model_paths:
             try:
                 app_label, model_name = model_path.split('.')
                 model = apps.get_model(app_label, model_name)
                 count = model.objects.count()
                 module_counts[model_name] = count
-                total_count += count
+                module_total += count
             except Exception:
                 module_counts[model_name] = 'N/A'
-        profile_data[module_name] = module_counts
+        profile_data[module_name] = {
+            'models': module_counts,
+            'total': module_total
+        }
+        total_count += module_total
     
     if selected_model:
         try:
