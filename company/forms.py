@@ -13,7 +13,7 @@ class CompanyProfileForm(forms.ModelForm):
         model = CompanyProfile
         fields = ['name', 'address', 'phone', 'email', 'website', 'tax_id', 'fiscal_year_start_date', 'default_currency']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Olive Tech Solutions Ltd'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Default Company Ltd'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
