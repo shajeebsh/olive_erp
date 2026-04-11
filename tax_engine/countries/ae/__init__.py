@@ -223,8 +223,8 @@ class UAETaxEngine(BaseTaxEngine):
         if not tax_number:
             return False, "TRN cannot be empty"
         
-        # Remove spaces
-        tax_number = tax_number.replace(' ', '')
+        # Ensure string and remove spaces
+        tax_number = str(tax_number).replace(' ', '')
         
         # Check length
         if len(tax_number) != 15:

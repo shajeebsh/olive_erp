@@ -466,6 +466,12 @@ qs = Model.objects.filter(company=company)
 
 OliveERP includes a comprehensive admin diagnostics suite accessible via the Wagtail admin sidebar under "System Tools".
 
+### Architecture (Consolidated)
+
+The diagnostic suite is divided into two focused areas:
+- **Readiness Checklist** (`/admin/system/readiness/`): Configuration validation only
+- **Data Profiling** (`/admin/system/data-profiling/`): Data health metrics and deep analysis
+
 ### Components
 
 #### 1. Readiness Checklist (`/admin/system/readiness/`)
@@ -474,18 +480,20 @@ OliveERP includes a comprehensive admin diagnostics suite accessible via the Wag
   - Company Profile status check
   - Currency configuration validation
   - Active Tax Period verification (using `status__in=['open', 'in_progress']`)
-  - Module record counts (Finance, Inventory, CRM, HR, Projects, Purchasing)
-  - Real-time summary of modules with data
-  - **Database Performance Tool**: AJAX-based table size check using `pg_total_relation_size()` (PostgreSQL), `information_schema.TABLES` (MySQL), or `sqlite_master` (SQLite)
+  - **Database Performance Tool**: Consolidated tabular report showing all 9 core models (Account, Invoice, JournalEntry, Product, Warehouse, Customer, Employee, Project, Supplier) with row counts and disk usage. Calculated at page load, no AJAX required. Includes total storage footer.
+- **Note**: Data overview has been moved to Data Profiling for better separation of concerns
 
 #### 2. Deep Profiling Dashboard (`/admin/system/data-profiling/`)
 - **Purpose**: Analyze data quality across all modules
 - **Features**:
   - Grid-based module overview (`display: grid`, `100vh` height)
   - Per-model deep dive with column statistics
-  - Null value analysis with Chart.js visualizations
   - Row preview (first 50 records)
   - Tab navigation: Column Analysis vs Row Preview
+  - **KPIs (Above-the-Fold)**: Field Coverage, Row Count, Data Quality (color-coded: Green >=80%, Yellow 50-80%, Red <50%). Positioned immediately after tabs for immediate visibility.
+  - **Visual Analysis**: Chart.js doughnut and bar charts for null value distribution, positioned below KPIs to ensure metrics are seen first.
+- **Layout Priority**: KPI cards (3-column grid, 0.5rem top margin) → Charts (1rem top margin) → Column Statistics table
+- **Styling**: Enterprise color palette for Data Quality indicator
 
 #### 3. CSV Export Engine (`/admin/system/data-profiling/export/?model=app.Model`)
 - **Purpose**: Export model data for external analysis
@@ -501,6 +509,8 @@ OliveERP includes a comprehensive admin diagnostics suite accessible via the Wag
   - Status file tracking (`media/sample_data_status.txt`)
   - AJAX polling endpoint (`/admin/system/sample-data/log/`)
   - Wipe option for fresh data generation
+  - **Bug Fix**: Status variable cast to string before `.replace()` calls to prevent `'int' object has no attribute 'replace'` error
+  - **Tax Engine Fix**: `validate_tax_number` methods now cast input to string before processing in all country modules (IE, UK, IN, AE)
 
 ### Menu Structure
 

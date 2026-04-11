@@ -165,12 +165,32 @@ def system_readiness_view(request):
     
     green_count = sum(1 for r in record_checks if r['status'] == 'green')
     
+    # Database stats for core models
+    core_models = [
+        'finance.Account', 'finance.Invoice', 'finance.JournalEntry',
+        'inventory.Product', 'inventory.Warehouse',
+        'crm.Customer',
+        'hr.Employee',
+        'projects.Project',
+        'purchasing.Supplier',
+    ]
+    
+    db_stats = []
+    total_size = 0
+    for model_path in core_models:
+        stats = get_model_db_size(model_path)
+        if stats:
+            db_stats.append(stats)
+            total_size += stats['size_bytes']
+    
     readiness_data = {
         'company': {'status': company_status, 'value': str(company_profile) if company_profile else 'Not configured'},
         'currency': {'status': currency_status, 'value': f'{currency_count} currencies'},
         'tax_period': {'status': tax_period_status, 'value': str(tax_period) if tax_period else 'No active period'},
         'records': record_checks,
         'green_count': green_count,
+        'db_stats': db_stats,
+        'db_total_size': format_bytes(total_size),
     }
     
     return render(request, 'wagtailadmin/readiness.html', {'readiness': readiness_data})
@@ -234,6 +254,51 @@ def format_bytes(bytes_val):
     return f"{bytes_val:.1f} TB"
 
 
+def get_model_db_size(model_path):
+    from django.apps import apps
+    from django.db import connection
+    
+    try:
+        app_label, model_name = model_path.split('.')
+        model = apps.get_model(app_label, model_name)
+    except Exception:
+        return None
+    
+    table_name = model._meta.db_table
+    row_count = model.objects.count()
+    size_bytes = 0
+    
+    try:
+        with connection.cursor() as cursor:
+            if connection.vendor == 'postgresql':
+                cursor.execute(
+                    "SELECT pg_total_relation_size(%s) AS size",
+                    [table_name]
+                )
+            elif connection.vendor == 'mysql':
+                cursor.execute(
+                    "SELECT (data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s",
+                    [table_name]
+                )
+            else:
+                cursor.execute(
+                    "SELECT page_count * %s AS size FROM sqlite_master WHERE name = %s",
+                    [connection.settings_dict.get('PAGE_SIZE', 4096), table_name]
+                )
+            result = cursor.fetchone()
+            size_bytes = result[0] if result else 0
+    except Exception:
+        pass
+    
+    return {
+        'model_name': model_name,
+        'table_name': table_name,
+        'row_count': row_count,
+        'size_formatted': format_bytes(size_bytes),
+        'size_bytes': size_bytes,
+    }
+
+
 def sample_data_log_view(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Permission denied'}, status=403)
@@ -248,7 +313,7 @@ def sample_data_view(request):
         messages.error(request, 'You do not have permission to access this page.')
         return render(request, 'wagtailadmin/sample_data.html', {})
 
-    status = read_status()
+    status = str(read_status())
     logs = read_log()
     
     if status.startswith('ERROR:'):

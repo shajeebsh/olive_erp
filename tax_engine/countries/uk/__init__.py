@@ -113,8 +113,8 @@ class UKTaxEngine(BaseTaxEngine):
         if not tax_number:
             return False, "VAT number cannot be empty"
         
-        # Remove spaces and convert to uppercase
-        tax_number = tax_number.replace(' ', '').upper()
+        # Ensure string and remove spaces/convert to uppercase
+        tax_number = str(tax_number).replace(' ', '').upper()
         
         # Check prefix
         if not tax_number.startswith('GB'):

@@ -284,7 +284,6 @@
                     {% endfor %}
                 </select>
             </form>
-            <a href="?tab=readiness" class="module-nav-item {% if active_tab == 'readiness' %}active{% endif %}">Readiness Check</a>
             <a href="?" class="module-nav-item {% if not selected_model %}active{% endif %}">Overview</a>
             {% for module_name, model_paths in modules.items %}
                 <a href="?model={{ model_paths.0 }}" class="module-nav-item {% if selected_model == model_paths.0 %}active{% endif %}">{{ module_name }}</a>
@@ -310,13 +309,8 @@
             </div>
             
             {% if active_tab != 'rows' %}
-            <div class="charts-row">
-                <div class="chart-panel"><canvas id="nullChart"></canvas></div>
-                <div class="chart-panel"><canvas id="nullBarChart"></canvas></div>
-            </div>
-            
             {% if deep_stats %}
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.5rem; margin-bottom: 1rem;">
                 <div class="module-card" style="text-align: center;">
                     <div style="font-size: 0.8rem; color: #6c757d;">Field Coverage</div>
                     <div style="font-size: 1.5rem; font-weight: 700; color: #4a6b3a;">{{ deep_stats.total_fields }}</div>
@@ -331,6 +325,11 @@
                 </div>
             </div>
             {% endif %}
+            
+            <div class="charts-row" style="margin-top: 1rem;">
+                <div class="chart-panel"><canvas id="nullChart"></canvas></div>
+                <div class="chart-panel"><canvas id="nullBarChart"></canvas></div>
+            </div>
             
             <div class="deep-stats-panel">
                 <div class="deep-stats-header"><h3>Column Statistics</h3></div>
