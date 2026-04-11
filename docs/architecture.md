@@ -216,3 +216,69 @@ def update_stock(sender, instance, **kwargs):
 - **Flexibility** → Wagtail for content, Django for business logic
 
 This architecture provides a production-ready foundation balancing maintainability, scalability, and security for a comprehensive ERP system.
+
+## UI Portability Guide
+
+This guide documents the Olive ERP design system patterns for cross-project portability.
+
+### A. Essential Assets (The "UI Kit")
+
+The following core files are required to implement the Olive ERP design system:
+
+| File | Purpose |
+|------|---------|
+| `static/css/olive-theme.css` | Styling tokens and component standards |
+| `templates/base.html` | Structural layout and inlined critical CSS |
+| Google Fonts: Inter (400-700) | Primary typeface |
+
+### B. The "Two-Row" Layout Pattern
+
+The Olive ERP UI follows a two-row hierarchy for consistent navigation:
+
+- **Row 1** (`.app-header-utility`): Contains branding, global search (HTMX), and user identity controls
+- **Row 2** (`.app-header-nav`): The themed "Module Ribbon" providing persistent navigation across business areas
+
+```html
+<!-- Row 1: Utility Header -->
+<header class="app-header-utility">
+  <div class="brand">...</div>
+  <div class="global-search" hx-get="/search/" ...>...</div>
+  <div class="user-identity">...</div>
+</header>
+
+<!-- Row 2: Module Navigation -->
+<nav class="app-header-nav">
+  <!-- Module Ribbon populated from Module Registry -->
+</nav>
+```
+
+### C. Module Registry Methodology
+
+The navigation system uses a dynamic module registry:
+
+1. **Module Definition**: Each module is defined with:
+   - `name`: Display label
+   - `icon`: Bootstrap Icons class
+   - `url`: Route to module
+   - `submenu`: Optional dropdown items
+
+2. **Wagtail Integration**: Use `register_admin_menu_item` hooks to mirror the module navigation pattern in standard Wagtail admin pages.
+
+```python
+# Example: Module Registry Structure
+MODULES = [
+    {"name": "Finance", "icon": "bi-cash-coin", "url": "/finance/", "submenu": [...]},
+    {"name": "Inventory", "icon": "bi-box-seam", "url": "/inventory/", "submenu": [...]},
+    {"name": "HR", "icon": "bi-people", "url": "/hr/", "submenu": [...]},
+]
+```
+
+### D. Technical Requirements
+
+The following dependencies are mandatory:
+
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| Bootstrap | 5.3+ | Grid system and utility classes |
+| HTMX | Latest | Partial page updates and search |
+| Bootstrap Icons | Latest | Navigational indicators and UI icons |
