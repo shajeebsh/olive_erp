@@ -121,8 +121,8 @@ class IrelandTaxEngine(BaseTaxEngine):
         if not tax_number:
             return False, "VAT number cannot be empty"
         
-        # Remove spaces and convert to uppercase
-        tax_number = tax_number.replace(' ', '').upper()
+        # Ensure string and remove spaces/convert to uppercase
+        tax_number = str(tax_number).replace(' ', '').upper()
         
         # Basic pattern: IE + 7 digits + optional 1-2 letters
         pattern = r'^IE\d{7}[A-Z]{1,2}$'

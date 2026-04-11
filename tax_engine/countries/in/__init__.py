@@ -144,8 +144,8 @@ class IndiaTaxEngine(BaseTaxEngine):
         if not tax_number:
             return False, "GSTIN cannot be empty"
         
-        # Remove spaces and convert to uppercase
-        tax_number = tax_number.replace(' ', '').upper()
+        # Ensure string and remove spaces/convert to uppercase
+        tax_number = str(tax_number).replace(' ', '').upper()
         
         # Check length
         if len(tax_number) != 15:

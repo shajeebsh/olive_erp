@@ -171,23 +171,38 @@
             </div>
         </div>
         
-        <div class="check-card">
-            <h3>📊 Data Overview</h3>
-            <div class="records-grid">
-                {% for record in readiness.records %}
-                <div class="record-card {% if record.status %}green{% else %}red{% endif %}">
-                    <div class="count">{{ record.count }}</div>
-                    <div class="module-name">{{ record.module }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <div class="summary-section">
-            <h2>System Status</h2>
-            {% with green_count=readiness.records|length %}
-            <p>{{ green_count }} of {{ readiness.records|length }} modules have data</p>
-            {% endwith %}
+        <div class="check-card" style="margin-top: 1.5rem;">
+            <h3>💾 Database Performance</h3>
+            {% if readiness.db_stats %}
+            <table class="stats-table" style="width: 100%; margin-top: 0.5rem;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Model</th>
+                        <th style="text-align: left;">DB Table</th>
+                        <th style="text-align: right;">Records</th>
+                        <th style="text-align: right;">Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in readiness.db_stats %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ stat.model_name }}</td>
+                        <td><code>{{ stat.table_name }}</code></td>
+                        <td style="text-align: right;">{{ stat.row_count }}</td>
+                        <td style="text-align: right; font-weight: 600;">{{ stat.size_formatted }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8f9fa; font-weight: 700;">
+                        <td colspan="3" style="text-align: right;">Total Storage:</td>
+                        <td style="text-align: right; color: #4a6b3a;">{{ readiness.db_total_size }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            {% else %}
+            <p style="color: #6c757d; margin-top: 0.5rem;">No database statistics available.</p>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

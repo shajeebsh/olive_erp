@@ -9,6 +9,7 @@ from django.conf import settings
 from django.http import JsonResponse, StreamingHttpResponse
 from django.db.models.query import QuerySet
 from wagtail import hooks
+from wagtail.admin.menu import Menu, SubmenuMenuItem
 from wagtail.snippets.models import register_snippet
 from crm.models import Customer
 from purchasing.models import Supplier
@@ -51,41 +52,30 @@ def clear_log():
         os.remove(LOG_FILE)
 
 
-@hooks.register('register_admin_urls')
-def register_admin_urls():
-    return [
-        path('system/sample-data/', sample_data_view, name='sample_data'),
-        path('system/sample-data/log/', sample_data_log_view, name='sample_data_log'),
-        path('system/data-profiling/', data_profiling_view, name='data_profiling'),
-        path('system/data-profiling/export/', export_model_csv, name='data_profiling_export'),
-        path('system/readiness/', system_readiness_view, name='system_readiness'),
-    ]
+system_tools_menu = Menu(register_hook_name='register_system_tools_menu_item')
 
 
-@hooks.register('register_admin_menu_section')
-def register_system_tools_section():
-    from wagtail.admin.menu import MenuSection
-    return MenuSection(
-        name='system_tools',
-        title='System Tools',
-        icon='cog',
-        order=50,
-    )
+@hooks.register('register_system_tools_menu_item')
+def register_readiness_item():
+    from wagtail.admin.menu import MenuItem
+    return MenuItem('Readiness Check', '/admin/system/readiness/', icon_name='check', order=0)
+
+
+@hooks.register('register_system_tools_menu_item')
+def register_sample_data_item():
+    from wagtail.admin.menu import MenuItem
+    return MenuItem('Sample Data', '/admin/system/sample-data/', icon_name='snippet', order=1)
+
+
+@hooks.register('register_system_tools_menu_item')
+def register_profiling_item():
+    from wagtail.admin.menu import MenuItem
+    return MenuItem('Data Profiling', '/admin/system/data-profiling/', icon_name='dashboard', order=2)
 
 
 @hooks.register('register_admin_menu_item')
-def register_system_tools_menu_items(request):
-    from wagtail.admin.menu import MenuItem, SubmenuMenuItem
-    from wagtail.admin.collections import CollectionMenu
-    from wagtail.core.models import Collection
-    
-    items = [
-        MenuItem('Readiness Check', '/admin/system/readiness/', icon_name='check', order=0),
-        MenuItem('Sample Data', '/admin/system/sample-data/', icon_name='snippet', order=1),
-        MenuItem('Data Profiling', '/admin/system/data-profiling/', icon_name='dashboard', order=2),
-    ]
-    
-    return SubmenuMenuItem('System Tools', items, icon_name='cog', order=50)
+def register_system_tools_menu():
+    return SubmenuMenuItem('System Tools', system_tools_menu, icon_name='cog', order=50)
 
 
 def export_model_csv(request):
@@ -108,24 +98,21 @@ def export_model_csv(request):
             return value
 
     def generate_rows():
-        # Header
         fields = [f.name for f in model._meta.get_fields() if f.name != 'id']
+        writer = csv.writer(Echo())
+        
         yield ','.join(fields) + '\n'
         
-        # Data rows
         for obj in model.objects.all().iterator():
             row = []
             for field_name in fields:
                 try:
                     val = getattr(obj, field_name)
-                    if val is None:
-                        row.append('')
-                    else:
-                        row.append(str(val).replace(',', ';'))
+                    row.append(val)
                 except:
                     row.append('')
-            yield ','.join(row) + '\n'
-    
+            yield ''.join(writer.writerow(row))
+
     response = StreamingHttpResponse(generate_rows(), content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{model_name}.csv"'
     return response
@@ -147,7 +134,7 @@ def system_readiness_view(request):
     currency_status = 'set' if currency_count > 0 else 'empty'
     
     # Check Tax Period
-    tax_period = TaxPeriod.objects.filter(is_active=True).first()
+    tax_period = TaxPeriod.objects.filter(status__in=['open', 'in_progress']).first()
     tax_period_status = 'set' if tax_period else 'not_set'
     
     # Module record counts
@@ -176,14 +163,140 @@ def system_readiness_view(request):
             'status': 'green' if total > 0 else 'red'
         })
     
+    green_count = sum(1 for r in record_checks if r['status'] == 'green')
+    
+    # Database stats for core models
+    core_models = [
+        'finance.Account', 'finance.Invoice', 'finance.JournalEntry',
+        'inventory.Product', 'inventory.Warehouse',
+        'crm.Customer',
+        'hr.Employee',
+        'projects.Project',
+        'purchasing.Supplier',
+    ]
+    
+    db_stats = []
+    total_size = 0
+    for model_path in core_models:
+        stats = get_model_db_size(model_path)
+        if stats:
+            db_stats.append(stats)
+            total_size += stats['size_bytes']
+    
     readiness_data = {
         'company': {'status': company_status, 'value': str(company_profile) if company_profile else 'Not configured'},
         'currency': {'status': currency_status, 'value': f'{currency_count} currencies'},
         'tax_period': {'status': tax_period_status, 'value': str(tax_period) if tax_period else 'No active period'},
         'records': record_checks,
+        'green_count': green_count,
+        'db_stats': db_stats,
+        'db_total_size': format_bytes(total_size),
     }
     
     return render(request, 'wagtailadmin/readiness.html', {'readiness': readiness_data})
+
+
+def db_size_view(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    model_path = request.GET.get('model')
+    if not model_path:
+        return JsonResponse({'error': 'model parameter required'}, status=400)
+    
+    try:
+        app_label, model_name = model_path.split('.')
+        from django.apps import apps
+        model = apps.get_model(app_label, model_name)
+    except Exception as e:
+        return JsonResponse({'error': f'Invalid model: {str(e)}'}, status=400)
+    
+    from django.db import connection
+    from django.utils.encoding import force_str
+    
+    table_name = model._meta.db_table
+    
+    try:
+        with connection.cursor() as cursor:
+            if connection.vendor == 'postgresql':
+                cursor.execute(
+                    "SELECT pg_total_relation_size(%s) AS size",
+                    [table_name]
+                )
+            elif connection.vendor == 'mysql':
+                cursor.execute(
+                    "SELECT (data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s",
+                    [table_name]
+                )
+            else:
+                cursor.execute(
+                    "SELECT page_count * %s AS size FROM sqlite_master WHERE name = %s",
+                    [connection.settings_dict.get('PAGE_SIZE', 4096), table_name]
+                )
+            result = cursor.fetchone()
+            size_bytes = result[0] if result else 0
+    except Exception as e:
+        size_bytes = 0
+    
+    return JsonResponse({
+        'model': model_path,
+        'table': table_name,
+        'size_bytes': size_bytes,
+        'size_formatted': format_bytes(size_bytes)
+    })
+
+
+def format_bytes(bytes_val):
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if bytes_val < 1024:
+            return f"{bytes_val:.1f} {unit}"
+        bytes_val /= 1024
+    return f"{bytes_val:.1f} TB"
+
+
+def get_model_db_size(model_path):
+    from django.apps import apps
+    from django.db import connection
+    
+    try:
+        app_label, model_name = model_path.split('.')
+        model = apps.get_model(app_label, model_name)
+    except Exception:
+        return None
+    
+    table_name = model._meta.db_table
+    row_count = model.objects.count()
+    size_bytes = 0
+    
+    try:
+        with connection.cursor() as cursor:
+            if connection.vendor == 'postgresql':
+                cursor.execute(
+                    "SELECT pg_total_relation_size(%s) AS size",
+                    [table_name]
+                )
+            elif connection.vendor == 'mysql':
+                cursor.execute(
+                    "SELECT (data_length + index_length) AS size FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s",
+                    [table_name]
+                )
+            else:
+                cursor.execute(
+                    "SELECT page_count * %s AS size FROM sqlite_master WHERE name = %s",
+                    [connection.settings_dict.get('PAGE_SIZE', 4096), table_name]
+                )
+            result = cursor.fetchone()
+            size_bytes = result[0] if result else 0
+    except Exception:
+        pass
+    
+    return {
+        'model_name': model_name,
+        'table_name': table_name,
+        'row_count': row_count,
+        'size_formatted': format_bytes(size_bytes),
+        'size_bytes': size_bytes,
+    }
 
 
 def sample_data_log_view(request):
@@ -200,7 +313,7 @@ def sample_data_view(request):
         messages.error(request, 'You do not have permission to access this page.')
         return render(request, 'wagtailadmin/sample_data.html', {})
 
-    status = read_status()
+    status = str(read_status())
     logs = read_log()
     
     if status.startswith('ERROR:'):
@@ -343,6 +456,8 @@ def data_profiling_view(request):
                 'model': selected_model,
                 'total_rows': total_rows,
                 'columns': stats,
+                'total_fields': len(stats),
+                'completeness_score': round(100 - (sum(s.get('null_percentage', 0) for s in stats) / len(stats)), 1) if stats else 0,
             }
             
             null_count_total = sum(s.get('null_count', 0) for s in stats)
@@ -370,3 +485,15 @@ def data_profiling_view(request):
         'active_tab': active_tab,
         'modules': modules,
     })
+
+
+@hooks.register('register_admin_urls')
+def register_admin_urls():
+    return [
+        path('system/sample-data/', sample_data_view, name='sample_data'),
+        path('system/sample-data/log/', sample_data_log_view, name='sample_data_log'),
+        path('system/data-profiling/', data_profiling_view, name='data_profiling'),
+        path('system/data-profiling/export/', export_model_csv, name='data_profiling_export'),
+        path('system/readiness/', system_readiness_view, name='system_readiness'),
+        path('system/readiness/db-size/', db_size_view, name='db_size'),
+    ]

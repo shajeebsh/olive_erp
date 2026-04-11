@@ -284,7 +284,6 @@
                     {% endfor %}
                 </select>
             </form>
-            <a href="?tab=readiness" class="module-nav-item {% if active_tab == 'readiness' %}active{% endif %}">Readiness Check</a>
             <a href="?" class="module-nav-item {% if not selected_model %}active{% endif %}">Overview</a>
             {% for module_name, model_paths in modules.items %}
                 <a href="?model={{ model_paths.0 }}" class="module-nav-item {% if selected_model == model_paths.0 %}active{% endif %}">{{ module_name }}</a>
@@ -309,12 +308,29 @@
                 <div class="tab {% if active_tab == 'rows' %}active{% endif %}" onclick="window.location='?model={{ selected_model }}&tab=rows'">Row Preview</div>
             </div>
             
-            <div class="charts-row">
+            {% if active_tab != 'rows' %}
+            {% if deep_stats %}
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.5rem; margin-bottom: 1rem;">
+                <div class="module-card" style="text-align: center;">
+                    <div style="font-size: 0.8rem; color: #6c757d;">Field Coverage</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #4a6b3a;">{{ deep_stats.total_fields }}</div>
+                </div>
+                <div class="module-card" style="text-align: center;">
+                    <div style="font-size: 0.8rem; color: #6c757d;">Row Count</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #4a6b3a;">{{ deep_stats.total_rows }}</div>
+                </div>
+                <div class="module-card" style="text-align: center;">
+                    <div style="font-size: 0.8rem; color: #6c757d;">Data Quality</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: {% if deep_stats.completeness_score >= 80 %}#28a745{% elif deep_stats.completeness_score >= 50 %}#ffc107{% else %}#dc3545{% endif %};">{{ deep_stats.completeness_score }}%</div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="charts-row" style="margin-top: 1rem;">
                 <div class="chart-panel"><canvas id="nullChart"></canvas></div>
                 <div class="chart-panel"><canvas id="nullBarChart"></canvas></div>
             </div>
             
-            {% if active_tab != 'rows' %}
             <div class="deep-stats-panel">
                 <div class="deep-stats-header"><h3>Column Statistics</h3></div>
                 <div class="deep-stats-content">
@@ -374,6 +390,7 @@
             {% endif %}
             {% endif %}
             
+            {% if not selected_model %}
             <h3 style="margin-top: 0.5rem;">Module Overview</h3>
             <div class="module-cards-grid">
                 {% for module_name, data in profile_data.items %}
@@ -388,6 +405,7 @@
                 </div>
                 {% endfor %}
             </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
