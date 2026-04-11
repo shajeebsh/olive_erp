@@ -3,78 +3,182 @@
 
 {% block extra_css %}
     <style>
-        .sample-data-warning {
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 4px;
+        .admin-tools-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 150px);
             padding: 1rem;
-            margin-bottom: 1rem;
+        }
+        
+        /* Sidebar - Controls */
+        .controls-sidebar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        .sample-data-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
         }
         .sample-data-warning h3 {
             color: #856404;
             margin-top: 0;
+            font-size: 1rem;
         }
         .sample-data-warning p {
             margin-bottom: 0;
             color: #856404;
+            font-size: 0.875rem;
         }
+        
+        .controls-form label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .controls-form label input {
+            width: 18px;
+            height: 18px;
+        }
+        .controls-form p {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .btn-run {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #4a6b3a 0%, #5a7b4a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-run:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 107, 58, 0.3);
+        }
+        
+        /* Main Content - Console */
+        .console-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            height: 100%;
+            min-height: 0;
+        }
+        
         .terminal-container {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
+            flex: 1;
+            min-height: 200px;
+            background: linear-gradient(180deg, rgba(13, 17, 23, 0.95) 0%, rgba(22, 27, 34, 0.98) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(48, 54, 61, 0.8);
+            border-radius: 12px;
             padding: 1rem;
-            margin: 1rem 0;
             font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
             font-size: 0.8rem;
-            max-height: 350px;
             overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
         }
+        
         .terminal-line {
             display: flex;
             gap: 1rem;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #21262d;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(33, 38, 45, 0.5);
         }
         .terminal-line:last-child {
             border-bottom: none;
         }
         .terminal-time {
             color: #8b949e;
-            min-width: 80px;
+            min-width: 75px;
+            font-size: 0.75rem;
         }
         .terminal-status {
-            min-width: 80px;
+            min-width: 75px;
             font-weight: 600;
+            font-size: 0.75rem;
         }
         .terminal-status.pending { color: #d29922; }
-        .terminal-status.success { color: #3fb950; }
-        .terminal-status.fail { color: #f85149; font-weight: bold; }
-        .terminal-status.started { color: #58a6ff; }
+        .terminal-status.success { color: #3fb950; text-shadow: 0 0 8px rgba(63, 185, 80, 0.4); }
+        .terminal-status.fail { color: #f85149; font-weight: bold; text-shadow: 0 0 8px rgba(248, 81, 73, 0.4); }
+        .terminal-status.started { color: #58a6ff; text-shadow: 0 0 8px rgba(88, 166, 255, 0.4); }
         .terminal-message {
             color: #c9d1d9;
             flex: 1;
         }
-        .terminal-status.fail + .terminal-message {
-            color: #f85149;
-            font-weight: bold;
+        
+        /* Log Table */
+        .log-table-container {
+            flex: 0 0 180px;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
+        
         .log-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.875rem;
-        }
-        .log-table th, .log-table td {
-            padding: 0.5rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+            font-size: 0.8rem;
         }
         .log-table th {
-            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
             font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .log-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
         }
         .log-table .fail-row {
-            background-color: #ffeaea;
+            background: #fff5f5;
+        }
+        .log-table .status-fail { color: #dc3545; font-weight: 600; }
+        .log-table .status-success { color: #28a745; }
+        
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .admin-tools-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .controls-sidebar {
+                max-height: none;
+            }
+            .console-main {
+                min-height: 500px;
+            }
         }
     </style>
 {% endblock %}
@@ -86,12 +190,7 @@
         let lastLogCount = 0;
         
         function getStatusLabel(s) {
-            const labels = {
-                'started': 'STARTED',
-                'pending': 'PENDING',
-                'success': 'SUCCESS',
-                'fail': 'FAIL'
-            };
+            const labels = { 'started': 'STARTED', 'pending': 'PENDING', 'success': 'SUCCESS', 'fail': 'FAIL' };
             return labels[s] || s.toUpperCase();
         }
         
@@ -104,48 +203,38 @@
             const container = document.getElementById('terminal-body');
             if (!container) return;
             
-            // Clear terminal if starting fresh
             if (logs.length === 0 || (logs.length === 1 && lastLogCount === 0)) {
-                container.innerHTML = '';
+                container.innerHTML = '<div class="empty-state">Ready to generate sample data...</div>';
+            } else {
+                logs.slice(lastLogCount).forEach(log => {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line';
+                    line.innerHTML = `
+                        <span class="terminal-time">[${formatTime(log.timestamp)}]</span>
+                        <span class="terminal-status ${log.status || 'pending'}">[${getStatusLabel(log.status)}]</span>
+                        <span class="terminal-message">${log.module_name}${log.records_inserted > 0 ? ' (' + log.records_inserted + ' records)' : ''}</span>
+                    `;
+                    container.appendChild(line);
+                });
             }
-            
-            // Append new entries
-            logs.slice(lastLogCount).forEach(log => {
-                const line = document.createElement('div');
-                line.className = 'terminal-line';
-                const statusClass = log.status || 'pending';
-                line.innerHTML = `
-                    <span class="terminal-time">[${formatTime(log.timestamp)}]</span>
-                    <span class="terminal-status ${statusClass}">[${getStatusLabel(log.status)}]</span>
-                    <span class="terminal-message">${log.module_name}${log.records_inserted > 0 ? ' (' + log.records_inserted + ' records)' : ''}</span>
-                `;
-                container.appendChild(line);
-            });
-            
             lastLogCount = logs.length;
             
-            // Auto-scroll to bottom
             const terminalContainer = document.getElementById('terminal-container');
-            if (terminalContainer) {
-                terminalContainer.scrollTop = terminalContainer.scrollHeight;
-            }
+            if (terminalContainer) terminalContainer.scrollTop = terminalContainer.scrollHeight;
         }
         
         function updateTable(logs) {
             const tbody = document.getElementById('log-tbody');
             if (!tbody) return;
-            
             tbody.innerHTML = '';
             logs.forEach(log => {
                 const tr = document.createElement('tr');
-                if (log.status === 'fail') {
-                    tr.classList.add('fail-row');
-                }
+                if (log.status === 'fail') tr.classList.add('fail-row');
                 tr.innerHTML = `
                     <td>${formatTime(log.timestamp)}</td>
                     <td>${log.module_name}</td>
                     <td>${log.records_inserted || 0}</td>
-                    <td class="${log.status === 'fail' ? 'fail' : 'success'}">${log.status}</td>
+                    <td class="${log.status === 'fail' ? 'status-fail' : 'status-success'}">${log.status}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -159,15 +248,11 @@
                         updateTerminal(data.logs);
                         updateTable(data.logs);
                     }
-                    
-                    if (data.status === 'IN_PROGRESS') {
-                        setTimeout(pollLog, 2000);
-                    }
+                    if (data.status === 'IN_PROGRESS') setTimeout(pollLog, 2000);
                 })
                 .catch(err => console.error('Polling error:', err));
         }
         
-        // Clear terminal on form submit
         document.querySelector('form')?.addEventListener('submit', function() {
             const container = document.getElementById('terminal-body');
             if (container) container.innerHTML = '';
@@ -176,9 +261,7 @@
             lastLogCount = 0;
         });
         
-        if (status === 'IN_PROGRESS') {
-            pollLog();
-        }
+        if (status === 'IN_PROGRESS') pollLog();
     })();
 </script>
 {% endblock %}
@@ -194,63 +277,69 @@
         </header>
     {% endblock %}
 
-    <div class="w-content">
-        <div class="sample-data-warning">
-            <h3>⚠️ Warning</h3>
-            <p>This tool generates sample data including customers, suppliers, products, employees, and financial records. Running this will add many records to your database. Use with caution on production systems.</p>
-        </div>
+    <div class="admin-tools-container">
+        <div class="controls-sidebar">
+            <div class="sample-data-warning">
+                <h3>⚠️ Warning</h3>
+                <p>This tool generates sample data. Running this will add many records to your database.</p>
+            </div>
 
-        <p>This tool runs the <code>generate_sample_data</code> management command with 6 months of historical data.</p>
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 1rem;">
+                This tool runs the <code>generate_sample_data</code> management command with 6 months of historical data.
+            </p>
 
-        <form method="post">
-            {% csrf_token %}
-            <div style="margin-bottom: 1rem;">
+            <form method="post" class="controls-form">
+                {% csrf_token %}
                 <label>
-                    <input type="checkbox" name="clear_existing" style="margin-right: 0.5rem;">
+                    <input type="checkbox" name="clear_existing">
                     Wipe existing data first (destructive)
                 </label>
-                <p style="font-size: 0.875rem; color: #666; margin-top: 0.25rem;">Check this to delete all existing sample data before generating new data.</p>
-            </div>
-            <button type="submit" class="button button-secondary">
-                Run Sample Data Generator
-            </button>
-        </form>
-
-        {% if logs or status == 'IN_PROGRESS' %}
-        <h3 style="margin-top: 2rem;">Live Terminal</h3>
-        <div class="terminal-container" id="terminal-container">
-            <div id="terminal-body">
-                {% for log in logs %}
-                <div class="terminal-line">
-                    <span class="terminal-time">[{{ log.timestamp|date:"H:i:s" }}]</span>
-                    <span class="terminal-status {{ log.status }}">[{{ log.status|upper }}]</span>
-                    <span class="terminal-message">{{ log.module_name }}{% if log.records_inserted > 0 %} ({{ log.records_inserted }} records){% endif %}</span>
-                </div>
-                {% endfor %}
-            </div>
+                <p>Check this to delete all existing sample data before generating new data.</p>
+                <button type="submit" class="btn-run">
+                    Run Sample Data Generator
+                </button>
+            </form>
         </div>
 
-        <h3>Log Details</h3>
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>Module</th>
-                    <th>Records</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="log-tbody">
-                {% for log in logs %}
-                <tr{% if log.status == 'fail' %} class="fail-row"{% endif %}>
-                    <td>{{ log.timestamp|date:"H:i:s" }}</td>
-                    <td>{{ log.module_name }}</td>
-                    <td>{{ log.records_inserted }}</td>
-                    <td class="{{ log.status }}">{{ log.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
+        <div class="console-main">
+            <div class="terminal-container" id="terminal-container">
+                <div id="terminal-body">
+                    {% if logs %}
+                        {% for log in logs %}
+                        <div class="terminal-line">
+                            <span class="terminal-time">[{{ log.timestamp|date:"H:i:s" }}]</span>
+                            <span class="terminal-status {{ log.status }}">[{{ log.status|upper }}]</span>
+                            <span class="terminal-message">{{ log.module_name }}{% if log.records_inserted > 0 %} ({{ log.records_inserted }} records){% endif %}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">Ready to generate sample data...</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="log-table-container">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Module</th>
+                            <th>Records</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-tbody">
+                        {% for log in logs %}
+                        <tr{% if log.status == 'fail' %} class="fail-row"{% endif %}>
+                            <td>{{ log.timestamp|date:"H:i:s" }}</td>
+                            <td>{{ log.module_name }}</td>
+                            <td>{{ log.records_inserted }}</td>
+                            <td class="{{ log.status }}">{{ log.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 {% endblock %}
