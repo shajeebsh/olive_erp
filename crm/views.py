@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from .models import Customer, SalesOrder, Lead
 from .forms import CustomerForm, SalesOrderForm, LeadForm
 from core.utils import get_user_company
