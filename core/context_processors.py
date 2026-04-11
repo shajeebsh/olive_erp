@@ -8,9 +8,25 @@ def navigation_menu(request):
     if not company:
         company = CompanyProfile.objects.first()
     
+    # Module slug to URL mapping for filtering
+    module_map = {
+        'Finance': 'finance',
+        'Inventory': 'inventory', 
+        'CRM': 'crm',
+        'HR': 'hr',
+        'Projects': 'projects',
+    }
+    
+    def is_module_enabled(module_name):
+        mod_slug = module_map.get(module_name)
+        if mod_slug:
+            return company.is_module_enabled(mod_slug)
+        return True  # Always show Dashboard and non-module items
+    
     modules = [
         {'name': 'Dashboard', 'url': 'dashboard:index', 'icon': 'bi-house-door'},
-        {'name': 'Finance', 'url': 'dashboard:finance_dashboard', 'icon': 'bi-cash-coin', 'submenu': [
+        
+        is_module_enabled('Finance') and {'name': 'Finance', 'url': 'dashboard:finance_dashboard', 'icon': 'bi-cash-coin', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:finance_dashboard'},
             {'name': '🧾 Invoices', 'url': 'finance:invoices'},
             {'name': '💸 Expenses', 'url': 'finance:expenses'},
@@ -18,14 +34,16 @@ def navigation_menu(request):
             {'name': '💰 Budgets', 'url': 'finance:budget_list'},
             {'name': '📥 Bulk Import', 'url': 'finance:bulk_import'},
         ]},
-        {'name': 'Inventory', 'url': 'dashboard:inventory_dashboard', 'icon': 'bi-box-seam', 'submenu': [
+        
+        is_module_enabled('Inventory') and {'name': 'Inventory', 'url': 'dashboard:inventory_dashboard', 'icon': 'bi-box-seam', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:inventory_dashboard'},
             {'name': '📦 Products', 'url': 'inventory:products'},
             {'name': '📉 Stock', 'url': 'inventory:stock'},
             {'name': '🏗️ Warehouses', 'url': 'inventory:warehouses'},
             {'name': '🔄 Movements', 'url': 'inventory:movements'},
         ]},
-        {'name': 'CRM', 'url': 'dashboard:crm_dashboard', 'icon': 'bi-heart', 'submenu': [
+        
+        is_module_enabled('CRM') and {'name': 'CRM', 'url': 'dashboard:crm_dashboard', 'icon': 'bi-heart', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:crm_dashboard'},
             {'name': '👥 Customers', 'url': 'crm:customers'},
             {'name': '🛒 Sales Orders', 'url': 'crm:sales_orders'},
@@ -33,25 +51,29 @@ def navigation_menu(request):
             {'name': '💎 Opportunities', 'url': 'crm:opportunities'},
             {'name': '📅 Activities', 'url': 'crm:activities'},
         ]},
-        {'name': 'HR', 'url': 'dashboard:hr_dashboard', 'icon': 'bi-people', 'submenu': [
+        
+        is_module_enabled('HR') and {'name': 'HR', 'url': 'dashboard:hr_dashboard', 'icon': 'bi-people', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:hr_dashboard'},
             {'name': '👤 Employees', 'url': 'hr:employees'},
             {'name': '🏖️ Leave', 'url': 'hr:leave'},
             {'name': '🕒 Attendance', 'url': 'hr:attendance'},
             {'name': '💸 Payroll', 'url': 'hr:payroll'},
         ]},
-        {'name': 'Projects', 'url': 'dashboard:projects_dashboard', 'icon': 'bi-clipboard-check', 'submenu': [
+        
+        is_module_enabled('Projects') and {'name': 'Projects', 'url': 'dashboard:projects_dashboard', 'icon': 'bi-clipboard-check', 'submenu': [
             {'name': '📊 Dashboard', 'url': 'dashboard:projects_dashboard'},
             {'name': '🏗️ Active Projects', 'url': 'projects:active'},
             {'name': '📋 Tasks', 'url': 'projects:tasks'},
-            {'name': '📈 Timeline', 'url': 'projects:timeline'},
+            {'name': '���� Timeline', 'url': 'projects:timeline'},
             {'name': '👥 Resources', 'url': 'projects:resources'},
         ]},
-        {'name': 'Purchasing', 'url': 'purchasing:purchase_orders', 'icon': 'bi-cart', 'submenu': [
+        
+        is_module_enabled('Finance') and {'name': 'Purchasing', 'url': 'purchasing:purchase_orders', 'icon': 'bi-cart', 'submenu': [
             {'name': '🤝 Suppliers', 'url': 'purchasing:suppliers'},
             {'name': '🛒 Purchase Orders', 'url': 'purchasing:purchase_orders'},
         ]},
-        {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
+        
+        is_module_enabled('Finance') and {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
             {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
             {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
             {'name': '📔 Journal Entries', 'url': 'finance:journal'},
@@ -64,6 +86,7 @@ def navigation_menu(request):
             {'name': '🤝 Related Party TX', 'url': 'accounting:related_party_list'},
             {'name': '💰 CT1 Computation', 'url': 'accounting:ct1_list'},
         ]},
+        
         {
             'name': 'Approvals',
             'url': 'core:approval_list',
@@ -74,6 +97,9 @@ def navigation_menu(request):
             ]
         },
     ]
+    
+    # Filter out False values (disabled modules)
+    modules = [m for m in modules if m]
     
     if company and company.country_code:
         country = company.country_code

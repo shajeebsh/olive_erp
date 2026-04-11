@@ -125,6 +125,7 @@ MIDDLEWARE = [
     "core.middleware.CompanySetupMiddleware",
     "core.middleware.AuditMiddleware",
     "core.middleware.PermissionMiddleware",
+    "core.middleware.ModuleAccessMiddleware",
 ]
 
 ROOT_URLCONF = "wagtailerp.urls"

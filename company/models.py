@@ -42,6 +42,36 @@ class CompanyProfile(models.Model):
     # Banking
     bank_name = models.CharField(max_length=100, blank=True)
     iban = models.CharField(max_length=34, blank=True)
+    
+    # Module Configuration
+    enabled_modules = models.JSONField(default=dict, help_text="Enabled ERP modules for this company")
+    
+    def is_module_enabled(self, module_slug):
+        """Check if a specific module is enabled."""
+        defaults = {
+            "finance": True,
+            "inventory": True,
+            "crm": True,
+            "hr": True,
+            "projects": True,
+            "reporting": True,
+            "compliance": True,
+        }
+        return self.enabled_modules.get(module_slug, defaults.get(module_slug, False))
+    
+    def get_enabled_modules(self):
+        """Get list of enabled module slugs."""
+        defaults = ["finance", "inventory", "crm", "hr", "projects", "reporting", "compliance"]
+        enabled = []
+        for mod in defaults:
+            if self.is_module_enabled(mod):
+                enabled.append(mod)
+        return enabled
+        enabled = []
+        for mod in defaults:
+            if self.is_module_enabled(mod):
+                enabled.append(mod)
+        return enabled
 
     def save(self, *args, **kwargs):
         if not self.financial_year_end and self.fiscal_year_start_date:
