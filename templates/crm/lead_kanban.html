@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">🎯 Lead Pipeline</h1>
+        <a href="{% url 'crm:leads' %}" class="btn btn-outline-secondary">List View</a>
+    </div>
+
+    <div class="kanban-board">
+        {% for stage, leads in kanban_board.items %}
+        <div class="kanban-column" data-stage="{{ stage }}">
+            <div class="kanban-header">
+                <span class="stage-name">{{ stage|title }}</span>
+                <span class="badge bg-secondary">{{ leads.count }}</span>
+            </div>
+            <div class="kanban-cards" 
+                 hx-post="{% url 'crm:lead_move_stage' %}"
+                 hx-vals='{"stage": "{{ stage }}"}'
+                 ondragover="allowDrop(event)"
+                 ondrop="drop(event, '{{ stage }}')">
+                {% for lead in leads %}
+                <div class="kanban-card" draggable="true" data-lead-id="{{ lead.pk }}">
+                    <div class="lead-name">{{ lead.lead_name }}</div>
+                    <div class="lead-company">{{ lead.company_name|default:"-" }}</div>
+                    {% if lead.estimated_value %}
+                    <div class="lead-value">${{ lead.estimated_value }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.kanban-board {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+.kanban-column {
+    min-width: 250px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+.kanban-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+.kanban-cards {
+    min-height: 100px;
+}
+.kanban-card {
+    background: white;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: grab;
+}
+.kanban-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.lead-value {
+    font-weight: 600;
+    color: #10b981;
+    margin-top: 0.5rem;
+}
+</style>
+
+<script>
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drop(ev, stage) {
+    ev.preventDefault();
+    var card = document.querySelector('.dragging');
+    if (card) {
+        var leadId = card.dataset.leadId;
+        htmx.ajax('POST', '{% url "crm:lead_move_stage" %}', {
+            values: {lead_id: leadId, stage: stage}
+        }).then(() => {
+            card.remove();
+            // Optionally reload the board
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.kanban-card').forEach(function(card) {
+        card.addEventListener('dragstart', function(e) {
+            card.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', card.dataset.leadId);
+        });
+        card.addEventListener('dragend', function() {
+            card.classList.remove('dragging');
+        });
+    });
+});
+</script>
+{% endblock %}

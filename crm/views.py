@@ -204,3 +204,49 @@ def opportunities(request):
 @login_required
 def activities(request):
     return render(request, 'crm/activities.html')
+
+
+# ============================================
+# Kanban Pipeline View
+# ============================================
+
+@login_required
+def lead_kanban(request):
+    """HTMX-powered Kanban view for lead pipeline."""
+    from django_htmx import HTMXTemplateResponse
+    
+    company = get_user_company(request)
+    leads = Lead.objects.filter(company=company)
+    
+    # Group leads by stage
+    stages = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST']
+    kanban_board = {}
+    
+    for stage in stages:
+        kanban_board[stage] = leads.filter(status=stage).order_by('-created_at')
+    
+    return render(request, 'crm/lead_kanban.html', {
+        'kanban_board': kanban_board,
+        'stages': stages,
+    })
+
+
+@login_required
+def lead_move_stage(request):
+    """HTMX endpoint to move lead to different stage."""
+    from django.http import JsonResponse
+    from django.views.decorators import htmx
+    
+    @htmx()
+    def hx_lead_move(request):
+        lead_id = request.POST.get('lead_id')
+        new_stage = request.POST.get('stage')
+        
+        lead = Lead.objects.get(id=lead_id)
+        old_stage = lead.status
+        lead.status = new_stage
+        lead.save()
+        
+        return JsonResponse({'success': True, 'old': old_stage, 'new': new_stage})
+    
+    return hx_lead_move(request)

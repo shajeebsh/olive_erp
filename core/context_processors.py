@@ -48,6 +48,7 @@ def navigation_menu(request):
             {'name': '👥 Customers', 'url': 'crm:customers'},
             {'name': '🛒 Sales Orders', 'url': 'crm:sales_orders'},
             {'name': '🎯 Leads', 'url': 'crm:leads'},
+            {'name': '📋 Kanban Pipeline', 'url': 'crm:lead_kanban'},
             {'name': '💎 Opportunities', 'url': 'crm:opportunities'},
             {'name': '📅 Activities', 'url': 'crm:activities'},
         ]},
