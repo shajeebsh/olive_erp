@@ -28,14 +28,6 @@ OliveERP is a comprehensive, modular Enterprise Resource Planning (ERP) system b
 | Reporting | BI & analytics | Report definitions, exports |
 | Tax Engine | Compliance | Country engines, tax returns |
 
-## Tech Stack
-
-- **Backend**: Django 4.2 LTS, Wagtail CMS 5.2+, Django REST Framework
-- **Frontend**: Django Templates, Bootstrap 5, HTMX, Chart.js
-- **Database**: MySQL 8.0+ (PostgreSQL recommended for production)
-- **Task Queue**: Celery with Redis
-- **Deployment**: Docker & Docker Compose
-
 ## Documentation
 
 - [🚀 Quick Start & Installation](docs/INSTALL.md)
