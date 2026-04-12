@@ -282,6 +282,7 @@
                         <div class="inv-num-lbl">Critical</div>
                     </div>
                 </div>
+                <div class="section-title mb-2">By Category</div>
                 <div>
                     <!-- Render dynamic categories -->
                     {% if inv_cat_labels and inv_cat_data %}
@@ -299,7 +300,7 @@
                     <h3 class="c-title">HR Snapshot</h3>
                     <span class="c-right-text">Today</span>
                 </div>
-                <div class="inv-top-numbers mb-2" style="gap: 0.4rem;">
+                <div class="inv-top-numbers">
                     <div class="inv-num-box" style="padding: 0.5rem;">
                         <div class="inv-num-val text-primary" style="font-size:1.1rem;">{{ hr_employee_count|default:"0" }}</div>
                         <div class="inv-num-lbl">Total staff</div>
@@ -308,8 +309,6 @@
                         <div class="inv-num-val text-warning" style="font-size:1.1rem;">{{ on_leave_today|default:"0" }}</div>
                         <div class="inv-num-lbl">On leave</div>
                     </div>
-                </div>
-                <div class="inv-top-numbers mb-3" style="gap: 0.4rem;">
                     <div class="inv-num-box" style="padding: 0.5rem;">
                         <div class="inv-num-val text-success" style="font-size:1.1rem;">{{ active_today|default:"0" }}</div>
                         <div class="inv-num-lbl">Active today</div>
@@ -322,7 +321,7 @@
                 <div class="section-title mb-2">BY DEPT</div>
                 <div>
                     {% if hr_dept_data %}
-                    <canvas id="hrDeptChart" height="45"></canvas>
+                    <canvas id="hrDeptChart" height="95"></canvas>
                     {% else %}
                     <div class="text-muted text-center py-2" style="font-size: 0.8rem;">No HR data</div>
                     {% endif %}
