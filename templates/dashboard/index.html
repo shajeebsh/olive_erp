@@ -121,9 +121,7 @@
             </form>
         </div>
     </header>
-
     <!-- Key Metrics -->
-    <div class="section-title">KEY METRICS</div>
     <div class="kpi-container">
         <!-- Cash -->
         <div class="kpi-card" style="--kpi-color: var(--accent-red);">
@@ -191,7 +189,6 @@
     </div>
 
     <!-- Row 1: Finance & CRM -->
-    <div class="section-title">FINANCE & CRM</div>
     <div class="row g-4 mb-4">
         <!-- Revenue vs Expenses -->
         <div class="col-lg-7">
@@ -232,7 +229,6 @@
     </div>
 
     <!-- Row 2: Operations -->
-    <div class="section-title">OPERATIONS</div>
     <div class="row g-4 mb-4">
         <!-- Projects & Tasks -->
         <div class="col-lg-4">
@@ -242,7 +238,7 @@
                     <span class="c-badge">{{ active_projects|default:"0" }} active</span>
                 </div>
                 <div class="row align-items-center mb-3">
-                    <div class="col-6 position-relative" style="height: 120px;">
+                    <div class="col-6 position-relative" style="height: 180px;">
                         {% if proj_status_data %}
                         <canvas id="projectDonutChart"></canvas>
                         <div class="position-absolute top-50 start-50 translate-middle text-center">
@@ -331,7 +327,6 @@
     </div>
 
     <!-- Row 3: Compliance & Actions -->
-    <div class="section-title">COMPLIANCE, ACTIVITY & ACTIONS</div>
     <div class="row g-4 mb-2">
         <!-- Tax & Compliance -->
         <div class="col-lg-4">
@@ -486,7 +481,7 @@
     new Chart(el.getContext('2d'), {
         type: 'doughnut',
         data: { labels: {{ proj_status_labels|safe }}, datasets: [{ data: {{ proj_status_data }}, backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, cutout: '45%', plugins: { legend: { display: false } } }
     });
 })();
 
