@@ -79,7 +79,14 @@
             </div>
             <div class="kanban-cards" id="column-{{ stage }}">
                 {% for lead in leads %}
-                <div class="kanban-card" data-id="{{ lead.pk }}">
+                <div class="kanban-card" data-id="{{ lead.pk }}" 
+                     style="border-left-color: 
+                        {% if stage == 'NEW' %}#17A2B8
+                        {% elif stage == 'CONTACTED' %}#6f42c1
+                        {% elif stage == 'QUALIFIED' %}#FFC107
+                        {% elif stage == 'PROPOSAL' %}#fd7e14
+                        {% elif stage == 'WON' %}#28A745
+                        {% else %}#DC3545{% endif %} !important;">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="lead-name fw-bold">{{ lead.lead_name }}</div>
                         {% if lead.estimated_value %}

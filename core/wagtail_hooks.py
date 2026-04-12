@@ -73,6 +73,12 @@ def register_profiling_item():
     return MenuItem('Data Profiling', '/admin/system/data-profiling/', icon_name='dashboard', order=2)
 
 
+@hooks.register('register_system_tools_menu_item')
+def register_module_config_item():
+    from wagtail.admin.menu import MenuItem
+    return MenuItem('Module Configuration', '/admin/system/module-config/', icon_name='cog', order=3)
+
+
 @hooks.register('register_admin_menu_item')
 def register_system_tools_menu():
     return SubmenuMenuItem('System Tools', system_tools_menu, icon_name='cog', order=50)
@@ -487,6 +493,63 @@ def data_profiling_view(request):
     })
 
 
+# ============================================
+# Module Configuration View
+# ============================================
+
+def module_config_view(request):
+    """Module Configuration admin page."""
+    if not request.user.is_superuser:
+        messages.error(request, 'You do not have permission to access this page.')
+        return render(request, 'wagtailadmin/base.html', {})
+    
+    company = CompanyProfile.objects.first()
+    
+    # All available modules
+    MODULES = [
+        ('finance', 'Finance'),
+        ('inventory', 'Inventory'),
+        ('crm', 'CRM'),
+        ('hr', 'HR'),
+        ('projects', 'Projects'),
+        ('reporting', 'Reporting'),
+        ('compliance', 'Compliance'),
+        ('accounting', 'Accounting'),
+    ]
+    
+    if request.method == 'POST':
+        enabled = {}
+        for module_slug, _ in MODULES:
+            enabled[module_slug] = request.POST.get(f'module_{module_slug}') == 'on'
+        
+        if company:
+            company.enabled_modules = enabled
+            company.save()
+            messages.success(request, 'Module configuration saved.')
+        else:
+            messages.error(request, 'No company profile found.')
+        
+        return render(request, 'wagtailadmin/module_config.html', {
+            'company': company,
+            'modules': MODULES,
+        })
+    
+    # Get current enabled state
+    current_enabled = {}
+    if company and company.enabled_modules:
+        current_enabled = company.enabled_modules
+    else:
+        # Default all enabled
+        for slug, _ in MODULES:
+            current_enabled[slug] = True
+    
+    return render(request, 'wagtailadmin/module_config.html', {
+        'company': company,
+        'modules': MODULES,
+        'enabled': current_enabled,
+    })
+
+
 @hooks.register('register_admin_urls')
 def register_admin_urls():
     return [
@@ -496,4 +559,5 @@ def register_admin_urls():
         path('system/data-profiling/export/', export_model_csv, name='data_profiling_export'),
         path('system/readiness/', system_readiness_view, name='system_readiness'),
         path('system/readiness/db-size/', db_size_view, name='db_size'),
+        path('system/module-config/', module_config_view, name='module_config'),
     ]
