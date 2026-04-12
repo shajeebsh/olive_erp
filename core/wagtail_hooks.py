@@ -513,7 +513,7 @@ def module_config_view(request):
         ('hr', 'HR'),
         ('projects', 'Projects'),
         ('reporting', 'Reporting'),
-        ('compliance', 'Compliance'),
+        ('compliance', 'Tax & Compliance'),
         ('accounting', 'Accounting'),
     ]
     
@@ -528,25 +528,27 @@ def module_config_view(request):
             messages.success(request, 'Module configuration saved.')
         else:
             messages.error(request, 'No company profile found.')
-        
-        return render(request, 'wagtailadmin/module_config.html', {
-            'company': company,
-            'modules': MODULES,
-        })
     
-    # Get current enabled state
+    # Get current enabled state and build modules list with is_enabled
     current_enabled = {}
     if company and company.enabled_modules:
         current_enabled = company.enabled_modules
     else:
-        # Default all enabled
         for slug, _ in MODULES:
             current_enabled[slug] = True
     
+    # Build modules list with is_enabled flag
+    modules_list = []
+    for slug, name in MODULES:
+        modules_list.append({
+            'slug': slug,
+            'name': name,
+            'is_enabled': current_enabled.get(slug, True)
+        })
+    
     return render(request, 'wagtailadmin/module_config.html', {
         'company': company,
-        'modules': MODULES,
-        'enabled': current_enabled,
+        'modules': modules_list,
     })
 
 

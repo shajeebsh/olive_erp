@@ -1806,7 +1806,99 @@ For first-time deployment, manually enter these values in the Render Dashboard:
 The system uses a `JSONField` on the `CompanyProfile` model to track enabled modules. 
 - **Middleware**: `ModuleAccessMiddleware` in `core/middleware.py` blocks access to disabled modules.
 - **Context Processor**: `navigation_menu` in `core/context_processors.py` filters the sidebar.
-- **Setup Wizard**: Configurable via `SetupStep2View` and `SetupCompleteView`.
+- **Admin UI**: Configurable via `/admin/system/module-config/` - Module Configuration page.
+- **Setup Wizard**: Simplified to only capture country selection. Module configuration is done post-setup via the Admin UI.
+
+### Navigation Structure Overview
+
+The navigation menu in `context_processors.py` is structured in this order:
+
+1. **Dashboard** - Always visible (home link)
+2. **Finance** - Conditional on `is_module_enabled('Finance')`, includes Approvals
+3. **Inventory** - Conditional on `is_module_enabled('Inventory')`
+4. **CRM** - Conditional on `is_module_enabled('CRM')`
+5. **HR** - Conditional on `is_module_enabled('HR')`
+6. **Projects** - Conditional on `is_module_enabled('Projects')`
+7. **Purchasing** - Conditional on `is_module_enabled('Finance')` (grouped under Finance)
+8. **Reporting** - Conditional on `is_module_enabled('Reporting')`
+9. **Accounting** - Conditional on `is_module_enabled('Accounting')`
+10. **Tax & Compliance** - Conditional on `is_module_enabled('Compliance')` and company.country_code
+
+### Approval Menu (Consolidated under Finance)
+
+As of April 2026, the Approval menu has been **consolidated under the Finance module** for streamlined operational oversight:
+
+```python
+is_module_enabled('Finance') and {'name': 'Finance', 'url': 'dashboard:finance_dashboard', 'icon': 'bi-cash-coin', 'submenu': [
+    ...
+    {'name': '✅ Approvals', 'url': 'core:approval_list'},
+]},
+```
+
+**Rationale**: The approval system primarily handles financial and operational sign-offs (Journal Entries >= €10k, Invoices, Purchase Orders, Dividends). Consolidating under Finance provides:
+- Single point of access for all approval workflows
+- Operational oversight centered on Finance module
+- Removed standalone menu item for cleaner nav structure
+
+### Module Configuration UI (April 2026)
+
+The Module Configuration admin page at `/admin/system/module-config/` has been modernized with:
+
+- **2-Column Grid Layout**: `display: grid; grid-template-columns: 1fr 1fr;` for side-by-side module toggles
+- **Bootstrap Switches**: Uses `.form-check-input.form-switch` for modern toggle appearance
+- **Module Icons**: Each module displays its matching Bootstrap icon (e.g., `bi-cash-coin` for Finance)
+- **Hover Effects**: Subtle border color change on hover for visual feedback
+- **Mobile Responsive**: Collapses to 1 column on screens under 640px
+
+### Module Access Middleware (April 2026)
+
+The `ModuleAccessMiddleware` in `core/middleware.py` enforces URL-based access control:
+
+```python
+MODULE_URL_PATHS = {
+    'finance': '/finance/',
+    'inventory': '/inventory/',
+    'crm': '/crm/',
+    'hr': '/hr/',
+    'projects': '/projects/',
+    'reporting': '/reporting/',
+    'compliance': '/compliance/',
+    'accounting': '/accounting/',
+}
+```
+
+**Features**:
+- **Path Matching**: Extracts module slug from `request.path_info` URL prefix
+- **Fallback Logic**: If `request.user.company` is not set, falls back to `CompanyProfile.objects.first()`
+- **Strict Blocking**: Blocks all URLs under disabled module paths
+- **Error Message**: Shows `messages.error` with module name before redirect
+- **Redirect**: Returns unauthorized users to home page `/`
+
+### Navigation Module Filtering (April 2026)
+The navigation menu uses the `is_module_enabled()` function in `context_processors.py` to provide conditional menu rendering:
+- **Finance**: `is_module_enabled('Finance')` guards Finance and Purchasing submenus
+- **Inventory**: `is_module_enabled('Inventory')` guards the Inventory submenu
+- **CRM**: `is_module_enabled('CRM')` guards the CRM submenu
+- **HR**: `is_module_enabled('HR')` guards the HR submenu
+- **Projects**: `is_module_enabled('Projects')` guards the Projects submenu
+- **Reporting**: `is_module_enabled('Reporting')` guards the Reporting submenu (added April 2026)
+- **Compliance**: `is_module_enabled('Compliance')` guards the Tax & Compliance submenu (added April 2026)
+- **Accounting**: `is_module_enabled('Accounting')` guards the Accounting submenu
+
+Each `is_module_enabled()` call checks the company's `enabled_modules` JSONField to determine visibility.
+
+### Setup Wizard Tax Persistence (April 2026)
+The setup wizard now persists tax registration number values:
+- **Step 3 View**: `SetupStep3View.get_context_data()` checks `request.session.get('setup_tax_number')` first, then falls back to `CompanyProfile.objects.first().tax_id`
+- **Step 3 Template**: Added `value="{{ tax_number|default:'' }}"` to the Tax Registration Number input field
+
+### Setup Wizard Streamlining (April 2026)
+The initial company setup wizard was streamlined to remove redundant module selection:
+- **Removed from Step 2**: The "Enable Modules" section was removed from `step2.html` as module configuration is now centralized in the Admin UI.
+- **Form Update**: `FeatureSelectionForm` now only contains the `country` field.
+- **View Updates**: `SetupStep2View.form_valid` no longer stores `setup_features` in session.
+- **SetupCompleteView**: No longer extracts `setup_features` from session or overwrites `enabled_modules`.
+- **Rationale**: Users can configure modules post-setup at `/admin/system/module-config/` which provides a consistent interface.
 
 ## CRM Enhanced Schema
 - **Lead Pipeline**: Uses `Lead.status` with stages: NEW, CONTACTED, QUALIFIED, PROPOSAL, WON, LOST.

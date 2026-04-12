@@ -4,7 +4,7 @@
 {% block extra_css %}
 <style>
     .module-config-container {
-        max-width: 700px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
     }
@@ -27,6 +27,9 @@
     }
     
     .module-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
         list-style: none;
         padding: 0;
         margin: 0;
@@ -35,26 +38,55 @@
     .module-item {
         display: flex;
         align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #eee;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
     }
     
-    .module-item:last-child {
-        border-bottom: none;
+    .module-item:hover {
+        border-color: #4a6b3a;
+        background: #f9fafb;
+    }
+    
+    .module-icon {
+        font-size: 1.25rem;
+        margin-right: 0.75rem;
+        color: #4a6b3a;
     }
     
     .module-toggle {
-        width: 20px;
-        height: 20px;
-        margin-right: 1rem;
+        margin-left: auto;
     }
     
     .module-label {
         font-weight: 500;
+        color: #374151;
     }
     
     .save-btn {
         margin-top: 1.5rem;
+        background: linear-gradient(135deg, #4a6b3a 0%, #2d4a1f 100%);
+        border: none;
+        padding: 0.8rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #fff;
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74, 107, 58, 0.4);
+    }
+    
+    @media (max-width: 640px) {
+        .module-list {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
@@ -71,16 +103,17 @@
         
         <div class="module-card">
             <ul class="module-list">
-                {% for module_slug, module_name in modules %}
+                {% for module in modules %}
                 <li class="module-item">
-                    <input type="checkbox" 
-                           name="module_{{ module_slug }}" 
-                           id="module_{{ module_slug }}"
-                           class="module-toggle form-check-input"
-                           {% if enabled|default:False and enabled.module_slug %}checked{% endif %}>
-                    <label for="module_{{ module_slug }}" class="module-label">
-                        {{ module_name }}
+                    <i class="bi bi-{% if module.slug == 'finance' %}cash-coin{% elif module.slug == 'inventory' %}box-seam{% elif module.slug == 'crm' %}heart{% elif module.slug == 'hr' %}people{% elif module.slug == 'projects' %}clipboard-check{% elif module.slug == 'reporting' %}bar-chart-line{% elif module.slug == 'compliance' %}shield-check{% elif module.slug == 'accounting' %}calculator{% else %}gear{% endif %} module-icon"></i>
+                    <label for="module_{{ module.slug }}" class="module-label">
+                        {{ module.name }}
                     </label>
+                    <input type="checkbox" 
+                           name="module_{{ module.slug }}" 
+                           id="module_{{ module.slug }}"
+                           class="module-toggle form-check-input form-switch"
+                           {% if module.is_enabled %}checked{% endif %}>
                 </li>
                 {% endfor %}
             </ul>

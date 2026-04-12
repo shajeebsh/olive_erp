@@ -91,6 +91,7 @@ MODULE_URL_PATHS = {
     'projects': '/projects/',
     'reporting': '/reporting/',
     'compliance': '/compliance/',
+    'accounting': '/accounting/',
 }
 
 
@@ -124,15 +125,17 @@ class ModuleAccessMiddleware:
         # Check company module access
         try:
             company = getattr(request.user, 'company', None)
+            if not company:
+                company = CompanyProfile.objects.first()
+            
             if company and not company.is_module_enabled(module_slug):
                 from django.contrib import messages
-                from django.http import HttpResponseForbidden
                 messages.error(
                     request,
                     f"The {module_slug.title()} module is not enabled for your company."
                 )
                 return redirect('/')
-        except Exception:
-            pass  # Allow if no company found
+        except Exception as e:
+            logger.error(f"ModuleAccessMiddleware error: {e}")
         
         return self.get_response(request)

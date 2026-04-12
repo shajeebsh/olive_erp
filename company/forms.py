@@ -52,16 +52,3 @@ class CompanyProfileForm(forms.ModelForm):
 
 class FeatureSelectionForm(forms.Form):
     country = forms.CharField(max_length=2)
-    features = forms.MultipleChoiceField(
-        choices=[
-            ("finance", "Finance & Accounting"),
-            ("inventory", "Inventory Management"),
-            ("crm", "CRM & Sales"),
-            ("hr", "HR & Payroll"),
-            ("projects", "Project Management"),
-            ("reporting", "Reporting & BI"),
-            ("compliance", "Tax & Compliance"),
-        ],
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
-    )
