@@ -1,630 +1,502 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard | Olive ERP{% endblock %}
+{% block title %}Executive Dashboard | Olive ERP{% endblock %}
 
 {% block extra_css %}
 <style>
-.kpi-tiny {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.5rem;
-    min-height: 48px;
-    border-left: 3px solid var(--kpi-accent);
-    background: #fff;
-    flex-shrink: 0;
-    flex-shrink: 0;
+:root {
+    --bg-page: #f9fafb;
+    --border-light: #e5e7eb;
+    --text-muted: #6b7280;
+    --text-dark: #111827;
+    --accent-red: #ef4444;
+    --accent-orange: #f97316;
+    --accent-yellow: #eab308;
+    --accent-green: #10b981;
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --accent-gray: #4b5563;
 }
-.kpi-tiny-icon {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-.kpi-tiny-content {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-}
-.kpi-tiny-value {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    white-space: nowrap;
-}
-.kpi-tiny-label {
-    font-size: 0.55rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-}
-.kpi-row {
-    display: flex;
-    flex-nowrap;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
-}
-.kpi-row::-webkit-scrollbar {
-    height: 4px;
-}
-.kpi-row::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 2px;
-}
-.timeline-item {
-    position: relative;
-    padding-left: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-left: 2px solid #e5e7eb;
-}
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -5px;
-    top: 4px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-.timeline-finance::before { background: #10b981; }
-.timeline-inventory::before { background: #0ea5e9; }
-.timeline-crm::before { background: #6366f1; }
-.timeline-hr::before { background: #f97316; }
-.timeline-projects::before { background: #8b5cf6; }
-.timeline-default::before { background: #6b7280; }
-.quick-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #374151;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    transition: all 0.2s;
-}
-.quick-action-btn:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    transform: translateY(-1px);
-}
-.quick-action-icon {
-    font-size: 1.25rem;
-    margin-bottom: 0.25rem;
-}
-.quick-action-label {
-    font-size: 0.65rem;
-    font-weight: 500;
-}
-.health-bar-segment {
-    height: 24px;
-    display: flex;
-}
-.health-bar-segment > div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #fff;
-}
-.health-healthy { background: #10b981; }
-.health-low { background: #f59e0b; }
-.health-critical { background: #ef4444; }
-.chart-center-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
+.dashboard-page { background-color: var(--bg-page); padding: 1.5rem; font-family: 'Inter', system-ui, sans-serif; }
+.dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.dash-title { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin: 0; line-height: 1.2; }
+.dash-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
+.btn-outline-custom { background: #fff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.btn-primary-custom { background: var(--bg-page); border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+/* Alert Banner */
+.alert-banner { background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.alert-content { font-size: 0.85rem; color: #92400e; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.alert-link { color: #d97706; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+
+/* Section Headers */
+.section-title { font-size: 0.75rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+
+/* KPI Row */
+.kpi-container { display: flex; gap: 0.35rem; margin-bottom: 1.5rem; width: 100%; }
+.kpi-card { flex: 1; min-width: 0; background: #fff; border-radius: 8px; padding: 0.5rem 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 4px solid var(--kpi-color, #e5e7eb); }
+.kpi-label { font-size: 0.55rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 0.15rem; line-height: 1.1; }
+.kpi-value { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.1rem; }
+.kpi-sub { font-size: 0.55rem; color: var(--text-muted); line-height: 1.1; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.kpi-sub.critical { color: var(--accent-red); }
+.kpi-sub.positive { color: var(--accent-green); }
+
+/* Unified Card Style */
+.d-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem; height: 100%; display: flex; flex-direction: column; }
+.c-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.c-title { font-size: 0.95rem; font-weight: 800; color: var(--text-dark); margin: 0; }
+.c-badge { background: #eff6ff; color: var(--accent-blue); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; }
+.c-badge.orange { background: #fff7ed; color: var(--accent-orange); }
+.c-badge.red { background: #fef2f2; color: var(--accent-red); }
+.c-badge.green { background: #f0fdf4; color: var(--accent-green); }
+.c-right-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+/* Inventory Grid */
+.inv-top-numbers { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+.inv-num-box { flex: 1; background: #f9fafb; border-radius: 6px; padding: 0.75rem 0.5rem; text-align: center; }
+.inv-num-val { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.2rem; }
+.inv-num-lbl { font-size: 0.65rem; color: var(--text-muted); }
+
+/* Progress Bars */
+.prog-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; font-size: 0.75rem; }
+.prog-lbl { width: 70px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.7rem; height: 14px;}
+.prog-bar-bg { flex: 1; background: #e5e7eb; height: 6px; border-radius: 3px; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 3px; }
+.prog-val { width: 30px; text-align: right; color: var(--text-muted); font-size: 0.7rem;}
+
+/* Timelines and Lists */
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid #f3f4f6; }
+.list-item:last-child { border-bottom: none; }
+.li-title { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); }
+.li-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+.tl-item { display: flex; gap: 0.75rem; padding: 0.5rem 0; position: relative; }
+.tl-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; margin-top: 0.35rem; }
+.tl-content { flex: 1; }
+.tl-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.2rem; }
+.tl-badge { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; padding: 0.1rem 0.3rem; border-radius: 4px; margin-right: 0.25rem; }
+.tl-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dark); line-height: 1.3;}
+.tl-time { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;}
+.tl-desc { font-size: 0.7rem; color: var(--text-muted); }
+
+/* Quick Actions Grid */
+.qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; height: 100%;}
+.qa-btn { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px; text-align: center; outline: none; padding: 0.75rem; text-decoration: none; color: var(--text-dark); transition: background 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.qa-btn:hover { background: #f3f4f6; color: var(--text-dark);}
+.qa-icon { font-size: 1.25rem; margin-bottom: 0.25rem; }
+.qa-lbl { font-size: 0.75rem; font-weight: 700; }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="dashboard-page dashboard-page--compact">
-
-    {% if not company %}
-    <div class="alert alert-warning mb-2" role="alert">
-        Complete company setup to access all features. <a href="{% url 'company:setup' %}">Start Setup</a>
-    </div>
-    {% endif %}
-
-    <!-- ONE-LINE KPIs: Ultra-compact flex row -->
-    <div class="kpi-row mb-2">
-        <div class="kpi-tiny" style="--kpi-accent: #10b981;">
-            {% if company.enabled_modules.finance %}
-            <div class="kpi-tiny-icon" style="color: #10b981;"><i class="bi bi-cash-stack"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">€{{ cash_balance|floatformat:0|default:"0" }}</span>
-                <span class="kpi-tiny-label">Cash</span>
-            </div>
-            {% endif %}
+<div class="dashboard-page">
+    
+    <!-- Header -->
+    <header class="dash-header">
+        <div>
+            <h1 class="dash-title">Executive Dashboard</h1>
+            <div class="dash-subtitle">{{ company.name|default:"Default Solutions Ltd" }} &bull; {% now "l, d M Y" %}</div>
         </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #f59e0b;">
-            {% if company.enabled_modules.finance %}
-            <div class="kpi-tiny-icon" style="color: #f59e0b;"><i class="bi bi-arrow-left-circle"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">€{{ receivables|floatformat:0|default:"0" }}</span>
-                <span class="kpi-tiny-label">Receiv.</span>
-            </div>
-            {% endif %}
+        <div class="header-actions">
+            <form class="d-flex align-items-center gap-2" method="GET" action="">
+                <input type="date" name="start_date" class="form-control form-control-sm border-light bg-white shadow-sm" value="{% now 'Y-m-d' %}" style="font-size: 0.75rem;">
+                <span class="text-muted fw-bold" style="font-size:0.75rem;">to</span>
+                <input type="date" name="end_date" class="form-control form-control-sm border-light bg-white shadow-sm" value="{% now 'Y-m-d' %}" style="font-size: 0.75rem;">
+                <button type="submit" class="btn-outline-custom" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </form>
         </div>
+    </header>
 
-        <div class="kpi-tiny" style="--kpi-accent: #ef4444;">
-            {% if company.enabled_modules.finance %}
-            <div class="kpi-tiny-icon" style="color: #ef4444;"><i class="bi bi-arrow-right-circle"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">€{{ payables|floatformat:0|default:"0" }}</span>
-                <span class="kpi-tiny-label">Payable</span>
-            </div>
-            {% endif %}
+    <!-- Alerts Banner -->
+    <div class="alert-banner">
+        <div class="alert-content">
+            <i class="bi bi-exclamation-triangle" style="font-size: 1rem;"></i>
+            <span>{{ overdue_filings|default:"0" }} tax filings are overdue &bull; Cash balance is {% if cash_balance < 0 %}negative (€{{ cash_balance|floatformat:0 }}){% else %}healthy (€{{ cash_balance|floatformat:0 }}){% endif %} &bull; {{ low_stock_alerts|default:"0" }} inventory items below reorder level</span>
         </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #0ea5e9;">
-            {% if company.enabled_modules.inventory %}
-            <div class="kpi-tiny-icon" style="color: #0ea5e9;"><i class="bi bi-box-seam"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">€{{ stock_value|floatformat:0|default:"0" }}</span>
-                <span class="kpi-tiny-label">Stock</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #6366f1;">
-            {% if company.enabled_modules.crm %}
-            <div class="kpi-tiny-icon" style="color: #6366f1;"><i class="bi bi-lightning-charge"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">€{{ pipeline_value|floatformat:0|default:"0" }}</span>
-                <span class="kpi-tiny-label">Pipeline</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #f97316;">
-            {% if company.enabled_modules.hr %}
-            <div class="kpi-tiny-icon" style="color: #f97316;"><i class="bi bi-people"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">{{ hr_employee_count|default:"0" }}</span>
-                <span class="kpi-tiny-label">Staff</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #8b5cf6;">
-            {% if company.enabled_modules.projects %}
-            <div class="kpi-tiny-icon" style="color: #8b5cf6;"><i class="bi bi-kanban"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">{{ active_projects|default:"0" }}</span>
-                <span class="kpi-tiny-label">Projects</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #0891b2;">
-            {% if company.enabled_modules.crm %}
-            <div class="kpi-tiny-icon" style="color: #0891b2;"><i class="bi bi-person-lines-fill"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">{{ active_leads|default:"0" }}</span>
-                <span class="kpi-tiny-label">Leads</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #ea580c;">
-            {% if company.enabled_modules.inventory %}
-            <div class="kpi-tiny-icon" style="color: #ea580c;"><i class="bi bi-exclamation-triangle"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">{{ low_stock_alerts|default:"0" }}</span>
-                <span class="kpi-tiny-label">Low</span>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="kpi-tiny" style="--kpi-accent: #10b981;">
-            {% if company.enabled_modules.crm %}
-            <div class="kpi-tiny-icon" style="color: #10b981;"><i class="bi bi-graph-up-arrow"></i></div>
-            <div class="kpi-tiny-content">
-                <span class="kpi-tiny-value">{{ conversion_rate|default:"0" }}%</span>
-                <span class="kpi-tiny-label">Win%</span>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+        <a href="#" class="alert-link">View all alerts &rarr;</a>
     </div>
 
-    {% if not company %}
-    <div class="alert alert-warning mb-2" role="alert">
-        Complete company setup to access all features. <a href="{% url 'company:setup' %}">Start Setup</a>
+    <!-- Key Metrics -->
+    <div class="section-title">KEY METRICS</div>
+    <div class="kpi-container">
+        <!-- Cash -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-red);">
+            <div class="kpi-label">CASH</div>
+            <div class="kpi-value text-danger">€{{ cash_balance|floatformat:0|default:"0" }}</div>
+            <div class="kpi-sub {% if cash_balance < 0 %}critical{% endif %}">{% if cash_balance < 0 %}&darr; Deficit{% else %}&uarr; Surplus{% endif %}</div>
+        </div>
+        <!-- Receivables -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-orange);">
+            <div class="kpi-label">RECEIVABLES</div>
+            <div class="kpi-value">€{{ receivables|floatformat:0|default:"0" }}</div>
+            <div class="kpi-sub" style="color:var(--accent-orange);">Outstanding</div>
+        </div>
+        <!-- Payables -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-gray);">
+            <div class="kpi-label">PAYABLES</div>
+            <div class="kpi-value">€{{ payables|floatformat:0|default:"0" }}</div>
+            <div class="kpi-sub">All clear</div>
+        </div>
+        <!-- Overdue -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-red);">
+            <div class="kpi-label">OVERDUE INV.</div>
+            <div class="kpi-value text-danger">{{ overdue_filings|default:"0" }}</div>
+            <div class="kpi-sub critical">&darr; Critical</div>
+        </div>
+        <!-- Stock -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-blue);">
+            <div class="kpi-label">STOCK VALUE</div>
+            <div class="kpi-value">€{{ stock_value|floatformat:0|default:"0" }}</div>
+            <div class="kpi-sub">{{ low_stock_alerts|default:"0" }} low</div>
+        </div>
+        <!-- Pipeline -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-purple);">
+            <div class="kpi-label">PIPELINE</div>
+            <div class="kpi-value">€{{ pipeline_value|floatformat:0|default:"0" }}</div>
+            <div class="kpi-sub">{{ active_leads|default:"0" }} leads</div>
+        </div>
+        <!-- Win Rate -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-green);">
+            <div class="kpi-label">WIN RATE</div>
+            <div class="kpi-value text-success">{{ conversion_rate|default:"0" }}%</div>
+            <div class="kpi-sub positive">&uarr; +2.1%</div>
+        </div>
+        <!-- Staff -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-gray);">
+            <div class="kpi-label">STAFF</div>
+            <div class="kpi-value">{{ hr_employee_count|default:"0" }}</div>
+            <div class="kpi-sub">{{ on_leave_today|default:"0" }} on leave</div>
+        </div>
+        <!-- Projects -->
+        <div class="kpi-card" style="--kpi-color: var(--accent-blue);">
+            <div class="kpi-label">PROJECTS</div>
+            <div class="kpi-value">{{ active_projects|default:"0" }}</div>
+            <div class="kpi-sub">{{ task_completion_pct|default:"0" }}% done</div>
+        </div>
     </div>
-    {% endif %}
 
-    <!-- COMPACT DASHBOARD GRID (8 Widgets) -->
-    <div class="row g-2 mb-2">
-        <!-- 1: Revenue vs Expenses Grouped Bar -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Profitability</span>
-                    <span class="text-muted small ms-2" style="font-size: 0.6rem;">(6mo)</span>
+    <!-- Row 1: Finance & CRM -->
+    <div class="section-title">FINANCE & CRM</div>
+    <div class="row g-4 mb-4">
+        <!-- Revenue vs Expenses -->
+        <div class="col-lg-7">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Revenue vs Expenses</h3>
+                    <span class="c-right-text">Last 6 months</span>
                 </div>
-                <div class="card-body p-2" style="height: 180px;">
+                <div class="card-body p-0" style="height: 200px;">
                     {% if revenue_expense_labels %}
                     <canvas id="profitabilityChart"></canvas>
                     {% else %}
-                    <div class="text-muted text-center py-4"><span>No financial data yet</span></div>
+                    <div class="text-muted text-center py-5">No financial data yet</div>
                     {% endif %}
                 </div>
             </div>
         </div>
-
-        <!-- 2: Sales Funnel -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Sales Pipeline</span>
+        <!-- Sales Funnel -->
+        <div class="col-lg-5">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Sales Funnel</h3>
+                    <span class="c-badge">{{ active_leads|default:"0" }} leads</span>
                 </div>
-                <div class="card-body p-2" style="height: 180px;">
+                <div class="card-body p-0" style="height: 200px;">
                     {% if stage_data %}
                     <canvas id="pipelineChart"></canvas>
                     {% else %}
-                    <div class="text-muted text-center py-4"><span>No leads yet</span></div>
+                    <div class="text-muted text-center py-5">No active leads</div>
                     {% endif %}
                 </div>
-            </div>
-        </div>
-
-        <!-- 3: Project Donut -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Project Status</span>
-                </div>
-                <div class="card-body p-2 position-relative" style="height: 180px;">
-                    {% if proj_status_data %}
-                    <canvas id="projectDonutChart"></canvas>
-                    <div class="chart-center-label">
-                        <span class="fw-bold text-dark">{{ active_projects|default:"0" }}</span>
-                        <span class="text-muted small d-block">Active</span>
-                    </div>
-                    {% else %}
-                    <div class="text-muted text-center py-4"><span>No projects yet</span></div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 4: Inventory Health -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Inventory Health</span>
-                </div>
-                <div class="card-body p-2" style="height: 180px;">
-                    <div class="health-bar-segment mb-2">
-                        <div class="health-healthy" style="width: {% if healthy_stock|add:low_stock|add:critical_stock > 0 %}{{ healthy_stock|add:low_stock|add:critical_stock }}{% else %}100{% endif %}%;">
-                            {% if healthy_stock %}{{ healthy_stock }}{% endif %}
-                        </div>
-                        <div class="health-low" style="flex: {% if low_stock %}{{ low_stock }}{% else %}0{% endif %};">
-                            {% if low_stock %}{{ low_stock }}{% endif %}
-                        </div>
-                        <div class="health-critical" style="flex: {% if critical_stock %}{{ critical_stock }}{% else %}0{% endif %};">
-                            {% if critical_stock %}{{ critical_stock }}{% endif %}
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 small text-muted mb-2" style="font-size: 0.65rem;">
-                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#10b981;"></span> OK ({{ healthy_stock|default:"0" }})</span>
-                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#f59e0b;"></span> Low ({{ low_stock|default:"0" }})</span>
-                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#ef4444;"></span> Crit ({{ critical_stock|default:"0" }})</span>
-                    </div>
-                    {% if inv_cat_data %}
-                    <canvas id="inventoryCategoryChart" height="50"></canvas>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 5: HR Snapshot -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">HR Snapshot</span>
-                </div>
-                <div class="card-body p-2" style="height: 180px;">
-                    <div class="row g-1 mb-2">
-                        <div class="col-3 text-center">
-                            <div class="fw-bold text-primary">{{ hr_employee_count|default:"0" }}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Total</div>
-                        </div>
-                        <div class="col-3 text-center">
-                            <div class="fw-bold text-success">{{ on_leave_today|default:"0" }}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Leave</div>
-                        </div>
-                        <div class="col-3 text-center">
-                            <div class="fw-bold text-info">{{ active_today|default:"0" }}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Active</div>
-                        </div>
-                        <div class="col-3 text-center">
-                            <div class="fw-bold text-warning">{{ pending_claims|default:"0" }}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Pending</div>
-                        </div>
-                    </div>
-                    {% if hr_dept_data %}
-                    <canvas id="hrDeptChart" height="50"></canvas>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 6: Tax Compliance -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Tax Compliance</span>
-                </div>
-                <div class="card-body p-2" style="height: 180px; overflow-y: auto;">
-                    <div class="row g-1 mb-2 text-center" style="font-size: 0.70rem;">
-                        <div class="col-4">
-                            <span class="badge bg-danger fs-6">{{ overdue_filings|default:"0" }}</span>
-                            <div class="text-muted">Overdue</div>
-                        </div>
-                        <div class="col-4">
-                            <span class="badge bg-warning text-dark fs-6">{{ due_soon_filings|default:"0" }}</span>
-                            <div class="text-muted">Soon</div>
-                        </div>
-                        <div class="col-4">
-                            <span class="badge bg-success fs-6">{{ on_track_filings|default:"0" }}</span>
-                            <div class="text-muted">Filed</div>
-                        </div>
-                    </div>
-                    {% if tax_filings_list %}
-                    <table class="table table-sm table-hover mb-0" style="font-size: 0.65rem;">
-                        <thead>
-                            <tr><th>Type</th><th>Period</th><th>Due</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for filing in tax_filings_list|slice:":3" %}
-                            <tr>
-                                <td>{{ filing.get_filing_type_display }}</td>
-                                <td>{{ filing.period }}</td>
-                                <td>{{ filing.due_date|date:"d M" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                    <div class="text-muted text-center py-2 small">No filings recorded</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 7: Activity Feed -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Activity Feed</span>
-                </div>
-                <div class="card-body p-2" style="height: 180px; overflow-y: auto;">
-                    {% if activity_feed %}
-                    {% for log in activity_feed|slice:":4" %}
-                    <div class="timeline-item timeline-{% if 'finance' in log.model_name|lower %}finance{% elif 'inventory' in log.model_name|lower %}inventory{% elif 'crm' in log.model_name|lower %}crm{% elif 'hr' in log.model_name|lower %}hr{% elif 'project' in log.model_name|lower %}projects{% else %}default{% endif %}" style="padding-bottom: 0.35rem;">
-                        <div class="d-flex justify-content-between">
-                            <span class="fw-medium" style="font-size:0.7rem;">{{ log.action|title }}</span>
-                            <span class="text-muted" style="font-size:0.65rem;">{{ log.timestamp|date:"d M H:i" }}</span>
-                        </div>
-                        <div class="text-muted" style="font-size:0.65rem;">{{ log.model_name }} - {{ log.object_repr|truncatechars:20 }}</div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="text-muted text-center py-3">No recent activity</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 8: Quick Actions -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <div class="card mb-0 h-100">
-                <div class="card-header py-2 px-2">
-                    <span class="fw-semibold" style="font-size: 0.85rem;">Quick Actions</span>
-                </div>
-                <div class="card-body p-2" style="height: 180px;">
-                    <div class="row g-1">
-                        <div class="col-6">
-                            <a href="{% url 'crm:sales_orders' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-file-earmark-text"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Orders</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'finance:journal_create' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-journal-plus"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Journal</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'hr:leave' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-calendar-plus"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Leave</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'finance:invoice_create' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-receipt"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Invoice</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'inventory:product_create' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-box-seam"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Product</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'crm:customer_create' %}" class="quick-action-btn py-1 px-0">
-                                <span class="quick-action-icon"><i class="bi bi-person-plus"></i></span>
-                                <span class="quick-action-label" style="font-size: 0.65rem;">Customer</span>
-                            </a>
-                        </div>
-                    </div>
+                <div class="mt-auto pt-3 border-top" style="border-color: #f3f4f6 !important; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
+                    <span>Conversion</span>
+                    <strong style="color: var(--accent-green);">{{ conversion_rate|default:"0" }}%</strong>
                 </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Row 2: Operations -->
+    <div class="section-title">OPERATIONS</div>
+    <div class="row g-4 mb-4">
+        <!-- Projects & Tasks -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Projects & Tasks</h3>
+                    <span class="c-badge">{{ active_projects|default:"0" }} active</span>
+                </div>
+                <div class="row align-items-center mb-3">
+                    <div class="col-6 position-relative" style="height: 120px;">
+                        {% if proj_status_data %}
+                        <canvas id="projectDonutChart"></canvas>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <div class="fw-bold fs-5">{{ task_completion_pct|default:"0" }}%</div>
+                            <div style="font-size: 0.6rem; color: var(--text-muted);">done</div>
+                        </div>
+                        {% else %}
+                        <div class="text-muted text-center py-4">No projects</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-6">
+                        <div class="small fw-bold mb-1"><span style="color:var(--accent-green);">&bull;</span> Completed</div>
+                        <div class="small fw-bold mb-1"><span style="color:var(--accent-orange);">&bull;</span> In progress</div>
+                        <div class="small fw-bold mb-1"><span style="color:var(--accent-red);">&bull;</span> To do</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Inventory Health -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Inventory Health</h3>
+                    <span class="c-badge orange">{{ low_stock_alerts|default:"0" }} low stock</span>
+                </div>
+                <div class="inv-top-numbers">
+                    <div class="inv-num-box">
+                        <div class="inv-num-val">{{ healthy_stock|default:"0" }}</div>
+                        <div class="inv-num-lbl">OK items</div>
+                    </div>
+                    <div class="inv-num-box">
+                        <div class="inv-num-val">{{ low_stock|default:"0" }}</div>
+                        <div class="inv-num-lbl">Low</div>
+                    </div>
+                    <div class="inv-num-box">
+                        <div class="inv-num-val">{{ critical_stock|default:"0" }}</div>
+                        <div class="inv-num-lbl">Critical</div>
+                    </div>
+                </div>
+                <div>
+                    <!-- Render dynamic categories -->
+                    {% if inv_cat_labels and inv_cat_data %}
+                        <canvas id="inventoryCategoryChart" height="90"></canvas>
+                    {% else %}
+                        <div class="text-muted text-center py-2" style="font-size: 0.8rem;">No inventory data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- HR Snapshot -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">HR Snapshot</h3>
+                    <span class="c-right-text">Today</span>
+                </div>
+                <div class="inv-top-numbers mb-2" style="gap: 0.4rem;">
+                    <div class="inv-num-box" style="padding: 0.5rem;">
+                        <div class="inv-num-val text-primary" style="font-size:1.1rem;">{{ hr_employee_count|default:"0" }}</div>
+                        <div class="inv-num-lbl">Total staff</div>
+                    </div>
+                    <div class="inv-num-box" style="padding: 0.5rem;">
+                        <div class="inv-num-val text-warning" style="font-size:1.1rem;">{{ on_leave_today|default:"0" }}</div>
+                        <div class="inv-num-lbl">On leave</div>
+                    </div>
+                </div>
+                <div class="inv-top-numbers mb-3" style="gap: 0.4rem;">
+                    <div class="inv-num-box" style="padding: 0.5rem;">
+                        <div class="inv-num-val text-success" style="font-size:1.1rem;">{{ active_today|default:"0" }}</div>
+                        <div class="inv-num-lbl">Active today</div>
+                    </div>
+                    <div class="inv-num-box" style="padding: 0.5rem;">
+                        <div class="inv-num-val text-danger" style="font-size:1.1rem;">{{ pending_claims|default:"0" }}</div>
+                        <div class="inv-num-lbl">Pending claims</div>
+                    </div>
+                </div>
+                <div class="section-title mb-2">BY DEPT</div>
+                <div>
+                    {% if hr_dept_data %}
+                    <canvas id="hrDeptChart" height="45"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-2" style="font-size: 0.8rem;">No HR data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Compliance & Actions -->
+    <div class="section-title">COMPLIANCE, ACTIVITY & ACTIONS</div>
+    <div class="row g-4 mb-2">
+        <!-- Tax & Compliance -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Tax & Compliance</h3>
+                    <span class="c-badge red">{{ overdue_filings|default:"0" }} overdue</span>
+                </div>
+                {% if tax_filings_list %}
+                <div>
+                    {% for filing in tax_filings_list|slice:":5" %}
+                    <div class="list-item">
+                        <div>
+                            <div class="li-title">{{ filing.get_filing_type_display }}</div>
+                            <div class="li-sub">Due {{ filing.due_date|date:"d M Y" }}</div>
+                        </div>
+                        <div>
+                            {% if filing.status == 'filed' %}
+                            <span class="c-badge green">On track</span>
+                            {% elif filing.is_overdue %}
+                            <span class="c-badge red">Overdue</span>
+                            {% elif filing.is_due_soon %}
+                            <span class="c-badge orange">Due soon</span>
+                            {% else %}
+                            <span class="c-badge">{{ filing.get_status_display|default:"Pending" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-auto pt-3">
+                    <a href="{% url 'dashboard:compliance_dashboard' %}" class="alert-link" style="color:#166534;">View compliance dashboard &rarr;</a>
+                </div>
+                {% else %}
+                <div class="text-muted text-center py-4">No recent filings</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header">
+                    <h3 class="c-title">Activity Feed</h3>
+                    <span class="c-badge green">Live</span>
+                </div>
+                <div style="flex:1; overflow-y:auto;">
+                    {% if activity_feed %}
+                        {% for log in activity_feed|slice:":5" %}
+                        <div class="tl-item">
+                            <div class="tl-dot" style="background: 
+                                {% if 'finance' in log.model_name|lower %}#ef4444
+                                {% elif 'inventory' in log.model_name|lower %}#f59e0b
+                                {% elif 'crm' in log.model_name|lower %}#8b5cf6
+                                {% elif 'hr' in log.model_name|lower %}#10b981
+                                {% elif 'project' in log.model_name|lower %}#3b82f6
+                                {% else %}#6b7280{% endif %};"></div>
+                            <div class="tl-content">
+                                <div class="tl-header">
+                                    <div class="d-flex align-items-center">
+                                        <span class="tl-badge" style="background: 
+                                            {% if 'finance' in log.model_name|lower %}#fee2e2; color:#b91c1c
+                                            {% elif 'inventory' in log.model_name|lower %}#fef3c7; color:#b45309
+                                            {% elif 'crm' in log.model_name|lower %}#ede9fe; color:#6d28d9
+                                            {% elif 'hr' in log.model_name|lower %}#d1fae5; color:#047857
+                                            {% elif 'project' in log.model_name|lower %}#dbeafe; color:#1d4ed8
+                                            {% else %}#f3f4f6; color:#374151{% endif %}">
+                                            {{ log.model_name|lower|truncatechars:10|default:"sys" }}
+                                        </span>
+                                        <span class="tl-title">{{ log.action|title }}</span>
+                                    </div>
+                                    <span class="tl-time">{{ log.timestamp|timesince }} ago</span>
+                                </div>
+                                <div class="tl-desc">{{ log.object_repr|truncatechars:35 }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-muted text-center py-4">No recent activity</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="d-card">
+                <div class="c-header mb-3">
+                    <h3 class="c-title">Quick Actions</h3>
+                </div>
+                <div class="qa-grid">
+                    <a href="{% url 'finance:invoice_create' %}" class="qa-btn">
+                        <span class="qa-icon">📄</span><span class="qa-lbl">New Invoice</span>
+                    </a>
+                    <a href="{% url 'finance:journal_create' %}" class="qa-btn">
+                        <span class="qa-icon">📖</span><span class="qa-lbl">Journal Entry</span>
+                    </a>
+                    <a href="{% url 'crm:sales_orders' %}" class="qa-btn">
+                        <span class="qa-icon">🛒</span><span class="qa-lbl">Purchase Order</span>
+                    </a>
+                    <a href="{% url 'inventory:product_create' %}" class="qa-btn">
+                        <span class="qa-icon">📦</span><span class="qa-lbl">Add Product</span>
+                    </a>
+                    <a href="{% url 'crm:customer_create' %}" class="qa-btn">
+                        <span class="qa-icon">👤</span><span class="qa-lbl">Add Customer</span>
+                    </a>
+                    <a href="{% url 'hr:leave' %}" class="qa-btn">
+                        <span class="qa-icon">✅</span><span class="qa-lbl">Leave Approval</span>
+                    </a>
+                    <a href="{% url 'dashboard:compliance_dashboard' %}" class="qa-btn">
+                        <span class="qa-icon">📋</span><span class="qa-lbl">VAT3 Return</span>
+                    </a>
+                    <a href="{% url 'dashboard:reporting_dashboard' %}" class="qa-btn">
+                        <span class="qa-icon">📊</span><span class="qa-lbl">Run Report</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Profitability Chart (Grouped Bar)
+// Same robust Chart JS blocks but correctly sized
 (function() {
     const el = document.getElementById('profitabilityChart');
     if (!el) return;
     new Chart(el.getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: {{ revenue_expense_labels|safe }},
-            datasets: [
-                {
-                    label: 'Revenue',
-                    data: {{ revenue_expense_data.revenue|safe }},
-                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                    borderRadius: 3,
-                },
-                {
-                    label: 'Expenses',
-                    data: {{ revenue_expense_data.expenses|safe }},
-                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                    borderRadius: 3,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: { 
-                legend: { position: 'top', labels: { boxWidth: 10, padding: 6, font: { size: 11 } } }
-            },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-            }
-        }
+        data: { labels: {{ revenue_expense_labels|safe }}, datasets: [
+            { label: 'Revenue', data: {{ revenue_expense_data.revenue|safe }}, backgroundColor: '#4ade80', borderRadius: 4 },
+            { label: 'Expenses', data: {{ revenue_expense_data.expenses|safe }}, backgroundColor: '#f87171', borderRadius: 4 }
+        ]},
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6 } } }, scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false } } } }
     });
 })();
 
-// Pipeline Chart (Horizontal Bar)
 (function() {
     const el = document.getElementById('pipelineChart');
     if (!el) return;
     new Chart(el.getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: {{ stage_labels|safe }},
-            datasets: [{
-                label: 'Leads',
-                data: {{ stage_data }},
-                backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                borderRadius: 3,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
-                y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-            }
-        }
+        data: { labels: {{ stage_labels|safe }}, datasets: [{ data: {{ stage_data }}, backgroundColor: ['#a7f3d0', '#6ee7b7', '#a78bfa', '#c4b5fd', '#bae6fd', '#fca5a5'], borderRadius: 4 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false } } } }
     });
 })();
 
-// Project Donut Chart
 (function() {
     const el = document.getElementById('projectDonutChart');
     if (!el) return;
     new Chart(el.getContext('2d'), {
         type: 'doughnut',
-        data: {
-            labels: {{ proj_status_labels|safe }},
-            datasets: [{
-                data: {{ proj_status_data }},
-                backgroundColor: [
-                    'rgba(139, 92, 246, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(99, 102, 241, 0.8)',
-                    'rgba(239, 68, 68, 0.8)',
-                ],
-                borderWidth: 0,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '75%',
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } } }
-        }
+        data: { labels: {{ proj_status_labels|safe }}, datasets: [{ data: {{ proj_status_data }}, backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
     });
 })();
 
-// Inventory Category Chart
 (function() {
     const el = document.getElementById('inventoryCategoryChart');
     if (!el) return;
     new Chart(el.getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: {{ inv_cat_labels|safe }},
-            datasets: [{
-                label: 'Stock',
-                data: {{ inv_cat_data }},
-                backgroundColor: 'rgba(14, 165, 233, 0.7)',
-                borderRadius: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 11 } } },
-                x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } }
-            }
-        }
+        data: { labels: {{ inv_cat_labels|safe }}, datasets: [{ data: {{ inv_cat_data }}, backgroundColor: '#38bdf8', borderRadius: 4 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false }, ticks: { font: {size: 10} } } } }
     });
 })();
 
-// HR Department Chart
 (function() {
     const el = document.getElementById('hrDeptChart');
     if (!el) return;
     new Chart(el.getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: {{ hr_dept_labels|safe }},
-            datasets: [{
-                label: 'Employees',
-                data: {{ hr_dept_data }},
-                backgroundColor: 'rgba(249, 115, 22, 0.7)',
-                borderRadius: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 11 } } },
-                x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } }
-            }
-        }
+        data: { labels: {{ hr_dept_labels|safe }}, datasets: [{ data: {{ hr_dept_data }}, backgroundColor: '#a78bfa', borderRadius: 4 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false }, ticks: { font: {size: 10} } } } }
     });
 })();
 </script>
