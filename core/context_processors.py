@@ -8,7 +8,7 @@ def navigation_menu(request):
     if not company:
         company = CompanyProfile.objects.first()
     
-# Module slug to URL mapping for filtering
+    # Module slug to URL mapping for filtering
     module_map = {
         'Finance': 'finance',
         'Inventory': 'inventory', 
@@ -78,59 +78,6 @@ def navigation_menu(request):
         ]},
         
         is_module_enabled('Accounting') and {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
-            {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
-            {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
-            {'name': '📔 Journal Entries', 'url': 'finance:journal'},
-            {'name': '🏦 Chart of Accounts', 'url': 'finance:account_list'},
-            {'name': '📑 VAT Summary', 'url': 'accounting:vat_summary'},
-            {'name': '🏦 Bank Reconciliation', 'url': 'accounting:bank_reconciliation'},
-            {'name': '🚜 Fixed Assets', 'url': 'accounting:asset_list'},
-            {'name': '📖 Statutory Registers', 'url': 'accounting:statutory_registers'},
-            {'name': '📜 Dividend Register', 'url': 'accounting:dividend_list'},
-            {'name': '🤝 Related Party TX', 'url': 'accounting:related_party_list'},
-            {'name': '💰 CT1 Computation', 'url': 'accounting:ct1_list'},
-        ]},
-        
-        is_module_enabled('Inventory') and {'name': 'Inventory', 'url': 'dashboard:inventory_dashboard', 'icon': 'bi-box-seam', 'submenu': [
-            {'name': '📊 Dashboard', 'url': 'dashboard:inventory_dashboard'},
-            {'name': '📦 Products', 'url': 'inventory:products'},
-            {'name': '📉 Stock', 'url': 'inventory:stock'},
-            {'name': '🏗️ Warehouses', 'url': 'inventory:warehouses'},
-            {'name': '🔄 Movements', 'url': 'inventory:movements'},
-        ]},
-        
-        is_module_enabled('CRM') and {'name': 'CRM', 'url': 'dashboard:crm_dashboard', 'icon': 'bi-heart', 'submenu': [
-            {'name': '📊 Dashboard', 'url': 'dashboard:crm_dashboard'},
-            {'name': '👥 Customers', 'url': 'crm:customers'},
-            {'name': '🛒 Sales Orders', 'url': 'crm:sales_orders'},
-            {'name': '🎯 Leads', 'url': 'crm:leads'},
-            {'name': '📋 Kanban Pipeline', 'url': 'crm:lead_kanban'},
-            {'name': '💎 Opportunities', 'url': 'crm:opportunities'},
-            {'name': '📅 Activities', 'url': 'crm:activities'},
-        ]},
-        
-        is_module_enabled('HR') and {'name': 'HR', 'url': 'dashboard:hr_dashboard', 'icon': 'bi-people', 'submenu': [
-            {'name': '📊 Dashboard', 'url': 'dashboard:hr_dashboard'},
-            {'name': '👤 Employees', 'url': 'hr:employees'},
-            {'name': '🏖️ Leave', 'url': 'hr:leave'},
-            {'name': '🕒 Attendance', 'url': 'hr:attendance'},
-            {'name': '💸 Payroll', 'url': 'hr:payroll'},
-        ]},
-        
-        is_module_enabled('Projects') and {'name': 'Projects', 'url': 'dashboard:projects_dashboard', 'icon': 'bi-clipboard-check', 'submenu': [
-            {'name': '📊 Dashboard', 'url': 'dashboard:projects_dashboard'},
-            {'name': '🏗️ Active Projects', 'url': 'projects:active'},
-            {'name': '📋 Tasks', 'url': 'projects:tasks'},
-            {'name': '���� Timeline', 'url': 'projects:timeline'},
-            {'name': '👥 Resources', 'url': 'projects:resources'},
-        ]},
-        
-        is_module_enabled('Finance') and {'name': 'Purchasing', 'url': 'purchasing:purchase_orders', 'icon': 'bi-cart', 'submenu': [
-            {'name': '🤝 Suppliers', 'url': 'purchasing:suppliers'},
-            {'name': '🛒 Purchase Orders', 'url': 'purchasing:purchase_orders'},
-        ]},
-        
-        is_module_enabled('Finance') and {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
             {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
             {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
             {'name': '📔 Journal Entries', 'url': 'finance:journal'},
