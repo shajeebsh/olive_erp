@@ -32,7 +32,8 @@
                         <div class="form-group mb-4">
                             <label class="form-label fw-bold">Tax Registration Number</label>
                             <input type="text" name="tax_number" class="form-control"
-                                   placeholder="e.g., IE1234567A" required>
+                                   placeholder="e.g., IE1234567A"
+                                   value="{{ tax_number|default:'' }}" required>
                             <small class="text-muted d-block mt-1">
                                 Enter your {{ country.tax_name }} registration number
                             </small>

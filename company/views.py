@@ -53,9 +53,7 @@ class SetupStep2View(LoginRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        # Store country selection in session
         self.request.session['setup_country'] = form.cleaned_data['country']
-        self.request.session['setup_features'] = form.cleaned_data['features']
         
         company = getattr(self.request.user, 'company', None)
         if company:
@@ -84,7 +82,14 @@ class SetupStep3View(LoginRequiredMixin, TemplateView):
                 'currency': engine.currency_code,
                 'tax_rates': engine.get_tax_rates(),
             }
-            
+        
+        tax_number = self.request.session.get('setup_tax_number')
+        if not tax_number:
+            company = CompanyProfile.objects.first()
+            if company:
+                tax_number = company.tax_id
+        context['tax_number'] = tax_number or ''
+        
         return context
 
     def post(self, request, *args, **kwargs):
@@ -110,14 +115,8 @@ class SetupCompleteView(LoginRequiredMixin, TemplateView):
     template_name = 'company/setup/complete.html'
 
     def get(self, request, *args, **kwargs):
-        # Save all session data to CompanyProfile
         company = CompanyProfile.objects.first()
         if company:
-            features = request.session.get('setup_features', [])
-            enabled_modules = {f: True for f in features}
-            company.enabled_modules = enabled_modules
-            
-            # Save other setup data
             company.country_code = request.session.get('setup_country', 'IE')
             company.tax_id = request.session.get('setup_tax_number', '')
             company.save()

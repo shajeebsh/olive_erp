@@ -15,6 +15,9 @@ def navigation_menu(request):
         'CRM': 'crm',
         'HR': 'hr',
         'Projects': 'projects',
+        'Reporting': 'reporting',
+        'Compliance': 'compliance',
+        'Accounting': 'accounting',
     }
     
     def is_module_enabled(module_name):
@@ -33,6 +36,7 @@ def navigation_menu(request):
             {'name': '📍 Cost Centres', 'url': 'finance:costcentre_list'},
             {'name': '💰 Budgets', 'url': 'finance:budget_list'},
             {'name': '📥 Bulk Import', 'url': 'finance:bulk_import'},
+            {'name': '✅ Approvals', 'url': 'core:approval_list'},
         ]},
         
         is_module_enabled('Inventory') and {'name': 'Inventory', 'url': 'dashboard:inventory_dashboard', 'icon': 'bi-box-seam', 'submenu': [
@@ -65,7 +69,7 @@ def navigation_menu(request):
             {'name': '📊 Dashboard', 'url': 'dashboard:projects_dashboard'},
             {'name': '🏗️ Active Projects', 'url': 'projects:active'},
             {'name': '📋 Tasks', 'url': 'projects:tasks'},
-            {'name': '���� Timeline', 'url': 'projects:timeline'},
+            {'name': '📈 Timeline', 'url': 'projects:timeline'},
             {'name': '👥 Resources', 'url': 'projects:resources'},
         ]},
         
@@ -74,7 +78,14 @@ def navigation_menu(request):
             {'name': '🛒 Purchase Orders', 'url': 'purchasing:purchase_orders'},
         ]},
         
-        is_module_enabled('Finance') and {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
+        is_module_enabled('Reporting') and {'name': 'Reporting', 'url': 'reporting:builder', 'icon': 'bi-bar-chart-line', 'submenu': [
+            {'name': '📊 Report Builder', 'url': 'reporting:builder'},
+            {'name': '📁 Saved Reports', 'url': 'reporting:saved'},
+            {'name': '📅 Scheduled Reports', 'url': 'reporting:scheduled'},
+            {'name': '🔗 Data Sources', 'url': 'reporting:datasources'},
+        ]},
+        
+        is_module_enabled('Accounting') and {'name': 'Accounting', 'url': 'accounting:profit_loss', 'icon': 'bi-calculator', 'submenu': [
             {'name': '📊 P&L Statement', 'url': 'accounting:profit_loss'},
             {'name': '⚖️ Balance Sheet', 'url': 'accounting:balance_sheet'},
             {'name': '📔 Journal Entries', 'url': 'finance:journal'},
@@ -87,22 +98,12 @@ def navigation_menu(request):
             {'name': '🤝 Related Party TX', 'url': 'accounting:related_party_list'},
             {'name': '💰 CT1 Computation', 'url': 'accounting:ct1_list'},
         ]},
-        
-        {
-            'name': 'Approvals',
-            'url': 'core:approval_list',
-            'icon': 'bi-check2-square',
-            'submenu': [
-                {'name': '📋 All Approvals', 'url': 'core:approval_list'},
-                {'name': '📊 Dashboard', 'url': 'dashboard:index'},
-            ]
-        },
     ]
     
     # Filter out False values (disabled modules)
     modules = [m for m in modules if m]
     
-    if company and company.country_code:
+    if company and company.country_code and is_module_enabled('Compliance'):
         country = company.country_code
         modules.append({
             'name': 'Tax & Compliance',

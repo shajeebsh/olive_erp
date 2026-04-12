@@ -1,0 +1,128 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block extra_css %}
+<style>
+    .module-config-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .module-config-header {
+        margin-bottom: 2rem;
+    }
+    
+    .module-config-header h1 {
+        color: #4a6b3a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .module-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .module-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .module-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .module-item:hover {
+        border-color: #4a6b3a;
+        background: #f9fafb;
+    }
+    
+    .module-icon {
+        font-size: 1.25rem;
+        margin-right: 0.75rem;
+        color: #4a6b3a;
+    }
+    
+    .module-toggle {
+        margin-left: auto;
+    }
+    
+    .module-label {
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .save-btn {
+        margin-top: 1.5rem;
+        background: linear-gradient(135deg, #4a6b3a 0%, #2d4a1f 100%);
+        border: none;
+        padding: 0.8rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #fff;
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74, 107, 58, 0.4);
+    }
+    
+    @media (max-width: 640px) {
+        .module-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module-config-container">
+    <div class="module-config-header">
+        <h1>Module Configuration</h1>
+        <p>Enable or disable ERP modules for your company.</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="module-card">
+            <ul class="module-list">
+                {% for module in modules %}
+                <li class="module-item">
+                    <i class="bi bi-{% if module.slug == 'finance' %}cash-coin{% elif module.slug == 'inventory' %}box-seam{% elif module.slug == 'crm' %}heart{% elif module.slug == 'hr' %}people{% elif module.slug == 'projects' %}clipboard-check{% elif module.slug == 'reporting' %}bar-chart-line{% elif module.slug == 'compliance' %}shield-check{% elif module.slug == 'accounting' %}calculator{% else %}gear{% endif %} module-icon"></i>
+                    <label for="module_{{ module.slug }}" class="module-label">
+                        {{ module.name }}
+                    </label>
+                    <input type="checkbox" 
+                           name="module_{{ module.slug }}" 
+                           id="module_{{ module.slug }}"
+                           class="module-toggle form-check-input form-switch"
+                           {% if module.is_enabled %}checked{% endif %}>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <button type="submit" class="btn btn-primary save-btn">
+            <i class="bi bi-check-circle me-2"></i>
+            Save Configuration
+        </button>
+    </form>
+</div>
+{% endblock %}
