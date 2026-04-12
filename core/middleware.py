@@ -67,16 +67,20 @@ class PermissionMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            # Attach permissions to request for easy access in templates/views
             company = getattr(request.user, 'company', None)
             if company:
                 try:
                     request.company_permissions = request.user.get_company_permissions(company)
+                    request.is_erp_admin = request.user.has_role('ErpAdmin', company)
                 except Exception as e:
                     logger.error(f"PermissionMiddleware failed to get permissions: {e}")
                     request.company_permissions = set()
+                    request.is_erp_admin = False
             else:
                 request.company_permissions = set()
+                request.is_erp_admin = False
+        else:
+            request.is_erp_admin = False
         
         response = self.get_response(request)
         return response

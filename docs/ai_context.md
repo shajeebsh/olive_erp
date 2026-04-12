@@ -1958,3 +1958,145 @@ The initial company setup wizard was streamlined to remove redundant module sele
 - **Lead Scoring**: `LeadScoring` utility calculates a 0-100 score based on profile completeness and activity frequency.
 - **Kanban**: Accessible at `/crm/leads/kanban/` using HTMX for drag-and-drop.
 
+---
+
+## 20. Mission Control Dashboard & ErpAdmin Role (April 2026)
+
+### ErpAdmin Role
+A data migration (`core/migrations/0006_create_erpadmin_role.py`) creates an `ErpAdmin` Role with full permissions to all ERP modules:
+- **Finance**: All account, invoice, journal, budget permissions
+- **Inventory**: All product, warehouse, stock permissions  
+- **CRM**: All customer, lead, quote, order permissions
+- **HR**: All employee, department, leave permissions
+- **Projects**: All project, task permissions
+- **Purchasing**: All supplier, PO, GRN permissions
+- **Reporting**: All dashboard, report, schedule permissions
+- **Tax Engine**: All tax filing, period, RBO permissions
+
+**Total Permissions**: 328 permissions across 9 apps.
+
+### PermissionMiddleware Enhancement
+The `PermissionMiddleware` (`core/middleware.py`) now sets `request.is_erp_admin` by checking `user.has_role('ErpAdmin', company)`. This attribute can be used to:
+- Grant full application access while blocking `/admin/` if not `is_staff`
+- Provide elevated UI features for ERP administrators
+
+### Mission Control Dashboard (April 2026)
+
+The main dashboard at `/` was overhauled with a modern compact grid layout:
+
+**One-Line KPIs**: 10 ultra-compact tiles at the top:
+- Cash, Receivables, Payables, Stock, Pipeline, Staff, Projects, Leads, Low Stock, Win Rate
+
+**Profitability & Pipeline**:
+- Revenue vs Expenses Grouped Bar Chart (last 6 months)
+- Sales Pipeline Horizontal Bar (lead stages)
+
+**Health Indicators**:
+- Project Donut: Centered percentage inside ring
+- Inventory Health: Stacked bar with Green/Amber/Red segments + category breakdown
+
+**Operational Snapshot**:
+- HR: 4 mini-metric tiles (Total, On Leave, Active, Pending) + Headcount bar chart by department
+- Tax Compliance: Irish tax filing status table with Bootstrap badges (Overdue/Due Soon/Filed)
+
+**Engagement**:
+- Activity Feed: Vertical timeline with module-specific colors (finance=green, inventory=blue, crm=purple, hr=orange, projects=violet)
+- Quick Actions: 6 icon-based shortcuts (Create Quote, Post Journal, Log Leave, New Invoice, Add Product, Add Customer)
+
+**View Updates**:
+- Added queries for Revenue vs Expenses from JournalEntry
+- Added Inventory Health queries (Healthy/Low/Critical stock counts)
+- Added HR Snapshot (employees, on leave today, active today, pending claims)
+- Added Tax Filing status from `tax_engine.models.TaxFiling`
+- Added AuditLog activity feed (latest 10 entries)
+- Added Project status donut data
+
+### Files Modified
+- `core/migrations/0006_create_erpadmin_role.py` - New migration
+- `core/middleware.py` - Added `is_erp_admin` attribute
+- `dashboard/views.py` - Added new data queries
+- `templates/dashboard/index.html` - Complete overhaul
+
+### Cleanup
+- Removed `core/management/commands/create_erp_user.py` (no longer needed)
+- No `erpadmin` user exists (was never created)
+
+---
+
+## 21. Dashboard Compaction - Single-Fold View (April 2026)
+
+### Header Refinement
+The dashboard header was removed to maximize vertical space:
+- Removed `<h1>Mission Control</h1>` and subtitle
+- Dashboard starts directly with KPI row
+
+### Ultra-Compact KPI Tiles
+KPI row refactored to ensure all metrics fit on a single line:
+- **Layout**: Changed from grid (`row g-1`) to flexbox (`kpi-row` with `flex-nowrap` and `overflow-x-auto`)
+- **Tile sizing**: Fixed width 110px, min-height 44px
+- **Typography**: Value 0.85rem (was 0.95rem), Label 0.55rem (was 0.6rem)
+- **Mobile**: Horizontal scroll with custom scrollbar styling
+- **Responsive**: 10 KPIs in single scrollable row, scroll on small screens
+
+### Viewport-Optimized Charts
+All chart heights reduced to fit within initial fold:
+- **Main charts**: 150px (was 180px)
+- **Activity feed**: 160px max-height (was 220px)
+- **HR department chart**: 60px (was 100px)
+- **Inventory category chart**: 50px (was 80px)
+
+### Files Modified
+- `templates/dashboard/index.html` - Compacted KPI row, reduced heights, removed header
+
+---
+
+## 22. Ultra-Compact Single-Fold Dashboard (April 2026)
+
+### Grid Architecture
+Changed to high-density 3-column layout on large screens:
+- **Layout**: `col-xl-4` replaces `col-lg-6`
+- **Row 1**: Profitability (Finance), Sales Pipeline (CRM), Inventory Health
+- **Row 2**: Project Status (Donut), HR Snapshot, Tax Compliance
+- **Row 3**: Activity Feed and Quick Actions (side-by-side)
+
+### Chart Compaction & Styling
+Reduced vertical footprint for single-fold view:
+- **Card headers**: `py-1 px-2` (was `py-2 px-3`)
+- **Card bodies**: `p-1` with fixed 120px height
+- **KPI tiles**: 95px width, 36px height
+
+### Chart.js Options
+Optimized for compact display:
+- **maintainAspectRatio**: Set to `true` for all charts
+- **Axis ticks**: Font size reduced to 9px
+- **Legends**: Compact with `boxWidth: 8-10`, `padding: 4`
+- **Grid**: Minimal, some hidden completely
+
+### Files Modified
+- `templates/dashboard/index.html` - 3-column grid, reduced padding, Chart.js options
+
+---
+
+## 23. Balanced "Goldilocks" Dashboard (April 2026)
+
+### Optimized Vertical Spacing
+Increased heights for better readability while maintaining compactness:
+- **Chart containers**: 180px height (increased from 120px)
+- **Card padding**: `py-2 px-3` headers, `p-2` bodies (increased from `py-1 px-2`, `p-1`)
+- **KPI tiles**: 48px height, 1rem font size, no fixed width
+
+### Chart Visual Refinement
+Fixed overlapping and improved clarity:
+- **Project Status (Doughnut)**: Legend moved to bottom, cutout increased to 75%
+- **Inventory & HR Charts**: Font size 11px, X-axis gridlines re-enabled
+- **All Charts**: Tick font size 11px for better readability
+- **Sales Pipeline**: Adjusted spacing for labels
+
+### Layout Breathability
+Increased spacing between cards:
+- **Grid spacing**: Changed from `g-2` to `g-3`
+- **Activity Feed**: 180px max-height to match chart heights
+
+### Files Modified
+- `templates/dashboard/index.html` - Balanced heights, padding, Chart.js config
+

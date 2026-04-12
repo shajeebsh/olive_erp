@@ -8,11 +8,12 @@ from company.models import CompanyProfile
 
 from reporting.models import DashboardWidget, Dashboard
 
-from finance.models import Invoice
+from finance.models import Invoice, JournalEntry, JournalEntryLine
 from crm.models import Customer, Lead, SalesOrder
-from hr.models import Employee
+from hr.models import Employee, LeaveRequest, Attendance
 from inventory.models import Product, StockLevel
 from projects.models import Project, Task
+from core.models import AuditLog
 
 
 @login_required
@@ -97,9 +98,119 @@ def index(request):
         completed_tasks = Task.objects.filter(project__company=company, status='DONE').count()
         task_completion_pct = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
         
-        # === Compliance ===
-        # Filing Deadline Days (placeholder - tax_engine models TBD)
-        filing_deadline_days = None
+        # === Revenue vs Expenses (Grouped Bar - Last 6 Months) ===
+        six_months_ago = date.today() - timedelta(days=180)
+        monthly_invoices = Invoice.objects.filter(
+            company=company,
+            status='PAID',
+            issue_date__gte=six_months_ago
+        ).annotate(month=models.functions.TruncMonth('issue_date')
+        ).values('month').annotate(total=Sum('total_amount')).order_by('month')
+        
+        revenue_by_month = {m['month'].strftime('%Y-%m'): float(m['total'] or 0) for m in monthly_invoices}
+        
+        expenses_by_month = {}
+        for entry in JournalEntry.objects.filter(
+            company=company,
+            is_posted=True,
+            date__gte=six_months_ago
+        ).annotate(month=models.functions.TruncMonth('date')):
+            month_key = entry.date.strftime('%Y-%m')
+            debit_total = sum(float(line.debit or 0) for line in entry.lines.all())
+            expenses_by_month[month_key] = expenses_by_month.get(month_key, 0) + debit_total
+        
+        all_months = sorted(set(revenue_by_month.keys()) | set(expenses_by_month.keys()))[-6:]
+        revenue_expense_labels = [date.fromisoformat(m + '-01').strftime('%b') for m in all_months]
+        revenue_expense_data = {
+            'revenue': [revenue_by_month.get(m, 0) for m in all_months],
+            'expenses': [expenses_by_month.get(m, 0) for m in all_months]
+        }
+        
+        # === Inventory Health ===
+        from inventory.models import Category
+        stock_by_category = list(
+            StockLevel.objects.filter(
+                product__company=company
+            ).values('product__category__name').annotate(
+                total_qty=Sum('quantity_on_hand')
+            ).order_by('-total_qty')[:6]
+        )
+        inv_cat_labels = [s['product__category__name'] or 'Uncategorized' for s in stock_by_category]
+        inv_cat_data = [float(s['total_qty'] or 0) for s in stock_by_category]
+        
+        # Inventory health: Healthy (>reorder), Low (<=reorder but >0), Critical (=0)
+        healthy_stock = 0
+        low_stock = 0
+        critical_stock = 0
+        for sl in StockLevel.objects.filter(product__company=company).select_related('product'):
+            qty = float(sl.quantity_on_hand or 0)
+            reorder = float(sl.reorder_level or 0)
+            if qty == 0:
+                critical_stock += 1
+            elif qty > reorder:
+                healthy_stock += 1
+            else:
+                low_stock += 1
+        
+        # === HR Snapshot ===
+        hr_employee_count = Employee.objects.filter(company=company).count()
+        today = date.today()
+        on_leave_today = LeaveRequest.objects.filter(
+            company=company,
+            status='APPROVED',
+            start_date__lte=today,
+            end_date__gte=today
+        ).count()
+        active_today = Attendance.objects.filter(
+            employee__company=company,
+            date=today
+        ).count()
+        pending_claims = LeaveRequest.objects.filter(
+            company=company,
+            status='PENDING'
+        ).count()
+        
+        # HR headcount by department chart
+        from hr.models import Department
+        dept_counts = list(
+            Employee.objects.filter(company=company)
+            .exclude(department__isnull=True)
+            .values('department__name')
+            .annotate(count=Count('id'))
+        )
+        hr_dept_labels = [d['department__name'] or 'No Dept' for d in dept_counts]
+        hr_dept_data = [d['count'] for d in dept_counts]
+        
+        # === Compliance (Irish Tax Filings) ===
+        from tax_engine.models import TaxFiling
+        overdue_filings = TaxFiling.objects.filter(
+            company=company,
+            due_date__lt=today
+        ).exclude(status='filed').count()
+        due_soon_filings = TaxFiling.objects.filter(
+            company=company,
+            due_date__gte=today,
+            due_date__lte=today + timedelta(days=7)
+        ).exclude(status='filed').count()
+        on_track_filings = TaxFiling.objects.filter(
+            company=company,
+            status='filed'
+        ).count()
+        
+        tax_filings_list = []
+        try:
+            tax_filings_list = list(
+                TaxFiling.objects.filter(company=company)
+                .order_by('due_date')[:10]
+            )
+        except Exception:
+            pass
+        
+        # === Activity Feed (AuditLog - Latest 10) ===
+        activity_feed = list(
+            AuditLog.objects.filter()
+            .order_by('-timestamp')[:10]
+        )
         
         # === Legacy KPIs ===
         total_revenue = Invoice.objects.filter(
@@ -110,27 +221,12 @@ def index(request):
             product__company=company,
             quantity_on_hand__gt=0
         ).values('product').distinct().count()
-        employee_count = Employee.objects.filter(company=company).count()
         customer_count = Customer.objects.filter(company=company).count()
         active_leads = Lead.objects.filter(company=company).exclude(status__in=['WON', 'LOST']).count()
         open_orders = SalesOrder.objects.filter(company=company, status='CONFIRMED').count()
         active_projects = Project.objects.filter(company=company, status='IN_PROGRESS').count()
         
-        # Chart data: Cash flow (6 months)
-        from datetime import date as d
-        six_months_ago = d.today() - timedelta(days=180)
-        monthly_revenue = list(
-            Invoice.objects.filter(
-                company=company,
-                status='PAID',
-                issue_date__gte=six_months_ago
-            ).annotate(month=models.functions.TruncMonth('issue_date')
-            ).values('month').annotate(total=Sum('total_amount')).order_by('month')
-        )
-        cash_flow_labels = [m['month'].strftime('%b') if m['month'] else '' for m in monthly_revenue]
-        cash_flow_data = [float(m['total'] or 0) for m in monthly_revenue]
-        
-        # Chart data: Leads by stage
+        # === Legacy Chart data: Leads by stage ===
         lead_stage_counts = list(
             Lead.objects.filter(company=company)
             .values('status')
@@ -139,7 +235,7 @@ def index(request):
         stage_labels = [l['status'] or 'Unknown' for l in lead_stage_counts]
         stage_data = [l['count'] for l in lead_stage_counts]
         
-        # Chart data: Tasks by status
+        # === Legacy Chart data: Tasks by status ===
         task_status_counts = list(
             Task.objects.filter(project__company=company)
             .values('status')
@@ -147,6 +243,15 @@ def index(request):
         )
         task_labels = [t['status'] or 'Unknown' for t in task_status_counts]
         task_data = [t['count'] for t in task_status_counts]
+        
+        # === Project Donut Data ===
+        project_status_counts = list(
+            Project.objects.filter(company=company)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        proj_status_labels = [p['status'] or 'Unknown' for p in project_status_counts]
+        proj_status_data = [p['count'] for p in project_status_counts]
     else:
         cash_balance = receivables = payables = 0
         stock_value = low_stock_alerts = 0
@@ -159,6 +264,16 @@ def index(request):
         cash_flow_labels = cash_flow_data = []
         stage_labels = stage_data = []
         task_labels = task_data = []
+        revenue_expense_labels = []
+        revenue_expense_data = {'revenue': [], 'expenses': []}
+        inv_cat_labels = inv_cat_data = []
+        healthy_stock = low_stock = critical_stock = 0
+        hr_employee_count = on_leave_today = active_today = pending_claims = 0
+        hr_dept_labels = hr_dept_data = []
+        overdue_filings = due_soon_filings = on_track_filings = 0
+        tax_filings_list = []
+        activity_feed = []
+        proj_status_labels = proj_status_data = []
 
     context = {
         'company': company,
@@ -174,23 +289,39 @@ def index(request):
         'conversion_rate': conversion_rate,
         'overdue_tasks': overdue_tasks,
         'task_completion_pct': task_completion_pct,
-        'filing_deadline_days': filing_deadline_days,
         # Legacy KPIs
         'total_revenue': total_revenue,
         'total_products': total_products,
         'in_stock': in_stock,
-        'employee_count': employee_count,
         'customer_count': customer_count,
         'active_leads': active_leads,
         'open_orders': open_orders,
         'active_projects': active_projects,
-        # Chart data
-        'cash_flow_labels': cash_flow_labels,
-        'cash_flow_data': cash_flow_data,
+        # New Dashboard Data
+        'revenue_expense_labels': revenue_expense_labels,
+        'revenue_expense_data': revenue_expense_data,
         'stage_labels': stage_labels,
         'stage_data': stage_data,
         'task_labels': task_labels,
         'task_data': task_data,
+        'inv_cat_labels': inv_cat_labels,
+        'inv_cat_data': inv_cat_data,
+        'healthy_stock': healthy_stock,
+        'low_stock': low_stock,
+        'critical_stock': critical_stock,
+        'hr_employee_count': hr_employee_count,
+        'on_leave_today': on_leave_today,
+        'active_today': active_today,
+        'pending_claims': pending_claims,
+        'hr_dept_labels': hr_dept_labels,
+        'hr_dept_data': hr_dept_data,
+        'overdue_filings': overdue_filings,
+        'due_soon_filings': due_soon_filings,
+        'on_track_filings': on_track_filings,
+        'tax_filings_list': tax_filings_list,
+        'activity_feed': activity_feed,
+        'proj_status_labels': proj_status_labels,
+        'proj_status_data': proj_status_data,
     }
     return render(request, 'dashboard/index.html', context)
 
