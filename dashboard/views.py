@@ -29,43 +29,153 @@ def index(request):
             dashboard=dashboard
         ).order_by('position_y', 'position_x')
 
-    # Live KPIs
+    # Cross-module analytics (scoped to company)
     if company:
-        # Revenue - sum of paid invoices
+        # === Finance/Accounting ===
+        # Cash Balance: Asset accounts with 'Bank' or 'Cash' in name/code
+        from finance.models import Account
+        cash_accs = Account.objects.filter(
+            company=company,
+            account_type='Asset'
+        )
+        cash_balance = 0
+        for acc in cash_accs:
+            if 'bank' in acc.name.lower() or 'cash' in acc.name.lower() or 'bank' in acc.code.lower():
+                cash_balance += float(acc.get_balance() or 0)
+        
+        # Receivables: Unpaid invoices (SENT, DRAFT, OVERDUE)
+        receivables = Invoice.objects.filter(
+            company=company,
+            status__in=['SENT', 'DRAFT', 'OVERDUE']
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # Payables: Unpaid purchase orders
+        from purchasing.models import PurchaseOrder
+        payables = PurchaseOrder.objects.filter(
+            company=company,
+            status__in=['PENDING', 'APPROVED']
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # === Inventory ===
+        # Stock Value: Qty * Cost Price
+        stock_value_query = StockLevel.objects.filter(
+            product__company=company,
+            quantity_on_hand__gt=0
+        ).select_related('product')
+        stock_value = sum(
+            float(sl.quantity_on_hand or 0) * float(sl.product.cost_price or 0)
+            for sl in stock_value_query
+        )
+        # Low Stock Alerts: Items <= reorder level
+        from django.db.models import F
+        low_stock_alerts = StockLevel.objects.filter(
+            product__company=company,
+            quantity_on_hand__lte=F('reorder_level')
+        ).count()
+        
+        # === CRM ===
+        # Pipeline Value: Sum of active lead values
+        pipeline_value = Lead.objects.filter(
+            company=company,
+            status__in=['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL']
+        ).aggregate(total=Sum('estimated_value'))['total'] or 0
+        
+        # Conversion Rate: (Won / (Won + Lost)) * 100
+        won_count = Lead.objects.filter(company=company, status='WON').count()
+        lost_count = Lead.objects.filter(company=company, status='LOST').count()
+        conversion_rate = round((won_count / (won_count + lost_count) * 100), 1) if (won_count + lost_count) > 0 else 0
+        
+        # === Projects ===
+        # Overdue Tasks
+        overdue_tasks = Task.objects.filter(
+            project__company=company,
+            status__in=['TODO', 'IN_PROGRESS'],
+            due_date__lt=date.today()
+        ).count()
+        # Task Completion %
+        total_tasks = Task.objects.filter(project__company=company).count()
+        completed_tasks = Task.objects.filter(project__company=company, status='DONE').count()
+        task_completion_pct = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
+        
+        # === Compliance ===
+        # Filing Deadline Days (placeholder - tax_engine models TBD)
+        filing_deadline_days = None
+        
+        # === Legacy KPIs ===
         total_revenue = Invoice.objects.filter(
             company=company, status='PAID'
         ).aggregate(total=Sum('total_amount'))['total'] or 0
-        
-        # Product counts
         total_products = Product.objects.filter(company=company).count()
         in_stock = StockLevel.objects.filter(
             product__company=company,
             quantity_on_hand__gt=0
         ).values('product').distinct().count()
-        
-        # Employee count
         employee_count = Employee.objects.filter(company=company).count()
-        
-        # Active CRM data
         customer_count = Customer.objects.filter(company=company).count()
         active_leads = Lead.objects.filter(company=company).exclude(status__in=['WON', 'LOST']).count()
         open_orders = SalesOrder.objects.filter(company=company, status='CONFIRMED').count()
         active_projects = Project.objects.filter(company=company, status='IN_PROGRESS').count()
+        
+        # Chart data: Cash flow (6 months)
+        from datetime import date as d
+        six_months_ago = d.today() - timedelta(days=180)
+        monthly_revenue = list(
+            Invoice.objects.filter(
+                company=company,
+                status='PAID',
+                issue_date__gte=six_months_ago
+            ).annotate(month=models.functions.TruncMonth('issue_date')
+            ).values('month').annotate(total=Sum('total_amount')).order_by('month')
+        )
+        cash_flow_labels = [m['month'].strftime('%b') if m['month'] else '' for m in monthly_revenue]
+        cash_flow_data = [float(m['total'] or 0) for m in monthly_revenue]
+        
+        # Chart data: Leads by stage
+        lead_stage_counts = list(
+            Lead.objects.filter(company=company)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        stage_labels = [l['status'] or 'Unknown' for l in lead_stage_counts]
+        stage_data = [l['count'] for l in lead_stage_counts]
+        
+        # Chart data: Tasks by status
+        task_status_counts = list(
+            Task.objects.filter(project__company=company)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        task_labels = [t['status'] or 'Unknown' for t in task_status_counts]
+        task_data = [t['count'] for t in task_status_counts]
     else:
-        total_revenue = 0
-        total_products = 0
-        in_stock = 0
-        employee_count = 0
-        customer_count = 0
-        active_leads = 0
-        open_orders = 0
-        active_projects = 0
+        cash_balance = receivables = payables = 0
+        stock_value = low_stock_alerts = 0
+        pipeline_value = conversion_rate = 0
+        overdue_tasks = task_completion_pct = 0
+        filing_deadline_days = None
+        total_revenue = total_products = in_stock = 0
+        employee_count = customer_count = active_leads = 0
+        open_orders = active_projects = 0
+        cash_flow_labels = cash_flow_data = []
+        stage_labels = stage_data = []
+        task_labels = task_data = []
 
     context = {
         'company': company,
         'widgets': widgets,
         'dashboard': dashboard,
-        # Live KPIs
+        # Executive KPIs
+        'cash_balance': cash_balance,
+        'receivables': receivables,
+        'payables': payables,
+        'stock_value': stock_value,
+        'low_stock_alerts': low_stock_alerts,
+        'pipeline_value': pipeline_value,
+        'conversion_rate': conversion_rate,
+        'overdue_tasks': overdue_tasks,
+        'task_completion_pct': task_completion_pct,
+        'filing_deadline_days': filing_deadline_days,
+        # Legacy KPIs
         'total_revenue': total_revenue,
         'total_products': total_products,
         'in_stock': in_stock,
@@ -74,6 +184,13 @@ def index(request):
         'active_leads': active_leads,
         'open_orders': open_orders,
         'active_projects': active_projects,
+        # Chart data
+        'cash_flow_labels': cash_flow_labels,
+        'cash_flow_data': cash_flow_data,
+        'stage_labels': stage_labels,
+        'stage_data': stage_data,
+        'task_labels': task_labels,
+        'task_data': task_data,
     }
     return render(request, 'dashboard/index.html', context)
 

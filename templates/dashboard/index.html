@@ -2,14 +2,53 @@
 
 {% block title %}Dashboard | Olive ERP{% endblock %}
 
+{% block extra_css %}
+<style>
+.kpi-tiled {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    min-height: 70px;
+    border-left: 4px solid var(--kpi-accent);
+}
+.kpi-tiled-content {
+    display: flex;
+    flex-direction: column;
+}
+.kpi-tiled-content .kpi-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1f2937;
+}
+.kpi-tiled-content .kpi-label {
+    font-size: 0.7rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.kpi-tiled-icon {
+    font-size: 1.5rem;
+    opacity: 0.85;
+}
+@media (max-width: 768px) {
+    .kpi-tiled { padding: 0.5rem; min-height: 60px; }
+    .kpi-tiled-content .kpi-value { font-size: 0.95rem; }
+    .kpi-tiled-content .kpi-label { font-size: 0.6rem; }
+    .kpi-tiled-icon { font-size: 1.2rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="dashboard-page dashboard-page--compact">
-    <!-- Header with Quick Actions -->
+    <!-- Header -->
     <div class="dashboard-header mb-3">
         <div class="row align-items-center g-2">
             <div class="col">
-                <h1 class="page-title">Dashboard</h1>
-                <p class="page-subtitle mb-0">Welcome back! Here's your business overview.</p>
+                <h1 class="page-title">Executive Dashboard</h1>
+                <p class="page-subtitle mb-0">Business overview for {{ company.name|default:"your company" }}</p>
             </div>
             <div class="col-auto">
                 <div class="d-flex gap-2">
@@ -32,7 +71,7 @@
             </div>
             <div class="flex-grow-1">
                 <h5 class="alert-heading mb-1 fw-bold">Complete Your Company Setup!</h5>
-                <p class="mb-0 small">You haven't configured your company profile yet. Some features may be limited until setup is complete.</p>
+                <p class="mb-0 small">Configure your company profile to access all features.</p>
             </div>
             <div class="ms-3">
                 <a href="{% url 'company:setup' %}" class="btn btn-warning btn-sm fw-bold shadow-sm">Start Setup</a>
@@ -42,99 +81,287 @@
     </div>
     {% endif %}
 
-    <!-- KPI Row -->
-    <div class="row g-2 mb-2">
-        <div class="col-6 col-lg-3">
-            <a href="{% url 'finance:invoices' %}?status=PAID" class="text-decoration-none">
-                <div class="kpi-card kpi-revenue">
-                    <div class="kpi-icon"><i class="bi bi-currency-euro"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-label">Revenue</span>
-                        <span class="kpi-value">€{{ total_revenue|floatformat:0|default:"0" }}</span>
-                        <span class="kpi-meta">Paid Invoices</span>
+    <!-- Executive KPI Grid (Tiled: 6 cols small, 4 medium, 2 XL = 12 tiles) -->
+    <div class="row g-2 mb-3">
+        <!-- Cash Balance -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.finance %}
+            <a href="{% url 'finance:account_list' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #10b981;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">€{{ cash_balance|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-label">Cash</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #10b981;">
+                        <i class="bi bi-cash-stack"></i>
                     </div>
                 </div>
             </a>
+            {% endif %}
         </div>
-        <div class="col-6 col-lg-3">
-            <a href="{% url 'inventory:products' %}" class="text-decoration-none">
-                <div class="kpi-card kpi-inventory">
-                    <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-label">Products</span>
-                        <span class="kpi-value">{{ total_products|default:"0" }}</span>
-                        <span class="kpi-meta">{{ in_stock|default:"0" }} in stock</span>
+
+        <!-- Receivables -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.finance %}
+            <a href="{% url 'finance:invoices' %}?status=SENT" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #f59e0b;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">€{{ receivables|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-label">Receivables</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #f59e0b;">
+                        <i class="bi bi-arrow-left-circle"></i>
                     </div>
                 </div>
             </a>
+            {% endif %}
         </div>
-        <div class="col-6 col-lg-3">
+
+        <!-- Payables -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.finance %}
+            <a href="{% url 'purchasing:purchase_orders' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #ef4444;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">€{{ payables|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-label">Payables</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #ef4444;">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Stock Value -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.inventory %}
+            <a href="{% url 'inventory:stock' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #0ea5e9;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">€{{ stock_value|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-label">Stock</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #0ea5e9;">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Pipeline Value -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.crm %}
+            <a href="{% url 'crm:leads' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #6366f1;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">€{{ pipeline_value|floatformat:0|default:"0" }}</span>
+                        <span class="kpi-label">Pipeline</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #6366f1;">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Projects -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.projects %}
+            <a href="{% url 'projects:active' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #8b5cf6;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ task_completion_pct|default:"0" }}%</span>
+                        <span class="kpi-label">Tasks</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #8b5cf6;">
+                        <i class="bi bi-kanban"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Employees -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.hr %}
             <a href="{% url 'hr:employees' %}" class="text-decoration-none">
-                <div class="kpi-card kpi-hr">
-                    <div class="kpi-icon"><i class="bi bi-people"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-label">Employees</span>
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #f97316;">
+                    <div class="kpi-tiled-content">
                         <span class="kpi-value">{{ employee_count|default:"0" }}</span>
-                        <span class="kpi-meta">On Record</span>
+                        <span class="kpi-label">Staff</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #f97316;">
+                        <i class="bi bi-people"></i>
                     </div>
                 </div>
             </a>
+            {% endif %}
         </div>
-        <div class="col-6 col-lg-3">
-            <a href="{% url 'crm:customers' %}" class="text-decoration-none">
-                <div class="kpi-card kpi-crm">
-                    <div class="kpi-icon"><i class="bi bi-briefcase"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-label">Active Deals</span>
-                        <span class="kpi-value">{{ active_leads|default:"0" }}</span>
-                        <span class="kpi-meta">{{ open_orders|default:"0" }} orders</span>
+
+        <!-- Tax Deadline -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.compliance and filing_deadline_days is not None %}
+            <a href="{% url 'tax_engine:dashboard' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #14b8a6;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ filing_deadline_days|default:"0" }}d</span>
+                        <span class="kpi-label">Tax Due</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #14b8a6;">
+                        <i class="bi bi-calendar-check"></i>
                     </div>
                 </div>
             </a>
+            {% endif %}
+        </div>
+
+        <!-- Overdue Tasks (compact) -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.projects and overdue_tasks > 0 %}
+            <a href="{% url 'projects:tasks' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #dc2626;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ overdue_tasks|default:"0" }}</span>
+                        <span class="kpi-label">Overdue</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #dc2626;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Alerts -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.inventory and low_stock_alerts > 0 %}
+            <a href="{% url 'inventory:stock' %}?low=1" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #ea580c;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ low_stock_alerts|default:"0" }}</span>
+                        <span class="kpi-label">Low Stock</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #ea580c;">
+                        <i class="bi bi-box"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Conversion Rate -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.crm %}
+            <a href="{% url 'crm:leads' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #10b981;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ conversion_rate|default:"0" }}%</span>
+                        <span class="kpi-label">Win Rate</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #10b981;">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Active Projects -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.projects %}
+            <a href="{% url 'projects:active' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #7c3aed;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ active_projects|default:"0" }}</span>
+                        <span class="kpi-label">Projects</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #7c3aed;">
+                        <i class="bi bi-folder"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Active Leads -->
+        <div class="col-6 col-md-4 col-xl-2">
+            {% if company.enabled_modules.crm %}
+            <a href="{% url 'crm:leads' %}" class="text-decoration-none">
+                <div class="kpi-card kpi-tiled" style="--kpi-accent: #0891b2;">
+                    <div class="kpi-tiled-content">
+                        <span class="kpi-value">{{ active_leads|default:"0" }}</span>
+                        <span class="kpi-label">Leads</span>
+                    </div>
+                    <div class="kpi-tiled-icon" style="color: #0891b2;">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
         </div>
     </div>
 
     <!-- Charts Row -->
     <div class="row g-2 mb-2">
-        <div class="col-lg-8">
-            <div class="card chart-card mb-0">
+        <!-- Cash Flow -->
+        <div class="col-lg-4">
+            <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Revenue Trend</span>
-                    <span class="text-muted small ms-2">Paid Invoices</span>
+                    <span class="fw-semibold">Cash Flow</span>
+                    <span class="text-muted small ms-2">6 Months</span>
                 </div>
                 <div class="card-body p-2 d-flex align-items-center justify-content-center">
-                    {% if total_revenue > 0 %}
-                    <canvas id="revenueTrendChart" height="160"></canvas>
+                    {% if cash_flow_data %}
+                    <canvas id="cashFlowChart" height="180"></canvas>
                     {% else %}
                     <div class="text-muted text-center py-4">
                         <i class="bi bi-graph-up fs-1 mb-2 d-block"></i>
-                        <span>No revenue data yet. Create and post some invoices.</span>
+                        <span>No data yet</span>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+
+        <!-- Sales Funnel -->
         <div class="col-lg-4">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Active Projects</span>
+                    <span class="fw-semibold">Sales Funnel</span>
+                    <span class="text-muted small ms-2">Leads</span>
                 </div>
-                <div class="card-body p-0">
-                    {% if active_projects > 0 %}
-                    <table class="table table-sm mb-0">
-                        <tbody>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">Projects</span></td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ active_projects }}</td>
-                            </tr>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><span class="badge bg-olive">Tasks</span></td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ open_tasks|default:"0" }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                    {% if stage_data %}
+                    <canvas id="salesFunnelChart" height="180"></canvas>
                     {% else %}
-                    <div class="text-muted small text-center py-3">No active projects</div>
+                    <div class="text-muted text-center py-4">
+                        <i class="bi bi-funnel fs-1 mb-2 d-block"></i>
+                        <span>No leads yet</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Pulse -->
+        <div class="col-lg-4">
+            <div class="card mb-0">
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Project Pulse</span>
+                    <span class="text-muted small ms-2">Tasks</span>
+                </div>
+                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                    {% if task_data %}
+                    <canvas id="projectPulseChart" height="180"></canvas>
+                    {% else %}
+                    <div class="text-muted text-center py-4">
+                        <i class="bi bi-pie-chart fs-1 mb-2 d-block"></i>
+                        <span>No tasks yet</span>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -145,23 +372,39 @@
     <div class="row g-2">
         <div class="col-md-6">
             <div class="card mb-0">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Quick Stats</span>
+                <div class="card-header py-2 px-3">
+                    <span class="fw-semibold">Module Status</span>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
                         <tbody>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><i class="bi bi-people me-2"></i>Employees</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ employee_count|default:"0" }}</td>
+                            <tr><td class="border-0 py-2 ps-3">Finance</td>
+                                <td class="border-0 py-2 text-end pe-3">
+                                    <span class="badge bg-{% if company.enabled_modules.finance %}success{% else %}secondary{% endif %}">
+                                        {{ company.enabled_modules.finance|yesno:"Enabled,Disabled" }}
+                                    </span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><i class="bi bi-box-seam me-2"></i>Products</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ total_products|default:"0" }}</td>
+                            <tr><td class="border-0 py-2 ps-3">Inventory</td>
+                                <td class="border-0 py-2 text-end pe-3">
+                                    <span class="badge bg-{% if company.enabled_modules.inventory %}success{% else %}secondary{% endif %}">
+                                        {{ company.enabled_modules.inventory|yesno:"Enabled,Disabled" }}
+                                    </span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td class="border-0 py-2 ps-3"><i class="bi bi-person-badge me-2"></i>Customers</td>
-                                <td class="border-0 py-2 text-end pe-3 fw-semibold">{{ customer_count|default:"0" }}</td>
+                            <tr><td class="border-0 py-2 ps-3">CRM</td>
+                                <td class="border-0 py-2 text-end pe-3">
+                                    <span class="badge bg-{% if company.enabled_modules.crm %}success{% else %}secondary{% endif %}">
+                                        {{ company.enabled_modules.crm|yesno:"Enabled,Disabled" }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr><td class="border-0 py-2 ps-3">HR</td>
+                                <td class="border-0 py-2 text-end pe-3">
+                                    <span class="badge bg-{% if company.enabled_modules.hr %}success{% else %}secondary{% endif %}">
+                                        {{ company.enabled_modules.hr|yesno:"Enabled,Disabled" }}
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -171,7 +414,7 @@
         <div class="col-md-6">
             <div class="card mb-0">
                 <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Module Links</span>
+                    <span class="fw-semibold">Quick Actions</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
@@ -183,8 +426,8 @@
                             <span><i class="bi bi-plus-lg me-2"></i>Add Product</span>
                             <i class="bi bi-chevron-right small"></i>
                         </a>
-                        <a href="{% url 'projects:project_create' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
-                            <span><i class="bi bi-kanban me-2"></i>New Project</span>
+                        <a href="{% url 'crm:customer_create' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                            <span><i class="bi bi-person-plus me-2"></i>Add Customer</span>
                             <i class="bi bi-chevron-right small"></i>
                         </a>
                     </div>
@@ -197,35 +440,95 @@
 
 {% block extra_js %}
 <script>
-    // Revenue Trend Chart — only rendered when total_revenue > 0 (canvas is in an if block)
-    (function() {
-        const el = document.getElementById('revenueTrendChart');
-        if (!el) return;
-        new Chart(el.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Revenue (€)',
-                    data: [0, 0, 0, 0, 0, {{ total_revenue }}],
-                    borderColor: '#4a6b3a',
-                    backgroundColor: 'rgba(74, 107, 58, 0.08)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#4a6b3a'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } }
-                }
+// Cash Flow Chart
+(function() {
+    const el = document.getElementById('cashFlowChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ cash_flow_labels|safe }},
+            datasets: [{
+                label: 'Revenue',
+                data: {{ cash_flow_data }},
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
             }
-        });
-    })();
+        }
+    });
+})();
+
+// Sales Funnel (Horizontal Bar)
+(function() {
+    const el = document.getElementById('salesFunnelChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ stage_labels|safe }},
+            datasets: [{
+                label: 'Leads',
+                data: {{ stage_data }},
+                backgroundColor: [
+                    'rgba(99, 102, 241, 0.7)',
+                    'rgba(139, 92, 246, 0.7)',
+                    'rgba(168, 85, 247, 0.7)',
+                    'rgba(192, 132, 252, 0.7)',
+                    'rgba(232, 171, 252, 0.7)',
+                    'rgba(16, 185, 129, 0.7)',
+                ],
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+})();
+
+// Project Pulse (Doughnut)
+(function() {
+    const el = document.getElementById('projectPulseChart');
+    if (!el) return;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ task_labels|safe }},
+            datasets: [{
+                data: {{ task_data }},
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(234, 179, 8, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(6, 182, 212, 0.8)',
+                    'rgba(99, 102, 241, 0.8)',
+                ],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 8 } } }
+        }
+    });
+})();
 </script>
 {% endblock %}

@@ -1874,6 +1874,57 @@ MODULE_URL_PATHS = {
 - **Error Message**: Shows `messages.error` with module name before redirect
 - **Redirect**: Returns unauthorized users to home page `/`
 
+### Executive Dashboard (April 2026)
+
+The main dashboard at `/` has been enhanced with cross-module executive analytics:
+
+**New KPIs (scoped to company):**
+| Metric | Source | Description |
+|--------|--------|-------------|
+| `cash_balance` | Account (BANK + CASH) | Bank and Cash account totals |
+| `receivables` | Invoice (SENT/DRAFT/OVERDUE) | Unpaid invoice total |
+| `payables` | PurchaseOrder (PENDING/APPROVED) | Unpaid PO total |
+| `stock_value` | StockLevel (Qty × Cost) | Total inventory value |
+| `low_stock_alerts` | StockLevel (≤ reorder_level) | Items needing reorder |
+| `pipeline_value` | Lead (NEW→PROPOSAL) | Active lead estimated value |
+| `conversion_rate` | Lead (WON / WON+LOST) | Win percentage |
+| `overdue_tasks` | Task (past due) | Overdue task count |
+| `task_completion_pct` | Task (DONE / total) | Completion percentage |
+
+**Tiled UI Layout (April 2026):**
+- Compact 12-tile grid: `col-6 col-md-4 col-xl-2` (6 cols small, 4 cols medium, 2 cols XL)
+- Each tile uses `.kpi-tiled` class with:
+  - Minimal padding (0.75rem)
+  - Left accent border (4px) in module color
+  - Value/Label stacked vertically
+  - Icon in top-right corner
+- Responsive: collapses gracefully on mobile
+- Module-specific accent colors maintained
+
+**Chart.js Widgets:**
+- Cash Flow (Bar): 6-month revenue trend
+- Sales Funnel (Horizontal Bar): Leads by stage
+- Project Pulse (Doughnut): Tasks by status
+
+### ERP-Only User (April 2026)
+
+A new command creates a non-admin user for ERP-only access:
+
+```bash
+python manage.py create_erp_user
+```
+
+Creates user with:
+- **Username**: `erpadmin`
+- **Email**: `erpadmin@oliveerp.com`
+- **Password**: `erpadmin123`
+- **is_staff**: `False` (blocked from /admin/)
+- **is_superuser**: `False`
+
+Access control:
+- Django default: `is_staff=False` blocks `/admin/` and `/django-admin/`
+- Middleware exempts admin URLs from redirect
+
 ### Navigation Module Filtering (April 2026)
 The navigation menu uses the `is_module_enabled()` function in `context_processors.py` to provide conditional menu rendering:
 - **Finance**: `is_module_enabled('Finance')` guards Finance and Purchasing submenus
