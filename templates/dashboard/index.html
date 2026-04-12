@@ -242,14 +242,14 @@
     </div>
     {% endif %}
 
-    <!-- PROFITABILITY & PIPELINE -->
-    <div class="row g-3 mb-2">
-        <!-- Revenue vs Expenses Grouped Bar -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Profitability</span>
-                    <span class="text-muted small ms-2">Revenue vs Expenses (6mo)</span>
+    <!-- COMPACT DASHBOARD GRID (8 Widgets) -->
+    <div class="row g-2 mb-2">
+        <!-- 1: Revenue vs Expenses Grouped Bar -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Profitability</span>
+                    <span class="text-muted small ms-2" style="font-size: 0.6rem;">(6mo)</span>
                 </div>
                 <div class="card-body p-2" style="height: 180px;">
                     {% if revenue_expense_labels %}
@@ -260,12 +260,12 @@
                 </div>
             </div>
         </div>
-        <!-- Sales Funnel -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Sales Pipeline</span>
-                    <span class="text-muted small ms-2">Lead Stages</span>
+
+        <!-- 2: Sales Funnel -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Sales Pipeline</span>
                 </div>
                 <div class="card-body p-2" style="height: 180px;">
                     {% if stage_data %}
@@ -276,15 +276,12 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- HEALTH INDICATORS -->
-    <div class="row g-3 mb-2">
-        <!-- Project Donut -->
-        <div class="col-lg-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Project Status</span>
+        <!-- 3: Project Donut -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Project Status</span>
                 </div>
                 <div class="card-body p-2 position-relative" style="height: 180px;">
                     {% if proj_status_data %}
@@ -299,14 +296,14 @@
                 </div>
             </div>
         </div>
-        <!-- Inventory Health -->
-        <div class="col-lg-8">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Inventory Health</span>
-                    <span class="text-muted small ms-2">Stock Levels</span>
+
+        <!-- 4: Inventory Health -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Inventory Health</span>
                 </div>
-                <div class="card-body p-2">
+                <div class="card-body p-2" style="height: 180px;">
                     <div class="health-bar-segment mb-2">
                         <div class="health-healthy" style="width: {% if healthy_stock|add:low_stock|add:critical_stock > 0 %}{{ healthy_stock|add:low_stock|add:critical_stock }}{% else %}100{% endif %}%;">
                             {% if healthy_stock %}{{ healthy_stock }}{% endif %}
@@ -318,10 +315,10 @@
                             {% if critical_stock %}{{ critical_stock }}{% endif %}
                         </div>
                     </div>
-                    <div class="d-flex gap-3 small text-muted mb-2">
-                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#10b981;"></span> Healthy ({{ healthy_stock|default:"0" }})</span>
+                    <div class="d-flex gap-2 small text-muted mb-2" style="font-size: 0.65rem;">
+                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#10b981;"></span> OK ({{ healthy_stock|default:"0" }})</span>
                         <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#f59e0b;"></span> Low ({{ low_stock|default:"0" }})</span>
-                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#ef4444;"></span> Critical ({{ critical_stock|default:"0" }})</span>
+                        <span><span class="d-inline-block rounded-circle" style="width:8px;height:8px;background:#ef4444;"></span> Crit ({{ critical_stock|default:"0" }})</span>
                     </div>
                     {% if inv_cat_data %}
                     <canvas id="inventoryCategoryChart" height="50"></canvas>
@@ -329,84 +326,71 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- OPERATIONAL SNAPSHOT -->
-    <div class="row g-3 mb-2">
-        <!-- HR Snapshot -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">HR Snapshot</span>
+        <!-- 5: HR Snapshot -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">HR Snapshot</span>
                 </div>
-                <div class="card-body p-2">
+                <div class="card-body p-2" style="height: 180px;">
                     <div class="row g-1 mb-2">
                         <div class="col-3 text-center">
                             <div class="fw-bold text-primary">{{ hr_employee_count|default:"0" }}</div>
-                            <div class="small text-muted">Total</div>
+                            <div class="small text-muted" style="font-size: 0.65rem;">Total</div>
                         </div>
                         <div class="col-3 text-center">
                             <div class="fw-bold text-success">{{ on_leave_today|default:"0" }}</div>
-                            <div class="small text-muted">On Leave</div>
+                            <div class="small text-muted" style="font-size: 0.65rem;">Leave</div>
                         </div>
                         <div class="col-3 text-center">
                             <div class="fw-bold text-info">{{ active_today|default:"0" }}</div>
-                            <div class="small text-muted">Active</div>
+                            <div class="small text-muted" style="font-size: 0.65rem;">Active</div>
                         </div>
                         <div class="col-3 text-center">
                             <div class="fw-bold text-warning">{{ pending_claims|default:"0" }}</div>
-                            <div class="small text-muted">Pending</div>
+                            <div class="small text-muted" style="font-size: 0.65rem;">Pending</div>
                         </div>
                     </div>
                     {% if hr_dept_data %}
-                    <canvas id="hrDeptChart" height="40"></canvas>
+                    <canvas id="hrDeptChart" height="50"></canvas>
                     {% endif %}
                 </div>
             </div>
         </div>
-        <!-- Tax Compliance -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Tax Compliance (IE)</span>
+
+        <!-- 6: Tax Compliance -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Tax Compliance</span>
                 </div>
-                <div class="card-body p-2">
-                    <div class="row g-1 mb-2 text-center">
+                <div class="card-body p-2" style="height: 180px; overflow-y: auto;">
+                    <div class="row g-1 mb-2 text-center" style="font-size: 0.70rem;">
                         <div class="col-4">
                             <span class="badge bg-danger fs-6">{{ overdue_filings|default:"0" }}</span>
-                            <div class="small text-muted">Overdue</div>
+                            <div class="text-muted">Overdue</div>
                         </div>
                         <div class="col-4">
                             <span class="badge bg-warning text-dark fs-6">{{ due_soon_filings|default:"0" }}</span>
-                            <div class="small text-muted">Due Soon</div>
+                            <div class="text-muted">Soon</div>
                         </div>
                         <div class="col-4">
                             <span class="badge bg-success fs-6">{{ on_track_filings|default:"0" }}</span>
-                            <div class="small text-muted">Filed</div>
+                            <div class="text-muted">Filed</div>
                         </div>
                     </div>
                     {% if tax_filings_list %}
-                    <table class="table table-sm table-hover mb-0 small" style="font-size: 0.7rem;">
+                    <table class="table table-sm table-hover mb-0" style="font-size: 0.65rem;">
                         <thead>
-                            <tr><th>Type</th><th>Period</th><th>Due</th><th>Status</th></tr>
+                            <tr><th>Type</th><th>Period</th><th>Due</th></tr>
                         </thead>
                         <tbody>
-                            {% for filing in tax_filings_list %}
+                            {% for filing in tax_filings_list|slice:":3" %}
                             <tr>
                                 <td>{{ filing.get_filing_type_display }}</td>
                                 <td>{{ filing.period }}</td>
                                 <td>{{ filing.due_date|date:"d M" }}</td>
-                                <td>
-                                    {% if filing.status == 'filed' %}
-                                    <span class="badge bg-success">Filed</span>
-                                    {% elif filing.is_overdue %}
-                                    <span class="badge bg-danger">Overdue</span>
-                                    {% elif filing.is_due_soon %}
-                                    <span class="badge bg-warning text-dark">Due</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ filing.get_status_display }}</span>
-                                    {% endif %}
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -417,25 +401,22 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ENGAGEMENT -->
-    <div class="row g-3 mb-2">
-        <!-- Activity Feed -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Activity Feed</span>
+        <!-- 7: Activity Feed -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Activity Feed</span>
                 </div>
-                <div class="card-body p-2" style="max-height: 180px; overflow-y: auto;">
+                <div class="card-body p-2" style="height: 180px; overflow-y: auto;">
                     {% if activity_feed %}
-                    {% for log in activity_feed %}
-                    <div class="timeline-item timeline-{% if 'finance' in log.model_name|lower %}finance{% elif 'inventory' in log.model_name|lower %}inventory{% elif 'crm' in log.model_name|lower %}crm{% elif 'hr' in log.model_name|lower %}hr{% elif 'project' in log.model_name|lower %}projects{% else %}default{% endif %}">
+                    {% for log in activity_feed|slice:":4" %}
+                    <div class="timeline-item timeline-{% if 'finance' in log.model_name|lower %}finance{% elif 'inventory' in log.model_name|lower %}inventory{% elif 'crm' in log.model_name|lower %}crm{% elif 'hr' in log.model_name|lower %}hr{% elif 'project' in log.model_name|lower %}projects{% else %}default{% endif %}" style="padding-bottom: 0.35rem;">
                         <div class="d-flex justify-content-between">
-                            <span class="fw-medium small">{{ log.action|title }}</span>
-                            <span class="text-muted small">{{ log.timestamp|date:"d M H:i" }}</span>
+                            <span class="fw-medium" style="font-size:0.7rem;">{{ log.action|title }}</span>
+                            <span class="text-muted" style="font-size:0.65rem;">{{ log.timestamp|date:"d M H:i" }}</span>
                         </div>
-                        <div class="small text-muted">{{ log.model_name }} - {{ log.object_repr|truncatechars:30 }}</div>
+                        <div class="text-muted" style="font-size:0.65rem;">{{ log.model_name }} - {{ log.object_repr|truncatechars:20 }}</div>
                     </div>
                     {% endfor %}
                     {% else %}
@@ -444,48 +425,49 @@
                 </div>
             </div>
         </div>
-        <!-- Quick Actions -->
-        <div class="col-xl-4">
-            <div class="card mb-0">
-                <div class="card-header py-2 px-3">
-                    <span class="fw-semibold">Quick Actions</span>
+
+        <!-- 8: Quick Actions -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card mb-0 h-100">
+                <div class="card-header py-2 px-2">
+                    <span class="fw-semibold" style="font-size: 0.85rem;">Quick Actions</span>
                 </div>
-                <div class="card-body p-2">
+                <div class="card-body p-2" style="height: 180px;">
                     <div class="row g-1">
-                        <div class="col-4">
-                            <a href="{% url 'crm:sales_orders' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'crm:sales_orders' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-file-earmark-text"></i></span>
-                                <span class="quick-action-label">Orders</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Orders</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% url 'finance:journal_create' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'finance:journal_create' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-journal-plus"></i></span>
-                                <span class="quick-action-label">Journal</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Journal</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% url 'hr:leave' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'hr:leave' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-calendar-plus"></i></span>
-                                <span class="quick-action-label">Leave</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Leave</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% url 'finance:invoice_create' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'finance:invoice_create' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-receipt"></i></span>
-                                <span class="quick-action-label">New Invoice</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Invoice</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% url 'inventory:product_create' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'inventory:product_create' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-box-seam"></i></span>
-                                <span class="quick-action-label">Add Product</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Product</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% url 'crm:customer_create' %}" class="quick-action-btn">
+                        <div class="col-6">
+                            <a href="{% url 'crm:customer_create' %}" class="quick-action-btn py-1 px-0">
                                 <span class="quick-action-icon"><i class="bi bi-person-plus"></i></span>
-                                <span class="quick-action-label">Add Customer</span>
+                                <span class="quick-action-label" style="font-size: 0.65rem;">Customer</span>
                             </a>
                         </div>
                     </div>
