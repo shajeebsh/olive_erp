@@ -18,7 +18,7 @@
     --accent-gray: #4b5563;
 }
 .dashboard-page { background-color: var(--bg-page); padding: 1.5rem; font-family: 'Inter', system-ui, sans-serif; }
-.dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 0.5rem; }
 .dash-title { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin: 0; line-height: 1.2; }
 .dash-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
 .header-actions { display: flex; gap: 0.75rem; align-items: center; }
@@ -26,19 +26,22 @@
 .btn-primary-custom { background: var(--bg-page); border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 
 /* Alert Banner */
-.alert-banner { background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-.alert-content { font-size: 0.85rem; color: #92400e; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-.alert-link { color: #d97706; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+.alert-banner { background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-grow: 1; margin: 0 1rem; }
+.alert-content { font-size: 0.75rem; color: #92400e; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.alert-link { color: #d97706; font-size: 0.7rem; font-weight: 700; text-decoration: none; }
 
 /* Section Headers */
 .section-title { font-size: 0.75rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
 
 /* KPI Row */
-.kpi-container { display: flex; gap: 0.35rem; margin-bottom: 1.5rem; width: 100%; }
-.kpi-card { flex: 1; min-width: 0; background: #fff; border-radius: 8px; padding: 0.5rem 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 4px solid var(--kpi-color, #e5e7eb); }
-.kpi-label { font-size: 0.55rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 0.15rem; line-height: 1.1; }
-.kpi-value { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.1rem; }
-.kpi-sub { font-size: 0.55rem; color: var(--text-muted); line-height: 1.1; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.kpi-container { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; width: 100%; overflow-x: auto; padding-bottom: 0.25rem; -webkit-overflow-scrolling: touch; }
+.kpi-container::-webkit-scrollbar { height: 4px; }
+.kpi-container::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+.kpi-card { flex: 0 0 auto; min-width: 110px; padding: 0.75rem 0.5rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 4px solid var(--kpi-color, #e5e7eb); border-left: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.35rem; }
+.kpi-icon { display: none; }
+.kpi-label { font-size: 0.65rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; margin: 0; }
+.kpi-value { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); line-height: 1; margin: 0; letter-spacing: -0.02em; }
+.kpi-sub { font-size: 0.65rem; font-weight: 500; color: #9ca3af; line-height: 1; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .kpi-sub.critical { color: var(--accent-red); }
 .kpi-sub.positive { color: var(--accent-green); }
 
@@ -99,6 +102,14 @@
             <h1 class="dash-title">Executive Dashboard</h1>
             <div class="dash-subtitle">{{ company.name|default:"Default Solutions Ltd" }} &bull; {% now "l, d M Y" %}</div>
         </div>
+        <!-- Alert inline in header -->
+        <div class="alert-banner">
+            <div class="alert-content">
+                <i class="bi bi-exclamation-triangle" style="font-size: 0.9rem;"></i>
+                <span>{{ overdue_filings|default:"0" }} tax filings overdue &bull; Cash: {% if cash_balance < 0 %}€{{ cash_balance|floatformat:0 }}{% else %}€{{ cash_balance|floatformat:0 }}{% endif %} &bull; {{ low_stock_alerts|default:"0" }} low stock</span>
+            </div>
+            <a href="#" class="alert-link">View &rarr;</a>
+        </div>
         <div class="header-actions">
             <form class="d-flex align-items-center gap-2" method="GET" action="">
                 <input type="date" name="start_date" class="form-control form-control-sm border-light bg-white shadow-sm" value="{% now 'Y-m-d' %}" style="font-size: 0.75rem;">
@@ -111,68 +122,68 @@
         </div>
     </header>
 
-    <!-- Alerts Banner -->
-    <div class="alert-banner">
-        <div class="alert-content">
-            <i class="bi bi-exclamation-triangle" style="font-size: 1rem;"></i>
-            <span>{{ overdue_filings|default:"0" }} tax filings are overdue &bull; Cash balance is {% if cash_balance < 0 %}negative (€{{ cash_balance|floatformat:0 }}){% else %}healthy (€{{ cash_balance|floatformat:0 }}){% endif %} &bull; {{ low_stock_alerts|default:"0" }} inventory items below reorder level</span>
-        </div>
-        <a href="#" class="alert-link">View all alerts &rarr;</a>
-    </div>
-
     <!-- Key Metrics -->
     <div class="section-title">KEY METRICS</div>
     <div class="kpi-container">
         <!-- Cash -->
         <div class="kpi-card" style="--kpi-color: var(--accent-red);">
+            <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
             <div class="kpi-label">CASH</div>
             <div class="kpi-value text-danger">€{{ cash_balance|floatformat:0|default:"0" }}</div>
             <div class="kpi-sub {% if cash_balance < 0 %}critical{% endif %}">{% if cash_balance < 0 %}&darr; Deficit{% else %}&uarr; Surplus{% endif %}</div>
         </div>
         <!-- Receivables -->
         <div class="kpi-card" style="--kpi-color: var(--accent-orange);">
-            <div class="kpi-label">RECEIVABLES</div>
+            <div class="kpi-icon"><i class="bi bi-arrow-left-circle"></i></div>
+            <div class="kpi-label">RECEIV.</div>
             <div class="kpi-value">€{{ receivables|floatformat:0|default:"0" }}</div>
             <div class="kpi-sub" style="color:var(--accent-orange);">Outstanding</div>
         </div>
         <!-- Payables -->
         <div class="kpi-card" style="--kpi-color: var(--accent-gray);">
-            <div class="kpi-label">PAYABLES</div>
+            <div class="kpi-icon"><i class="bi bi-arrow-right-circle"></i></div>
+            <div class="kpi-label">PAYABLE</div>
             <div class="kpi-value">€{{ payables|floatformat:0|default:"0" }}</div>
             <div class="kpi-sub">All clear</div>
         </div>
         <!-- Overdue -->
         <div class="kpi-card" style="--kpi-color: var(--accent-red);">
-            <div class="kpi-label">OVERDUE INV.</div>
+            <div class="kpi-icon"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="kpi-label">OVERDUE</div>
             <div class="kpi-value text-danger">{{ overdue_filings|default:"0" }}</div>
-            <div class="kpi-sub critical">&darr; Critical</div>
+            <div class="kpi-sub critical">Tax filings</div>
         </div>
         <!-- Stock -->
         <div class="kpi-card" style="--kpi-color: var(--accent-blue);">
-            <div class="kpi-label">STOCK VALUE</div>
+            <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="kpi-label">STOCK</div>
             <div class="kpi-value">€{{ stock_value|floatformat:0|default:"0" }}</div>
             <div class="kpi-sub">{{ low_stock_alerts|default:"0" }} low</div>
         </div>
         <!-- Pipeline -->
         <div class="kpi-card" style="--kpi-color: var(--accent-purple);">
+            <div class="kpi-icon"><i class="bi bi-lightning-charge"></i></div>
             <div class="kpi-label">PIPELINE</div>
             <div class="kpi-value">€{{ pipeline_value|floatformat:0|default:"0" }}</div>
             <div class="kpi-sub">{{ active_leads|default:"0" }} leads</div>
         </div>
         <!-- Win Rate -->
         <div class="kpi-card" style="--kpi-color: var(--accent-green);">
+            <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="kpi-label">WIN RATE</div>
             <div class="kpi-value text-success">{{ conversion_rate|default:"0" }}%</div>
             <div class="kpi-sub positive">&uarr; +2.1%</div>
         </div>
         <!-- Staff -->
-        <div class="kpi-card" style="--kpi-color: var(--accent-gray);">
+        <div class="kpi-card" style="--kpi-color: var(--accent-orange);">
+            <div class="kpi-icon"><i class="bi bi-people"></i></div>
             <div class="kpi-label">STAFF</div>
             <div class="kpi-value">{{ hr_employee_count|default:"0" }}</div>
-            <div class="kpi-sub">{{ on_leave_today|default:"0" }} on leave</div>
+            <div class="kpi-sub">{{ on_leave_today|default:"0" }} leave</div>
         </div>
         <!-- Projects -->
-        <div class="kpi-card" style="--kpi-color: var(--accent-blue);">
+        <div class="kpi-card" style="--kpi-color: var(--accent-purple);">
+            <div class="kpi-icon"><i class="bi bi-kanban"></i></div>
             <div class="kpi-label">PROJECTS</div>
             <div class="kpi-value">{{ active_projects|default:"0" }}</div>
             <div class="kpi-sub">{{ task_completion_pct|default:"0" }}% done</div>
