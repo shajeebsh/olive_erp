@@ -2100,3 +2100,42 @@ Increased spacing between cards:
 ### Files Modified
 - `templates/dashboard/index.html` - Balanced heights, padding, Chart.js config
 
+---
+
+## 24. Dashboard Header & KPI Refinements (April 2026)
+
+### Alert Banner Relocation
+Moved alert banner inside the header for horizontal layout:
+- Added `flex-grow: 1` to `.alert-banner` with margin for spacing
+- Reduced padding and font size for compact inline display
+- Header changed to `align-items: center` for vertical alignment
+
+### KPI Container Refactoring
+Enhanced visibility with improved flex constraints:
+- Added `overflow-x: auto` with custom scrollbar for horizontal scrolling
+- Changed to `flex: 0 0 auto` with `min-width: 110px` to prevent squishing
+- Increased font sizes: `.kpi-value` to 1.1rem, `.kpi-label` to 0.6rem, `.kpi-sub` to 0.6rem
+
+### Files Modified
+- `templates/dashboard/index.html` - Alert inline in header, KPI overflow scroll
+
+---
+
+## 25. KPI Styling Compact Refinement (April 2026)
+
+### KPI Card Refactoring
+Reduced font sizes while maintaining separate lines:
+- **`.kpi-label`**: 0.5rem, font-weight 700
+- **`.kpi-value`**: 0.85rem, font-weight 800
+- **`.kpi-sub`**: 0.5rem
+- **`.kpi-card`**: `flex-direction: column` with `gap: 0.15rem` for proper line separation
+- **Width**: `min-width: 100px`, `max-width: 120px` to prevent squishing
+
+### Horizontal Scrolling
+Ensured KPI container scrolls horizontally on overflow:
+- Added `overflow-x: auto` with `-webkit-overflow-scrolling: touch` for smooth mobile scroll
+- Custom scrollbar with 4px height
+
+### Files Modified
+- `templates/dashboard/index.html` - Compact KPI fonts, horizontal scroll container
+
