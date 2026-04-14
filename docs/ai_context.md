@@ -2102,40 +2102,83 @@ Increased spacing between cards:
 
 ---
 
-## 24. Dashboard Header & KPI Refinements (April 2026)
+## 25. HR Module Automation Testing Framework (April 2026)
 
-### Alert Banner Relocation
-Moved alert banner inside the header for horizontal layout:
-- Added `flex-grow: 1` to `.alert-banner` with margin for spacing
-- Reduced padding and font size for compact inline display
-- Header changed to `align-items: center` for vertical alignment
 
-### KPI Container Refactoring
-Enhanced visibility with improved flex constraints:
-- Added `overflow-x: auto` with custom scrollbar for horizontal scrolling
-- Changed to `flex: 0 0 auto` with `min-width: 110px` to prevent squishing
-- Increased font sizes: `.kpi-value` to 1.1rem, `.kpi-label` to 0.6rem, `.kpi-sub` to 0.6rem
+### Overview
+OliveERP now includes a comprehensive testing framework for the HR module using pytest and Playwright for browser automation.
 
-### Files Modified
-- `templates/dashboard/index.html` - Alert inline in header, KPI overflow scroll
+### Framework Components
 
----
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Test Runner | pytest | Python unit/integration testing |
+| Django Integration | pytest-django | Django test client and DB fixtures |
+| Browser Automation | playwright | E2E browser testing |
+| pytest Plugin | pytest-playwright | Playwright integration for pytest |
 
-## 25. KPI Styling Compact Refinement (April 2026)
+### Test Packages
+```
+requirements_test.txt:
+- pytest>=8.0.0
+- pytest-django>=4.8.0
+- playwright>=1.40.0
+- pytest-playwright>=0.4.0
+```
 
-### KPI Card Refactoring
-Reduced font sizes while maintaining separate lines:
-- **`.kpi-label`**: 0.5rem, font-weight 700
-- **`.kpi-value`**: 0.85rem, font-weight 800
-- **`.kpi-sub`**: 0.5rem
-- **`.kpi-card`**: `flex-direction: column` with `gap: 0.15rem` for proper line separation
-- **Width**: `min-width: 100px`, `max-width: 120px` to prevent squishing
+### Configuration
+- `pytest.ini` - Root configuration with Django settings module
+- `hr/tests/conftest.py` - Shared pytest fixtures
 
-### Horizontal Scrolling
-Ensured KPI container scrolls horizontally on overflow:
-- Added `overflow-x: auto` with `-webkit-overflow-scrolling: touch` for smooth mobile scroll
-- Custom scrollbar with 4px height
+### Fixtures (`hr/tests/conftest.py`)
+- `test_company` - Creates test company
+- `erp_admin_role` - Creates/gets ErpAdmin role
+- `test_user` - User with ErpAdmin role assigned to test company
+- `authenticated_client` - Authenticated Django test client
+- `test_department` - Test department
+- `test_employee` - Pre-populated Employee record
 
-### Files Modified
-- `templates/dashboard/index.html` - Compact KPI fonts, horizontal scroll container
+### Test Files
+
+| File | Type | Coverage |
+|------|------|----------|
+| `test_logic.py` | Unit/Integration | Payroll calculation, leave validation |
+| `test_e2e.py` | Integration | Employee lifecycle, leave workflow, dashboard |
+
+### Test Scenarios
+
+**Payroll Logic Tests** (`test_logic.py`):
+- Basic net pay calculation
+- Zero allowances scenario
+- High deductions scenario
+
+**Leave Validation Tests**:
+- Leave request creation
+- Overlapping leave detection
+- Different dates allowed
+- Approved leave blocking new requests
+
+**E2E Browser Tests** (`test_e2e.py`):
+- Employee list view access
+- Employee create view access
+- Employee edit view access
+- Leave request submission
+- Admin leave request viewing
+- HR dashboard access
+- Main dashboard HR snapshot
+
+### Running Tests
+```bash
+# Full test suite
+python3 -m pytest hr/tests/ -v
+
+# Using test.sh script
+./test.sh
+```
+
+### Validation
+- ✅ All 34 HR tests pass
+- ✅ Pytest discovers all test modules
+- ✅ Fixtures properly scoped to test database
+- ✅ Django test client works with authentication
 
