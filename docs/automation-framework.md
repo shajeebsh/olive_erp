@@ -8,7 +8,7 @@ OliveERP uses a **4-layer test automation framework** for comprehensive testing 
 
 ```
 olive_erp/
-├── test/                           # Automation framework root
+├── tests/                          # Automation framework root
 │   ├── config/                     # Layer 4 - Configuration
 │   │   ├── __init__.py
 │   │   ├── settings.py             # Environment-specific settings via python-decouple
@@ -29,20 +29,28 @@ olive_erp/
 │   │   ├── base_service.py        # Base REST API client
 │   │   ├── hr_service.py          # HR module API service
 │   │   ├── finance_service.py     # Finance module API service
-│   │   ├── inventory_service.py    # Inventory module API service
+│   │   ├── inventory_service.py   # Inventory module API service
 │   │   └── crm_service.py         # CRM module API service
-│   └── test_hr/                    # Layer 1 - Test Layer
+│   ├── test_hr/                   # Layer 1 - HR Module Tests
+│   │   ├── __init__.py
+│   │   ├── conftest.py            # HR-specific pytest fixtures
+│   │   ├── test_logic.py         # Unit/integration tests
+│   │   ├── test_e2e.py           # E2E/browser tests
+│   │   └── test_attendance.py     # Attendance feature tests
+│   └── test_company_scoping/      # Layer 1 - Cross-Module Tests
 │       ├── __init__.py
-│       ├── conftest.py             # HR-specific pytest fixtures
-│       ├── test_logic.py           # Unit/integration tests
-│       └── test_e2e.py            # E2E/browser tests
+│       └── test_company_scoping.py  # Company scoping/isolation tests
 ```
 
 ## Layer Architecture
 
-### Layer 1: Test Layer (`test/test_hr/`, `hr/tests/`)
+### Layer 1: Test Layer (`tests/test_hr/`, `tests/test_company_scoping/`)
 
 **Purpose**: Declarative test scenarios using pytest.
+
+**Test Directories**:
+- `tests/test_hr/` - HR module-specific tests (employees, leave, attendance, payroll)
+- `tests/test_company_scoping/` - Cross-module tests (company isolation, multi-tenancy)
 
 **Characteristics**:
 - No raw locators or business logic
@@ -61,7 +69,7 @@ class TestPayrollLogic:
 
 ### Layer 2: Business Logic Layer (`test/pages/`, `test/services/`)
 
-#### UI Page Objects (`test/pages/`)
+#### UI Page Objects (`tests/pages/`)
 
 Encapsulate Playwright locators and screen actions. All page objects inherit from `BasePage`.
 
@@ -94,7 +102,7 @@ class EmployeePage(BasePage):
         return self
 ```
 
-#### API Service Objects (`test/services/`)
+#### API Service Objects (`tests/services/`)
 
 Encapsulate REST API endpoints and payloads. Support headless API testing without UI.
 
@@ -121,7 +129,7 @@ class HRService(BaseService):
         return self.get(f"/hr/employees/{employee_id}/")
 ```
 
-### Layer 3: Utilities Layer (`test/utils/`)
+### Layer 3: Utilities Layer (`tests/utils/`)
 
 #### `data_gen.py` - Data Generation
 
@@ -169,14 +177,14 @@ logger.test_end("test_name")
 logger.assertion("Expected value", expected, actual, condition)
 ```
 
-### Layer 4: Configuration Layer (`test/config/`)
+### Layer 4: Configuration Layer (`tests/config/`)
 
 #### `settings.py` - Environment Configuration
 
 Uses `python-decouple` for environment-specific settings:
 
 ```python
-from test.config.settings import settings
+from tests.config.settings import settings
 
 BASE_URL = settings.BASE_URL
 BROWSER = settings.BROWSER
@@ -214,7 +222,7 @@ def base_url(test_environment):
 
 ## Test Fixtures
 
-### HR-Specific Fixtures (`test/test_hr/conftest.py`)
+### HR-Specific Fixtures (`tests/test_hr/conftest.py`)
 
 | Fixture | Description |
 |---------|-------------|
@@ -236,29 +244,29 @@ def base_url(test_environment):
 ### pytest Commands
 
 ```bash
-# Run all tests (both new framework and legacy)
-python manage.py test
+# Run all tests
+pytest
 
-# Run new framework tests only
-pytest test/test_hr/
+# Run HR module tests
+pytest tests/test_hr/
 
-# Run legacy HR tests
-pytest hr/tests/
+# Run company scoping tests
+pytest tests/test_company_scoping/
 
 # Run with Playwright UI tests
-pytest test/test_hr/ --headed
+pytest tests/test_hr/ --headed
 
 # Run with slow motion for debugging
-pytest test/test_hr/ --slowmo=500
+pytest tests/test_hr/ --slowmo=500
 
 # Run with coverage
-pytest --cov=. test/test_hr/
+pytest --cov=. tests/
 
 # Run specific test class
-pytest test/test_hr/test_logic.py::TestPayrollLogic
+pytest tests/test_hr/test_logic.py::TestPayrollLogic
 
 # Run specific test
-pytest test/test_hr/test_logic.py::TestPayrollLogic::test_payslip_net_calculation_basic
+pytest tests/test_hr/test_logic.py::TestPayrollLogic::test_payslip_net_calculation_basic
 ```
 
 ### pytest.ini Configuration
@@ -270,8 +278,30 @@ python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 addopts = -v --tb=short
-testpaths = test/test_hr hr/tests
+testpaths = tests/test_hr tests/test_company_scoping
 ```
+
+## Test Categories
+
+### HR Module Tests (`tests/test_hr/`)
+
+| File | Description |
+|------|-------------|
+| `test_logic.py` | Payroll, leave validation, attendance logic tests |
+| `test_e2e.py` | End-to-end workflow tests (employee lifecycle, leave workflow) |
+| `test_attendance.py` | Attendance-on-login feature tests |
+
+### Company Scoping Tests (`tests/test_company_scoping/`)
+
+| File | Description |
+|------|-------------|
+| `test_company_scoping.py` | Multi-tenancy isolation tests across modules |
+
+**Scope**: Tests that data from one company is not visible to another company. Covers:
+- Projects & Tasks
+- Suppliers & Purchase Orders
+- Products & Inventory
+- Warehouses & Stock Movements
 
 ## Dependencies
 
@@ -296,7 +326,7 @@ playwright install chromium
 
 To migrate existing tests to this framework:
 
-1. **Move test files** to appropriate layer (`test/test_hr/`, `test/services/`, etc.)
+1. **Move test files** to appropriate layer (`tests/test_hr/`, `tests/test_company_scoping/`, etc.)
 2. **Replace raw locators** with Page Object calls
 3. **Replace direct API calls** with Service Object calls
 4. **Use `db_helper`** for test data setup

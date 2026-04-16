@@ -470,7 +470,7 @@ OliveERP uses a **4-layer automation framework** for all test automation (UI and
 
 ### Directory Structure
 ```
-test/
+tests/
 ├── config/                    # Layer 4 - Configuration
 │   ├── __init__.py
 │   ├── settings.py            # Environment-specific settings via python-decouple
@@ -501,7 +501,7 @@ test/
 
 ### Layer Descriptions
 
-#### Layer 1 – Test Layer (`tests/test_hr/`, `hr/tests/`)
+#### Layer 1 – Test Layer (`tests/test_hr/`, `tests/test_company_scoping/`)
 - **Purpose**: Declarative test scenarios using pytest
 - **Constraint**: No raw locators or business logic; only calls to Layer 2 objects and assertions
 - **Files**: `test_*.py` with `Test*` classes
@@ -545,7 +545,7 @@ python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 addopts = -v --tb=short
-testpaths = test/test_hr hr/tests
+testpaths = tests/test_hr tests/test_company_scoping
 ```
 
 **requirements_test.txt**:
@@ -567,13 +567,13 @@ allure-pytest>=2.13.0
 python manage.py test
 
 # Run new framework tests only
-pytest test/test_hr/
+pytest tests/test_hr/
 
-# Run legacy HR tests
-pytest hr/tests/
+# Run company scoping tests
+pytest tests/test_company_scoping/
 
 # Run with Playwright UI tests
-pytest test/test_hr/ --headed
+pytest tests/test_hr/ --headed
 ```
 
 ### Migration Pattern
@@ -587,9 +587,9 @@ To migrate existing tests to this framework:
 
 ### Test Commands
 - Default: `python manage.py test` (includes all 38+ tests)
-- New framework: `pytest test/test_hr/`
-- Legacy tests: `pytest hr/tests/`
-- With coverage: `pytest --cov=. test/test_hr/`
+- New framework: `pytest tests/test_hr/`
+- Company scoping tests: `pytest tests/test_company_scoping/`
+- With coverage: `pytest --cov=. tests/test_hr/`
 
 ---
 
@@ -2259,9 +2259,9 @@ requirements_test.txt:
 
 ### Configuration
 - `pytest.ini` - Root configuration with Django settings module
-- `hr/tests/conftest.py` - Shared pytest fixtures
+- `tests/test_hr/conftest.py` - HR-specific pytest fixtures
 
-### Fixtures (`hr/tests/conftest.py`)
+### Fixtures (`tests/test_hr/conftest.py`)
 - `test_company` - Creates test company
 - `erp_admin_role` - Creates/gets ErpAdmin role
 - `test_user` - User with ErpAdmin role assigned to test company
@@ -2301,7 +2301,7 @@ requirements_test.txt:
 ### Running Tests
 ```bash
 # Full test suite
-python3 -m pytest hr/tests/ -v
+pytest tests/test_hr/ tests/test_company_scoping/
 
 # Using test.sh script
 ./test.sh
