@@ -462,6 +462,136 @@ qs = Model.objects.filter(company=company)
 
 ---
 
+## 11b. 4-Layer Scalable Automation Framework (April 2026)
+
+### Overview
+OliveERP uses a **4-layer automation framework** for all test automation (UI and API). This architecture ensures maintainability, scalability, and clear separation of concerns.
+
+### Directory Structure
+```
+autoscripts/tests/
+├── config/                    # Layer 4 - Configuration
+│   ├── __init__.py
+│   ├── settings.py            # Environment-specific settings via python-decouple
+│   └── conftest.py            # Config-level pytest fixtures
+├── utils/                     # Layer 3 - Utilities
+│   ├── __init__.py
+│   ├── data_gen.py            # Faker-based dynamic data generation
+│   ├── db_helper.py           # Django ORM wrappers for test setup
+│   └── logger.py              # Standardized execution logging
+├── pages/                     # Layer 2 - UI Page Objects
+│   ├── __init__.py
+│   ├── base_page.py           # BasePage with Playwright wrappers
+│   ├── employee_page.py       # Employee page object
+│   ├── leave_page.py         # Leave management page object
+│   └── dashboard_page.py     # Dashboard page object
+├── services/                  # Layer 2 - API Service Objects
+│   ├── __init__.py
+│   ├── hr_service.py          # HR module API service
+│   ├── finance_service.py     # Finance module API service
+│   ├── inventory_service.py   # Inventory module API service
+│   └── crm_service.py         # CRM module API service
+└── test_hr/                   # Layer 1 - Test Layer
+    ├── __init__.py
+    ├── conftest.py            # HR-specific pytest fixtures
+    ├── test_logic.py          # Unit/integration tests
+    └── test_e2e.py            # E2E/browser tests
+```
+
+### Layer Descriptions
+
+#### Layer 1 – Test Layer (`tests/test_hr/`, `hr/tests/`)
+- **Purpose**: Declarative test scenarios using pytest
+- **Constraint**: No raw locators or business logic; only calls to Layer 2 objects and assertions
+- **Files**: `test_*.py` with `Test*` classes
+- **Example**:
+  ```python
+  def test_employee_list_view(self, authenticated_client, test_employee):
+      response = authenticated_client.get('/hr/employees/')
+      assert response.status_code == 200
+  ```
+
+#### Layer 2 – Business Logic Layer (`tests/pages/`, `tests/services/`)
+- **UI Page Objects** (`tests/pages/`):
+  - Encapsulate Playwright locators and screen actions
+  - Inherit from `BasePage` for common operations
+  - Example: `EmployeePage.submit_form()`, `LeavePage.approve_leave()`
+- **API Service Objects** (`tests/services/`):
+  - Encapsulate API endpoints and payloads
+  - Support headless testing without UI
+  - Example: `HRService.list_employees()`, `FinanceService.create_invoice()`
+
+#### Layer 3 – Utilities Layer (`tests/utils/`)
+- **`data_gen.py`**: Dynamic test data using `Faker` (names, addresses, employee IDs, etc.)
+- **`db_helper.py`**: Django ORM wrappers (`get_or_create_*` patterns) for test setup
+- **`logger.py`**: Standardized execution logging for test lifecycle, steps, and assertions
+
+#### Layer 4 – Configuration Layer (`tests/config/`)
+- **`settings.py`**: Environment-specific variables using `python-decouple`
+  - Supports `dev`, `staging`, `prod` environments
+  - Manages secrets (credentials, tokens)
+  - Browser configuration (headless, slowmo)
+  - Database settings for tests
+- **`conftest.py`**: Shared config-level fixtures
+
+### Test Configuration
+
+**pytest.ini**:
+```ini
+[pytest]
+DJANGO_SETTINGS_MODULE = wagtailerp.settings.base
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = -v --tb=short
+testpaths = autoscripts/tests/test_hr hr/tests
+```
+
+**requirements_test.txt**:
+```
+pytest>=8.0.0
+pytest-django>=4.8.0
+playwright>=1.40.0
+pytest-playwright>=0.4.0
+python-decouple>=3.8
+faker>=20.0.0
+requests>=2.31.0
+allure-pytest>=2.13.0
+```
+
+### Running Tests
+
+```bash
+# Run all tests (both legacy and new framework)
+python manage.py test
+
+# Run new framework tests only
+pytest autoscripts/tests/test_hr/
+
+# Run legacy HR tests
+pytest hr/tests/
+
+# Run with Playwright UI tests
+pytest autoscripts/tests/test_hr/ --headed
+```
+
+### Migration Pattern
+To migrate existing tests to this framework:
+1. Move test files to appropriate layer
+2. Replace raw locators with Page Object calls
+3. Replace direct API calls with Service Object calls
+4. Use `db_helper` for test data setup
+5. Use `data_gen` for dynamic test data
+6. Use `logger` for execution tracking
+
+### Test Commands
+- Default: `python manage.py test` (includes all 38+ tests)
+- New framework: `pytest autoscripts/tests/test_hr/`
+- Legacy tests: `pytest hr/tests/`
+- With coverage: `pytest --cov=. autoscripts/tests/test_hr/`
+
+---
+
 ## 12. System Diagnostics & Admin Tools (April 2026)
 
 OliveERP includes a comprehensive admin diagnostics suite accessible via the Wagtail admin sidebar under "System Tools".
