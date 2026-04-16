@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from company.models import CompanyProfile
 from hr.models import Employee, Department, LeaveRequest, Attendance
 from core.models import Role, UserRole
-from autoscripts.tests.utils import data_gen, db_helper, logger
+from tests.utils import data_gen, db_helper, logger
 
 User = get_user_model()
 

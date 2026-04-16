@@ -390,6 +390,7 @@ qs = Model.objects.filter(company=company)
 ### Feature Documentation
 - **[Attendance Tracking](feature-attendance.md)** - Automatic attendance recording on login, duplicate prevention, end-to-end scenarios
 - **[Company Scoping](architecture-company-scoping.md)** - How company scoping works across modules
+- **[Automation Framework](automation-framework.md)** - 4-layer test automation framework with Page Objects, API Services, and utilities
 
 ### Required Environment Variables
 - `SECRET_KEY` - Django secret key
@@ -469,7 +470,7 @@ OliveERP uses a **4-layer automation framework** for all test automation (UI and
 
 ### Directory Structure
 ```
-autoscripts/tests/
+test/
 ├── config/                    # Layer 4 - Configuration
 │   ├── __init__.py
 │   ├── settings.py            # Environment-specific settings via python-decouple
@@ -544,7 +545,7 @@ python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 addopts = -v --tb=short
-testpaths = autoscripts/tests/test_hr hr/tests
+testpaths = test/test_hr hr/tests
 ```
 
 **requirements_test.txt**:
@@ -566,13 +567,13 @@ allure-pytest>=2.13.0
 python manage.py test
 
 # Run new framework tests only
-pytest autoscripts/tests/test_hr/
+pytest test/test_hr/
 
 # Run legacy HR tests
 pytest hr/tests/
 
 # Run with Playwright UI tests
-pytest autoscripts/tests/test_hr/ --headed
+pytest test/test_hr/ --headed
 ```
 
 ### Migration Pattern
@@ -586,9 +587,9 @@ To migrate existing tests to this framework:
 
 ### Test Commands
 - Default: `python manage.py test` (includes all 38+ tests)
-- New framework: `pytest autoscripts/tests/test_hr/`
+- New framework: `pytest test/test_hr/`
 - Legacy tests: `pytest hr/tests/`
-- With coverage: `pytest --cov=. autoscripts/tests/test_hr/`
+- With coverage: `pytest --cov=. test/test_hr/`
 
 ---
 
