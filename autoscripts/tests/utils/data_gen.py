@@ -45,8 +45,8 @@ class DataGenerator:
     
     @staticmethod
     def generate_salary(min_val=30000, max_val=150000):
-        return round(fake.pydecimal(left_digits=5, right_digits=2, 
-                                     positive=True, min_value=min_val, max_value=max_val), 2)
+        import random
+        return round(random.uniform(min_val, max_val), 2)
     
     @staticmethod
     def generate_date(start_date=None, end_date=None):
