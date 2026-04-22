@@ -496,7 +496,8 @@ tests/
     ├── __init__.py
     ├── conftest.py            # HR-specific pytest fixtures
     ├── test_logic.py          # Unit/integration tests
-    └── test_e2e.py            # E2E/browser tests
+    ├── test_e2e_api.py        # API/integration tests (Django test client)
+    └── test_e2e.py            # E2E/browser smoke tests (Playwright + live_server)
 ```
 
 ### Layer Descriptions
@@ -2260,6 +2261,7 @@ requirements_test.txt:
 ### Configuration
 - `pytest.ini` - Root configuration with Django settings module
 - `tests/test_hr/conftest.py` - HR-specific pytest fixtures
+- `tests/config/conftest.py` - Global pytest fixtures (Playwright failure screenshots, environment URLs)
 
 ### Fixtures (`tests/test_hr/conftest.py`)
 - `test_company` - Creates test company
@@ -2274,7 +2276,8 @@ requirements_test.txt:
 | File | Type | Coverage |
 |------|------|----------|
 | `test_logic.py` | Unit/Integration | Payroll calculation, leave validation |
-| `test_e2e.py` | Integration | Employee lifecycle, leave workflow, dashboard |
+| `test_e2e_api.py` | Integration/API | Employee lifecycle, leave workflow, dashboard (Django test client) |
+| `test_e2e.py` | E2E/Browser | Smoke coverage using Playwright against `live_server` |
 
 ### Test Scenarios
 
@@ -2289,14 +2292,13 @@ requirements_test.txt:
 - Different dates allowed
 - Approved leave blocking new requests
 
+**API/Integration Tests** (`test_e2e_api.py`):
+- Employee list/create/detail endpoints
+- Leave request create/list endpoints
+- HR dashboard + main dashboard responses
+
 **E2E Browser Tests** (`test_e2e.py`):
-- Employee list view access
-- Employee create view access
-- Employee edit view access
-- Leave request submission
-- Admin leave request viewing
-- HR dashboard access
-- Main dashboard HR snapshot
+- Admin login + employee list page loads (Playwright)
 
 ### Running Tests
 ```bash
@@ -2308,8 +2310,6 @@ pytest tests/test_hr/ tests/test_company_scoping/
 ```
 
 ### Validation
-- ✅ All 34 HR tests pass
 - ✅ Pytest discovers all test modules
-- ✅ Fixtures properly scoped to test database
-- ✅ Django test client works with authentication
-
+- ✅ Django test client works with authentication fixtures
+- ✅ Playwright browser tests can capture screenshots on failure (written to `test-results/`)
