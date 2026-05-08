@@ -23,7 +23,9 @@ def navigation_menu(request):
     def is_module_enabled(module_name):
         mod_slug = module_map.get(module_name)
         if mod_slug:
-            return company.is_module_enabled(mod_slug)
+            if company:
+                return company.is_module_enabled(mod_slug)
+            return False
         return True  # Always show Dashboard and non-module items
     
     modules = [
